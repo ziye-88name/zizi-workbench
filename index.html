@@ -4468,6 +4468,13 @@ function expandRecurringChecklist(dKey) {
       }
     });
   });
+  // 按优先级排序：最高 > 高 > 中 > 低 > 无，同级保持原顺序（稳定排序）
+  native.forEach((it, idx) => { it.__seq = idx; });
+  const PRIORITY_RANK = { high: 4, medium: 3, low: 2, none: 0 };
+  native.sort((a, b) => {
+    const d = (PRIORITY_RANK[b.priority || 'none'] || 0) - (PRIORITY_RANK[a.priority || 'none'] || 0);
+    return d !== 0 ? d : (a.__seq || 0) - (b.__seq || 0);
+  });
   return native;
 }
 
