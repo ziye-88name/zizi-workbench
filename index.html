@@ -1548,35 +1548,85 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 #panel-travel .travel-empty img {
   width: 120px; opacity: 0.7; margin-bottom: 12px;
 }
-#panel-travel .travel-itinerary-day {
+.travel-itinerary-day {
   border-left: 3px solid var(--primary); padding: 10px 14px;
   margin: 8px 0; background: var(--bg); border-radius: 0 12px 12px 0;
 }
-#panel-travel .travel-itinerary-day .it-date {
+.travel-itinerary-day .it-date {
   font-weight: 800; color: var(--primary-dark); margin-bottom: 6px;
 }
-#panel-travel .travel-itinerary-day .it-item {
+.travel-itinerary-day .it-item {
   display: flex; align-items: flex-start; gap: 10px; padding: 8px 0;
   border-bottom: 1px dashed var(--border);
 }
-#panel-travel .travel-itinerary-day .it-item:last-child { border-bottom: none; }
-#panel-travel .travel-itinerary-day .it-time {
+.travel-itinerary-day .it-item:last-child { border-bottom: none; }
+.travel-itinerary-day .it-time {
   flex: 0 0 52px; font-size: 13px; font-weight: 700; color: var(--text-secondary);
 }
-#panel-travel .travel-itinerary-day .it-body { flex: 1; }
-#panel-travel .travel-itinerary-day .it-place {
+.travel-itinerary-day .it-body { flex: 1; }
+.travel-itinerary-day .it-place {
   font-weight: 700; color: var(--text);
 }
-#panel-travel .travel-itinerary-day .it-type {
+.travel-itinerary-day .it-type {
   font-size: 12px; color: var(--accent); margin-top: 2px;
 }
-#panel-travel .travel-itinerary-day .it-note {
+.travel-itinerary-day .it-note {
   font-size: 12px; color: var(--text-secondary); margin-top: 2px;
 }
-#panel-travel .travel-itinerary-day .it-img {
+.travel-itinerary-day .it-img {
   width: 100%; height: 100px; border-radius: 10px; background: #eee;
   display: flex; align-items: center; justify-content: center;
   color: #bbb; font-size: 13px; margin-top: 6px;
+}
+
+/* 行程单编辑器 */
+.travel-itinerary-tabs {
+  display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 10px;
+  border-bottom: 1px solid var(--border); margin-bottom: 12px;
+}
+.travel-itinerary-tabs::-webkit-scrollbar { display: none; }
+.travel-itinerary-tab {
+  flex: 0 0 auto; padding: 8px 14px; border-radius: 999px;
+  background: var(--bg); color: var(--text-secondary); font-size: 13px;
+  font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.travel-itinerary-tab.active {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #fff;
+}
+.travel-itinerary-content { min-height: 180px; }
+.travel-itinerary-empty { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+.travel-itinerary-add {
+  display: flex; align-items: center; gap: 8px; color: var(--primary-dark);
+  font-size: 14px; font-weight: 700; cursor: pointer; margin: 10px 0;
+}
+.it-form {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 12px; margin: 8px 0;
+}
+.it-form-row { margin-bottom: 10px; }
+.it-form-row label {
+  display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;
+}
+.it-form-row input, .it-form-row select, .it-form-row textarea {
+  width: 100%; padding: 8px 10px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-family: inherit; font-size: 14px; box-sizing: border-box;
+}
+.it-form-row input[type="time"] { width: 120px; }
+.it-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.it-form-actions button { padding: 6px 12px; border-radius: 10px; font-size: 13px; }
+.it-form-actions .btn-outline {
+  background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary);
+}
+.it-form-actions .btn-primary { border: none; background: var(--primary); color: #fff; }
+.it-item.editing { background: rgba(129,199,132,0.08); border-radius: 10px; padding: 8px; }
+.it-type-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  background: var(--primary-light); color: var(--primary-dark); font-size: 11px;
+  margin-right: 6px;
+}
+.travel-itinerary-foot {
+  display: flex; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 8px;
 }
 #panel-travel .travel-visited-list {
   display: flex; flex-direction: column; gap: 10px;
@@ -1598,7 +1648,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 }
 
 /* 卡片 */
-#panel-expense .kitty-card {
 #panel-expense .kitty-card {
   background: rgba(255,255,255,0.74);
   backdrop-filter: blur(10px);
@@ -12668,6 +12717,13 @@ const budSet = document.getElementById('ovBudgetSetting'); if(budSet) budSet.tex
 window.__appReady = true;
 
 // ===================== 逃离计划 =====================
+function formatDateYMD(d) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
+
 const TRAVEL_CITIES = [
   { name: '北京', country: '中国', lat: 39.9042, lng: 116.4074 },
   { name: '上海', country: '中国', lat: 31.2304, lng: 121.4737 },
@@ -12684,7 +12740,25 @@ const TRAVEL_CITIES = [
   { name: '悉尼', country: '澳大利亚', lat: -33.8688, lng: 151.2093 },
   { name: '曼谷', country: '泰国', lat: 13.7563, lng: 100.5018 },
   { name: '首尔', country: '韩国', lat: 37.5665, lng: 126.9780 },
-  { name: '新加坡', country: '新加坡', lat: 1.3521, lng: 103.8198 }
+  { name: '新加坡', country: '新加坡', lat: 1.3521, lng: 103.8198 },
+  { name: '大理', country: '中国', lat: 25.6065, lng: 100.2676 },
+  { name: '丽江', country: '中国', lat: 26.8722, lng: 100.2290 },
+  { name: '三亚', country: '中国', lat: 18.2528, lng: 109.5121 },
+  { name: '深圳', country: '中国', lat: 22.5431, lng: 114.0579 },
+  { name: '厦门', country: '中国', lat: 24.4798, lng: 118.0894 },
+  { name: '苏州', country: '中国', lat: 31.2990, lng: 120.5853 },
+  { name: '青岛', country: '中国', lat: 36.0671, lng: 120.3826 },
+  { name: '香港', country: '中国', lat: 22.3193, lng: 114.1694 },
+  { name: '澳门', country: '中国', lat: 22.1987, lng: 113.5439 },
+  { name: '武汉', country: '中国', lat: 30.5928, lng: 114.3055 },
+  { name: '长沙', country: '中国', lat: 28.2282, lng: 112.9388 },
+  { name: '南京', country: '中国', lat: 32.0603, lng: 118.7969 },
+  { name: '昆明', country: '中国', lat: 25.0389, lng: 102.7183 },
+  { name: '桂林', country: '中国', lat: 25.2743, lng: 110.2990 },
+  { name: '哈尔滨', country: '中国', lat: 45.8038, lng: 126.5350 },
+  { name: '拉萨', country: '中国', lat: 29.6500, lng: 91.1000 },
+  { name: '京都', country: '日本', lat: 35.0116, lng: 135.7681 },
+  { name: '普吉岛', country: '泰国', lat: 7.8804, lng: 98.3923 }
 ];
 
 const SEED_SPOTS = [
@@ -12711,6 +12785,9 @@ let travelPlanMarkers = [];
 let travelTrailLayer = null;
 let travelPickedCoord = null;
 let travelDetailPlanId = null;
+let travelDetailDates = [];
+let travelDetailActiveDate = null;
+let travelDetailEditingItemId = null;
 let _leafletReady = null;
 
 const LEAFLET_CDNS = [
@@ -12895,7 +12972,7 @@ function renderTravelPlans() {
       <div class="plan-title">${escapeHtml(p.title)}</div>
       <div class="plan-meta">📍 ${escapeHtml(p.destination || '未选目的地')} · 📅 ${p.start || '?'} 至 ${p.end || '?'} · ${days} 天</div>
       <div class="plan-tags">
-        <span class="plan-tag">🗓️ ${(p.itinerary || []).length} 个行程</span>
+        <span class="plan-tag">🗓️ ${(p.itinerary || []).filter(i => (i.place || '').trim()).length} 个安排</span>
         <span class="plan-tag">${p.destLat ? '📍 已选坐标' : '✏️ 未选坐标'}</span>
       </div>
     </div>`;
@@ -12978,58 +13055,150 @@ function savePlan() {
   saveTravelData();
   closePlanModal();
   renderTravelPlans();
-  showToast('✅ 旅行计划已保存');
+  showToast('✅ 旅行计划已保存，开始排行程吧');
+  openPlanDetail(plan.id);
 }
 function generateItinerary(start, end) {
+  // 每天先给一个空白占位项，方便用户直接点开填写；空项保存时不计入展示
   const list = [];
   const s = new Date(start), e = new Date(end);
   for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
     list.push({
       id: 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7) + '_' + list.length,
       date: formatDateYMD(new Date(d)),
-      place: '', type: '观光', note: '', img: ''
+      place: '', type: '观光', note: '', time: '', img: ''
     });
   }
   return list;
+}
+
+const IT_TYPES = ['景点', '美食', '交通', '住宿', '购物', '其他'];
+const WEEK_CN = ['周日','周一','周二','周三','周四','周五','周六'];
+function travelDateLabel(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return mm + '.' + dd + ' ' + WEEK_CN[d.getDay()];
+}
+function travelPlanDates(plan) {
+  const out = [];
+  const s = new Date(plan.start), e = new Date(plan.end);
+  if (isNaN(s) || isNaN(e)) return out;
+  for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) out.push(formatDateYMD(new Date(d)));
+  return out;
 }
 
 function openPlanDetail(planId) {
   const plan = (travelData.plans || []).find(p => p.id === planId);
   if (!plan) return;
   travelDetailPlanId = planId;
-  document.getElementById('planDetailTitle').textContent = '📍 ' + plan.title;
-  const grouped = {};
-  (plan.itinerary || []).forEach(it => {
-    if (!grouped[it.date]) grouped[it.date] = [];
-    grouped[it.date].push(it);
-  });
-  const dates = Object.keys(grouped).sort();
-  let html = '';
-  if (dates.length === 0) {
-    html = '<div class="travel-empty">暂无行程，点击下方按钮逐日添加。</div>';
-  } else {
-    html = dates.map(date => {
-      const items = grouped[date];
-      return `<div class="travel-itinerary-day">
-        <div class="it-date">📅 ${date}</div>
-        ${items.map((it, idx) => `
-          <div class="it-item">
-            <div class="it-time">${it.time || '--:--'}</div>
-            <div class="it-body">
-              <div class="it-place">${escapeHtml(it.place || '未命名地点')}</div>
-              <div class="it-type">${escapeHtml(it.type || '其他')}</div>
-              ${it.note ? '<div class="it-note">' + escapeHtml(it.note) + '</div>' : ''}
-              <div class="it-img">📷 图片占位</div>
-            </div>
-          </div>
-        `).join('')}
-      </div>`;
-    }).join('');
-  }
-  document.getElementById('planDetailBody').innerHTML = html;
+  travelDetailDates = travelPlanDates(plan);
+  travelDetailActiveDate = travelDetailDates[0] || null;
+  travelDetailEditingItemId = null;
+  document.getElementById('planDetailTitle').textContent = '📍 ' + plan.title + ' · ' + (plan.start || '') + ' ~ ' + (plan.end || '');
+  renderItineraryEditor();
   document.getElementById('travelPlanDetailModal').classList.add('open');
 }
-function closePlanDetail() { document.getElementById('travelPlanDetailModal').classList.remove('open'); travelDetailPlanId = null; }
+
+function renderItineraryEditor() {
+  const plan = (travelData.plans || []).find(p => p.id === travelDetailPlanId);
+  if (!plan) return;
+  const body = document.getElementById('planDetailBody');
+  // 顶部日期 Tab
+  let tabs = travelDetailDates.map(date =>
+    `<div class="travel-itinerary-tab ${date === travelDetailActiveDate ? 'active' : ''}" onclick="travelSwitchDay('${date}')">${travelDateLabel(date)}</div>`
+  ).join('');
+  const items = (plan.itinerary || []).filter(it => it.date === travelDetailActiveDate);
+  items.sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+
+  let content = '';
+  if (items.length === 0) {
+    content = '<div class="travel-itinerary-empty">这一天还没有安排，点击下方「➕ 添加安排」吧 ✈️</div>';
+  } else {
+    content = items.map(it => renderItineraryItem(plan, it)).join('');
+  }
+  content += `<div class="travel-itinerary-add" onclick="travelAddItem('${travelDetailActiveDate}')">➕ 添加安排</div>`;
+
+  body.innerHTML = `<div class="travel-itinerary-tabs">${tabs}</div><div class="travel-itinerary-content">${content}</div>`;
+}
+
+function renderItineraryItem(plan, it) {
+  if (travelDetailEditingItemId === it.id) {
+    const opts = IT_TYPES.map(t => `<option value="${t}" ${it.type === t ? 'selected' : ''}>${t}</option>`).join('');
+    return `<div class="it-form" data-item="${it.id}">
+      <div class="it-form-row" style="display:flex;gap:10px;">
+        <div style="flex:0 0 120px"><label>时间</label><input type="time" id="it_time_${it.id}" value="${it.time || ''}"></div>
+        <div style="flex:1"><label>类型</label><select id="it_type_${it.id}">${opts}</select></div>
+      </div>
+      <div class="it-form-row"><label>地点 *</label><input id="it_place_${it.id}" placeholder="如：大理古城" value="${escapeHtml(it.place || '')}"></div>
+      <div class="it-form-row"><label>备注</label><textarea id="it_note_${it.id}" rows="2" placeholder="小贴士 / 费用 / 同行人…">${escapeHtml(it.note || '')}</textarea></div>
+      <div class="it-form-row"><label>图片</label><div class="it-img">📷 图片占位（后续支持上传）</div></div>
+      <div class="it-form-actions">
+        <button class="btn-outline" style="color:#E57373;border-color:#ffcdd2" onclick="travelDeleteItem('${it.id}')">删除</button>
+        <button class="btn-outline" onclick="travelCancelEditItem()">取消</button>
+        <button class="btn-primary" onclick="travelSaveItem('${it.id}')">保存</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="it-item" onclick="travelEditItem('${it.id}')">
+    <div class="it-time">${it.time || '--:--'}</div>
+    <div class="it-body">
+      <div><span class="it-type-badge">${escapeHtml(it.type || '其他')}</span><span class="it-place">${escapeHtml(it.place || '未命名地点')}</span></div>
+      ${it.note ? '<div class="it-note">' + escapeHtml(it.note) + '</div>' : ''}
+    </div>
+  </div>`;
+}
+
+function travelSwitchDay(date) { travelDetailActiveDate = date; travelDetailEditingItemId = null; renderItineraryEditor(); }
+function travelEditItem(itemId) { travelDetailEditingItemId = itemId; renderItineraryEditor(); }
+function travelCancelEditItem() { travelDetailEditingItemId = null; renderItineraryEditor(); }
+function travelAddItem(date) {
+  const plan = (travelData.plans || []).find(p => p.id === travelDetailPlanId);
+  if (!plan) return;
+  if (!plan.itinerary) plan.itinerary = [];
+  const newItem = {
+    id: 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    date: date, place: '', type: '景点', note: '', time: '', img: ''
+  };
+  plan.itinerary.push(newItem);
+  saveTravelData();
+  travelDetailEditingItemId = newItem.id;
+  renderItineraryEditor();
+}
+function travelSaveItem(itemId) {
+  const plan = (travelData.plans || []).find(p => p.id === travelDetailPlanId);
+  if (!plan) return;
+  const it = (plan.itinerary || []).find(x => x.id === itemId);
+  if (!it) return;
+  const place = document.getElementById('it_place_' + itemId).value.trim();
+  if (!place) { showToast('请填写地点'); return; }
+  it.time = document.getElementById('it_time_' + itemId).value;
+  it.type = document.getElementById('it_type_' + itemId).value;
+  it.place = place;
+  it.note = document.getElementById('it_note_' + itemId).value.trim();
+  saveTravelData();
+  travelDetailEditingItemId = null;
+  renderItineraryEditor();
+  renderTravelPlans();
+  showToast('✅ 已保存');
+}
+function travelDeleteItem(itemId) {
+  const plan = (travelData.plans || []).find(p => p.id === travelDetailPlanId);
+  if (!plan) return;
+  showConfirm('删除这个行程安排吗？', () => {
+    plan.itinerary = (plan.itinerary || []).filter(x => x.id !== itemId);
+    saveTravelData();
+    travelDetailEditingItemId = null;
+    renderItineraryEditor();
+    renderTravelPlans();
+  });
+}
+function closePlanDetail() {
+  document.getElementById('travelPlanDetailModal').classList.remove('open');
+  travelDetailPlanId = null; travelDetailDates = []; travelDetailActiveDate = null; travelDetailEditingItemId = null;
+  renderTravelPlans();
+}
 function deleteCurrentPlan() {
   if (!travelDetailPlanId) return;
   showConfirm('确定删除该旅行计划吗？', () => {
