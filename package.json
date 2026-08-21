@@ -1,0 +1,10 @@
+{
+  "name": "zizi-workbench",
+  "version": "2.0.0",
+  "private": true,
+  "description": "鹦趣工作台 v2.0 - 单文件前端 + 原生 Node 静态/同步服务",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
