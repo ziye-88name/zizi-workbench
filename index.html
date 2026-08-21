@@ -2379,6 +2379,31 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .k2-social-edit { border: none; background: #EAF1FB; color: #6C8CD5; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; font-size: 13px; flex-shrink: 0; }
 .k2-social-empty { text-align: center; padding: 30px; color: #9C95A8; }
 
+/* ===== 内容复盘：自动保存提示 ===== */
+.review-autosave-tip { font-size: 12px; color: var(--text-secondary); margin: 0 0 14px; }
+
+/* ===== 选品：类型筛选 chips（可在类型后方重命名 / 删除） ===== */
+.prod-type-filter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.ptf-chip { display: inline-flex; align-items: center; gap: 2px; padding: 6px 10px; border-radius: 999px; background: var(--primary-light); color: var(--primary-dark); font-size: 13px; cursor: pointer; border: 1px solid transparent; transition: all .15s; }
+.ptf-chip:hover { border-color: var(--primary); }
+.ptf-chip.active { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; }
+.ptf-name { padding: 0 2px; }
+.ptf-edit, .ptf-del { border: none; background: transparent; cursor: pointer; font-size: 12px; line-height: 1; padding: 2px 4px; border-radius: 6px; }
+.ptf-edit:hover { background: rgba(0,0,0,.08); }
+.ptf-del:hover { background: rgba(229,57,53,.15); }
+
+/* ===== 岁岁花销记：攒钱目标「已拥有」按钮 ===== */
+.savings-subpane-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.k2-add-narrow { padding: 8px 14px; font-size: 14px; }
+.k2-owned-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px dashed var(--primary); border-radius: 12px; background: var(--primary-light); color: var(--primary-dark); font-size: 14px; cursor: pointer; transition: all .15s; }
+.k2-owned-btn:hover { background: #fff; }
+.k2-owned-btn.active { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; border-style: solid; }
+.k2-owned-count { display: inline-flex; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: rgba(0,0,0,.12); font-size: 12px; align-items: center; justify-content: center; }
+.k2-owned-btn.active .k2-owned-count { background: rgba(255,255,255,.3); }
+
+/* ===== 养鸟知识：富文本编辑区 ===== */
+.modal-rich { min-height: 180px; }
+
 </style>
 </head>
 <body>
@@ -2829,11 +2854,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
               <button class="btn btn-primary btn-sm" onclick="addProductRow()">➕ 添加选品</button>
             </div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
-              <label style="font-size:13px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;">🔍 按类型筛选：
-                <select id="prodTypeFilter" onchange="onProdTypeFilter(this.value)" style="padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;min-width:120px;">
-                  <option value="">全部类型</option>
-                </select>
-              </label>
+              <label style="font-size:13px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;">🔍 按类型筛选：</label>
+              <div id="prodTypeFilterBar" class="prod-type-filter-bar"></div>
             </div>
             <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">添加你关注的鹦鹉用品，记录购买理由和拍摄计划（日期倒序，支持分页）。类型可自由输入，新类型会自动加入筛选候选。</p>
             <div class="table-container">
@@ -2927,6 +2949,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           <button class="btn btn-outline" onclick="exportReviewEntry()">📋 导出当日复盘</button>
           <button class="btn btn-danger" onclick="deleteReviewEntry()">🗑️ 删除当日复盘</button>
         </div>
+        <p class="review-autosave-tip">💡 内容实时自动保存，关闭或刷新都不会丢失，无需手动点保存</p>
         <div class="review-layout">
           <div class="card review-cal-card" style="position:relative;overflow:visible;">
             <div class="card-title"><img class="module-bird" data-bird="b2_purple_heart" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">📅 内容复盘日历</div>
@@ -3237,7 +3260,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
             <!-- 攒钱目标 -->
             <div class="save-subpane" id="saveSubGoal">
               <div class="savings-subpane-head">
-                <button class="k2-big-add-btn" onclick="openSavingsModal()">+ 新建攒钱目标</button>
+                <button class="k2-big-add-btn k2-add-narrow" onclick="openSavingsModal()">+ 新建</button>
+                <button class="k2-owned-btn" id="goalOwnedBtn" onclick="toggleSavingsOwned('goal')">🎁 已拥有 <span class="k2-owned-count" id="goalOwnedCount">0</span></button>
                 <div class="coin-badge" id="coinBadge" onclick="openCoinHistory()" title="可用金币（点击查看明细）">
                   <span class="coin-ico">💰</span><span id="coinBalanceNum">0</span>
                 </div>
@@ -3247,7 +3271,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
             <!-- 心愿单 -->
             <div class="save-subpane" id="saveSubWish" style="display:none;">
               <div class="savings-subpane-head">
-                <button class="k2-big-add-btn" onclick="openWishModal()">+ 添加心愿</button>
+                <button class="k2-big-add-btn k2-add-narrow" onclick="openWishModal()">+ 添加心愿</button>
+                <button class="k2-owned-btn" id="wishOwnedBtn" onclick="toggleSavingsOwned('wish')">🎁 已拥有 <span class="k2-owned-count" id="wishOwnedCount">0</span></button>
                 <div class="coin-badge" id="coinBadgeWish" onclick="openCoinHistory()" title="可用金币（点击查看明细）">
                   <span class="coin-ico">💰</span><span id="coinBalanceNumWish">0</span>
                 </div>
@@ -8155,7 +8180,7 @@ function knTableToHTML(text) {
 // 渲染三级条目内容
 function knRenderItem(item) {
   if(item.type === 'table') return knTableToHTML(item.content);
-  return `<div class="kn-l3-text">${item.content}</div>`;
+  return `<div class="kn-l3-text">${renderKnItemContent(item.content)}</div>`;
 }
 
 // 统计二级分类下三级条目数
@@ -8536,7 +8561,7 @@ function knRenderItemEditable(item, i1, i2, i3) {
     html += '</tbody></table>';
     return html;
   }
-  return `<div class="kn-l3-text kn-editable" contenteditable="true" data-kn-edit="item_text" data-i1="${i1}" data-i2="${i2}" data-i3="${i3}" onclick="event.stopPropagation();" onblur="knSaveEdit(this)">${item.content}</div>`;
+  return `<div class="kn-l3-text kn-editable" contenteditable="true" data-kn-edit="item_text" data-i1="${i1}" data-i2="${i2}" data-i3="${i3}" onclick="event.stopPropagation();" onblur="knSaveEdit(this)">${renderKnItemContent(item.content)}</div>`;
 }
 
 // 保存 contenteditable 编辑
@@ -8559,9 +8584,10 @@ function knSaveEdit(el) {
   } else if(editType === 'item_text') {
     const i2 = parseInt(el.dataset.i2);
     const i3 = parseInt(el.dataset.i3);
+    const html = el.innerHTML;
     if(!text) { showToast('内容不能为空'); return; }
-    if(i2 < 0) userKnowledge[i1].items[i3].content = text;
-    else userKnowledge[i1].children[i2].items[i3].content = text;
+    if(i2 < 0) userKnowledge[i1].items[i3].content = html;
+    else userKnowledge[i1].children[i2].items[i3].content = html;
   }
   saveUserKnowledge();
 }
@@ -9079,6 +9105,30 @@ function knReopenL2(l1Idx, l2Idx) {
   renderKnowledge();
 }
 
+// 养鸟知识：富文本编辑（加粗、字号等文档格式）
+function execKnDocCmd(cmd, val) {
+  const el = document.getElementById('knModalContent');
+  if(!el) return;
+  el.focus();
+  try { document.execCommand(cmd, false, val || null); } catch(e) {}
+}
+// 渲染知识条目内容：富文本直接渲染（安全过滤），纯文本转义并保留换行
+function sanitizeKnHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  tmp.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(n => n.remove());
+  tmp.querySelectorAll('*').forEach(n => {
+    Array.from(n.attributes).forEach(a => { if(/^on/i.test(a.name) || /javascript:/i.test(a.value)) n.removeAttribute(a.name); });
+  });
+  return tmp.innerHTML;
+}
+function renderKnItemContent(content) {
+  if(content == null) return '';
+  const s = String(content);
+  if(/<[a-z!][\s\S]*>/i.test(s)) return sanitizeKnHtml(s);
+  return escapeHtml(s).replace(/\n/g, '<br>');
+}
+
 // ===================== 增加知识 / 加入知识库 弹窗 =====================
 // 下拉选择 + 自定义：一级分类（含「新增一级分类」），二级分类联动一级（含「新增二级分类」）
 // 额外增加「小标题」字段；prefill 可为字符串（内容）或 {subtitle, content}（百度百科加入）
@@ -9096,7 +9146,7 @@ function openKnAddModal(prefill) {
   document.getElementById('knModalSub').value = (prefill && prefill.subtitle != null) ? prefill.subtitle : '';
   const knPrefillContent = (prefill && typeof prefill === 'object' && prefill.content != null) ? prefill.content
     : (typeof prefill === 'string' ? prefill : '');
-  document.getElementById('knModalContent').value = knPrefillContent || '';
+  const knCnt = document.getElementById('knModalContent'); if(knCnt) knCnt.innerHTML = knPrefillContent || '';
   document.getElementById('knAddModalTitle').textContent = (prefill && prefill.subtitle != null) ? '📥 加入知识库' : '📥 增加知识';
   // 选中某一级分类后进入：自动带入该分类名，并提供"强制归属到所选分类"勾选
   const lockWrap = document.getElementById('knModalLockL1Wrap');
@@ -9164,7 +9214,10 @@ function saveKnAddModal() {
   const l2Val = document.getElementById('knModalL2').value;
   const l2New = (document.getElementById('knModalL2New').value || '').trim();
   const sub = (document.getElementById('knModalSub').value || '').trim();
-  const content = (document.getElementById('knModalContent').value || '').trim();
+  const knCntEl = document.getElementById('knModalContent');
+  const content = (knCntEl ? knCntEl.innerHTML : '').trim();
+  const contentText = (knCntEl ? (knCntEl.innerText || '') : '').trim();
+  if(!contentText) { showToast('请输入内容'); return; }
   if(!content) { showToast('请输入内容'); return; }
   // 若勾选"强制归属到所选一级分类"，无论下拉选了什么都以所选一级为准
   const lockChk = document.getElementById('knModalLockL1');
@@ -9276,7 +9329,7 @@ function renderKnPanel() {
         const head = sub || (item.type === 'table' ? '表格内容' : '（无小标题）');
         const body = (item.type === 'table')
           ? knTableToHTML(item.content || '')
-          : escapeHtml(item.content || '').replace(/\n/g, '<br>');
+          : renderKnItemContent(item.content);
         return `<div class="doc-section">
           <div class="doc-section-label">${escapeHtml(head)}${item.type === 'table' ? ' · 📊 表格' : ''}</div>
           <div class="doc-section-body">${body}</div>
@@ -10299,20 +10352,54 @@ function syncProdTypeFilter() {
   const used = loadProdTypes();
   const usedInRows = userProductRows.map(r => r.type).filter(Boolean);
   const all = Array.from(new Set([].concat(builtin, used, usedInRows)));
-  // 下拉
-  const sel = document.getElementById('prodTypeFilter');
-  if(sel) {
-    const cur = prodTypeFilterVal;
-    let html = '<option value="">全部类型</option>' + all.map(v => `<option value="${escapeHtml(v)}" ${cur === v ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
-    if(cur && !all.includes(cur)) html += `<option value="${escapeHtml(cur)}" selected>${escapeHtml(cur)}</option>`;
-    sel.innerHTML = html;
-  }
+  // 类型 chips（可在类型后方直接重命名 / 删除）
+  renderProdTypeFilterBar();
   // datalist
   let dl = document.getElementById('prodTypeList');
   if(!dl) { dl = document.createElement('datalist'); dl.id = 'prodTypeList'; document.body.appendChild(dl); }
   dl.innerHTML = all.map(v => `<option value="${escapeHtml(v)}">`).join('');
 }
-function onProdTypeFilter(v) { prodTypeFilterVal = v; prodPage = 1; renderProductTable(); }
+function onProdTypeFilter(v) { prodTypeFilterVal = v; prodPage = 1; renderProductTable(); renderProdTypeFilterBar(); }
+// 类型筛选 chips：点击筛选；✎ 重命名该类型（同步更新所有选品）；🗑 删除该类型（及该类型下所有选品）
+function renderProdTypeFilterBar() {
+  const bar = document.getElementById('prodTypeFilterBar');
+  if(!bar) return;
+  const builtin = ['食品', '玩具', '笼具', '保健', '清洁', '外出', '训练', '其他'];
+  const used = loadProdTypes();
+  const usedInRows = [...new Set(userProductRows.map(r => r.type).filter(Boolean))];
+  const all = Array.from(new Set([].concat(builtin, used, usedInRows)));
+  let html = `<span class="ptf-chip ${prodTypeFilterVal === '' ? 'active' : ''}" onclick="onProdTypeFilter('')">全部</span>`;
+  html += all.map(v => `<span class="ptf-chip ${prodTypeFilterVal === v ? 'active' : ''}" onclick="onProdTypeFilter('${escapeHtml(v)}')">
+    <span class="ptf-name">${escapeHtml(v)}</span>
+    <button class="ptf-edit" title="重命名类型" onclick="event.stopPropagation();editProdType('${escapeHtml(v)}')">✎</button>
+    <button class="ptf-del" title="删除类型" onclick="event.stopPropagation();deleteProdType('${escapeHtml(v)}')">🗑</button>
+  </span>`).join('');
+  bar.innerHTML = html;
+}
+function editProdType(oldName) {
+  const nv = window.prompt('修改类型名称', oldName);
+  if(nv == null) return;
+  const newName = (nv || '').trim();
+  if(!newName) { showToast('名称不能为空'); return; }
+  if(newName === oldName) return;
+  userProductRows.forEach(r => { if(r.type === oldName) r.type = newName; });
+  const types = loadProdTypes().filter(t => t !== oldName);
+  types.push(newName); saveProdTypes(types);
+  persistUserProducts();
+  renderProductTable(); syncProdTypeFilter();
+  showToast('已重命名为「' + newName + '」');
+}
+function deleteProdType(oldName) {
+  const rows = userProductRows.filter(r => r.type === oldName);
+  showConfirm('删除类型「' + oldName + '」会同时删除该分类下的 ' + rows.length + ' 件选品，确定吗？', () => {
+    userProductRows = userProductRows.filter(r => r.type !== oldName);
+    saveProdTypes(loadProdTypes().filter(t => t !== oldName));
+    if(prodTypeFilterVal === oldName) prodTypeFilterVal = '';
+    persistUserProducts();
+    renderProductTable(); syncProdTypeFilter();
+    showToast('已删除类型「' + oldName + '」');
+  }, { title:'删除类型', danger:true, okText:'删除', icon:'🗑️' });
+}
 function persistUserProducts() { localStorage.setItem('parrot_user_products', JSON.stringify(userProductRows)); onLocalDataChange(); }
 function renameProdCol(key, name) {
   const c = prodColumns.find(x => x.key === key);
@@ -10880,6 +10967,10 @@ function selectCalendarDate(dKey) {
 }
 
 function loadReviewEntry(dKey) {
+  if(!_reviewAutoBound) {
+    const fc = document.getElementById('reviewFormCard');
+    if(fc) { fc.addEventListener('input', autoSaveReview); _reviewAutoBound = true; }
+  }
   const entry = reviewEntries[dKey];
   const d = new Date(dKey);
   document.getElementById('reviewDateLabel').innerHTML = '📝 ' + formatDate(d) + (entry ? ' <span style="color:var(--green);font-size:12px;">（已有复盘记录）</span>' : ' <span style="color:var(--gray);font-size:12px;">（暂无复盘）</span>');
@@ -10912,6 +11003,26 @@ function saveReviewEntry() {
   onLocalDataChange();
   renderCalendar();
   showToast('✅ ' + dKey + ' 复盘已保存');
+}
+
+let _reviewAutoBound = false;
+let _reviewTimer = null;
+// 内容复盘：输入即自动保存（防抖），避免漏点保存按钮
+function autoSaveReview() {
+  const dKey = dateKey(selectedDate);
+  const entry = reviewEntries[dKey] || {};
+  entry.goal = document.getElementById('review-goal').value || '';
+  entry.bad = document.getElementById('review-bad').value || '';
+  entry.better = document.getElementById('review-better').value || '';
+  entry.good = document.getElementById('review-good').value || '';
+  entry.improve = document.getElementById('review-improve').value || '';
+  reviewEntries[dKey] = entry;
+  localStorage.setItem('parrot_review_entries', JSON.stringify(reviewEntries));
+  onLocalDataChange();
+  renderCalendar();
+  const lbl = document.getElementById('reviewDateLabel');
+  if(lbl && lbl.querySelector('.auto-saved-tag')) return;
+  if(lbl) { lbl.innerHTML = lbl.innerHTML.replace('（自动保存中…）', ''); }
 }
 
 function deleteReviewEntry() {
@@ -11441,7 +11552,7 @@ function renderExpenseList() {
     const opts = [];
     types.forEach(t => {
       getCategoryParents(t).forEach(p => {
-        (p.children||[]).forEach(c => opts.push({ value: c.name, label: `${p.icon}${c.icon} ${c.name}` }));
+        opts.push({ value: p.name, label: `${p.icon} ${p.name}` });
       });
     });
     const seen = new Set(), uniq = [];
@@ -11467,7 +11578,7 @@ function renderExpenseList() {
     const isUncountedQuery = /不计|不计入/.test(s);
     return (r.note||'').toLowerCase().includes(s) || (r.category||'').toLowerCase().includes(s) || ((r.subCategory||'').toLowerCase().includes(s)) || (r.tag||'').toLowerCase().includes(s) || (isUncountedQuery && r.counted===false);
   });
-  if(catFilter) recs = recs.filter(r => (r.subCategory || r.category) === catFilter);
+  if(catFilter) recs = recs.filter(r => r.category === catFilter);
   if(accFilter) recs = recs.filter(r=>r.account===accFilter);
   if(tagFilter) recs = recs.filter(r=>r.tag===tagFilter);
 
@@ -12115,6 +12226,7 @@ const SAVINGS_KEY = 'parrot_savings_goals_v1';
 const SOCIAL_KEY = 'parrot_social_ledger_v1';
 
 let savingsGoals = [];
+let savingsOwnedView = { goal: false, wish: false };
 let socialRecords = [];
 let savingsPeriodType = 'month';
 let savingsPeriod = '';
@@ -12228,15 +12340,27 @@ function revertSavingsCoins(id) {
   renderCoinBadge();
   showToast('已退回 ' + amt + ' 金币 💰');
 }
+function toggleSavingsOwned(sub) {
+  savingsOwnedView[sub] = !savingsOwnedView[sub];
+  if(sub === 'goal') renderSavingsGoals(); else renderWishlist();
+}
+
 function renderSavingsGoals() {
   const container = document.getElementById('savingsList');
   if(!container) return;
   const range = getSavingsPeriodRange();
-  let list = savingsGoals;
-  if(savingsPeriodType === 'year') list = list.filter(g => (g.period || '').startsWith(savingsPeriod));
-  else list = list.filter(g => (g.period || '') === savingsPeriod);
+  let all = savingsGoals;
+  if(savingsPeriodType === 'year') all = all.filter(g => (g.period || '').startsWith(savingsPeriod));
+  else all = all.filter(g => (g.period || '') === savingsPeriod);
+  const isOwned = g => g.target > 0 && (parseFloat(g.current) || 0) >= parseFloat(g.target);
+  const ownedCount = all.filter(isOwned).length;
+  const cntEl = document.getElementById('goalOwnedCount'); if(cntEl) cntEl.textContent = ownedCount;
+  const ob = document.getElementById('goalOwnedBtn'); if(ob) ob.classList.toggle('active', !!savingsOwnedView.goal);
+  let list = all.filter(g => savingsOwnedView.goal ? isOwned(g) : !isOwned(g));
   if(list.length === 0) {
-    container.innerHTML = '<div class="k2-savings-empty">🎯 暂无攒钱目标<br><span style="font-size:13px;">点击上方按钮新建一个心愿吧</span></div>';
+    container.innerHTML = savingsOwnedView.goal
+      ? '<div class="k2-savings-empty">🎉 暂无已拥有的攒钱目标<br><span style="font-size:13px;">进度达到 100% 的目标会归到这里</span></div>'
+      : '<div class="k2-savings-empty">🎯 暂无攒钱目标<br><span style="font-size:13px;">点击上方按钮新建一个心愿吧</span></div>';
     return;
   }
   container.innerHTML = '<div class="k2-savings-list">' + list.map(g => {
@@ -12509,11 +12633,19 @@ function switchDepositMode(m) {
 function renderWishlist() {
   const c = document.getElementById('wishList');
   if(!c) return;
+  const ownedCount = coinState.wishes.filter(w=>w.bought).length;
+  const cntEl = document.getElementById('wishOwnedCount'); if(cntEl) cntEl.textContent = ownedCount;
+  const ob = document.getElementById('wishOwnedBtn'); if(ob) ob.classList.toggle('active', !!savingsOwnedView.wish);
+  let list = coinState.wishes;
+  if(savingsOwnedView.wish) list = list.filter(w => w.bought);
+  else list = list.filter(w => !w.bought);
   if(coinState.wishes.length === 0) {
-    c.innerHTML = '<div class="k2-savings-empty">🎁 暂无心愿<br><span style="font-size:13px;">点击上方按钮添加一个想用金币兑换的心愿吧</span></div>';
+    c.innerHTML = savingsOwnedView.wish
+      ? '<div class="k2-savings-empty">🎁 暂无已兑换的心愿<br><span style="font-size:13px;">已用金币兑换的心愿会归到这里</span></div>'
+      : '<div class="k2-savings-empty">🎁 暂无心愿<br><span style="font-size:13px;">点击上方按钮添加一个想用金币兑换的心愿吧</span></div>';
     return;
   }
-  c.innerHTML = '<div class="k2-wish-list">' + coinState.wishes.map(w => {
+  c.innerHTML = '<div class="k2-wish-list">' + list.map(w => {
     const bought = !!w.bought;
     const enough = coinState.balance >= (w.cost||0);
     const btn = bought
@@ -13753,8 +13885,18 @@ fillTravelDatalists();
         <input class="modal-input" id="knModalSub" placeholder="如：幼鸟饲养要点（可选）">
       </div>
       <div class="modal-row">
-        <label class="modal-label">内容 *</label>
-        <textarea class="modal-textarea" id="knModalContent" placeholder="输入知识内容…"></textarea>
+        <label class="modal-label">内容 *（支持加粗、字号等文档格式）</label>
+        <div class="script-doc-toolbar kn-rich-toolbar">
+          <button type="button" class="doc-tool" onmousedown="event.preventDefault()" onclick="execKnDocCmd('bold')" title="加粗"><b>B</b></button>
+          <button type="button" class="doc-tool" onmousedown="event.preventDefault()" onclick="execKnDocCmd('italic')" title="斜体"><i>I</i></button>
+          <button type="button" class="doc-tool" onmousedown="event.preventDefault()" onclick="execKnDocCmd('underline')" title="下划线"><u>U</u></button>
+          <button type="button" class="doc-tool" onmousedown="event.preventDefault()" onclick="execKnDocCmd('fontSize','6')" title="大字号">A+</button>
+          <button type="button" class="doc-tool" onmousedown="event.preventDefault()" onclick="execKnDocCmd('fontSize','3')" title="小字号">A-</button>
+          <button type="button" class="doc-tool" onmousedown="event.preventDefault()" onclick="execKnDocCmd('formatBlock','H3')" title="标题">H</button>
+          <button type="button" class="doc-tool" onmousedown="event.preventDefault()" onclick="execKnDocCmd('insertUnorderedList')" title="无序列表">• 列表</button>
+          <button type="button" class="doc-tool" onmousedown="event.preventDefault()" onclick="execKnDocCmd('insertOrderedList')" title="有序列表">1. 列表</button>
+        </div>
+        <div class="script-doc-body modal-rich" id="knModalContent" contenteditable="true" data-placeholder="输入知识内容…支持加粗、字号等文档格式"></div>
       </div>
     </div>
     <div class="modal-foot">
