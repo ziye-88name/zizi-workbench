@@ -1538,6 +1538,15 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   position: relative; z-index: 1; font-size: 13px; color: var(--text-secondary);
   margin: 8px 0 14px;
 }
+#panel-travel .travel-map-tip {
+  position: relative; z-index: 1; font-size: 12px; color: var(--primary-dark);
+  background: linear-gradient(90deg, #E8F5E9, #FFF8E1);
+  border: 1px dashed var(--primary);
+  border-radius: 10px;
+  padding: 8px 12px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+#panel-travel .travel-map-tip::before { content: '💡'; }
 #panel-travel .travel-coord-hint {
   font-size: 13px; color: var(--primary-dark); background: var(--primary-light);
   padding: 8px 12px; border-radius: 10px;
@@ -3580,6 +3589,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
         <div class="kitty-content">
           <!-- 总览 -->
           <div class="kitty-tab-panel active" id="travelOverview">
+            <div class="travel-map-tip">若地图空白，请点击左上角图层按钮切换其他底图</div>
             <div id="travelOverviewMap" class="travel-map"></div>
             <div class="travel-actions">
               <button class="btn btn-primary" onclick="drawCityTrail()">🌟 城市轨迹</button>
@@ -3604,6 +3614,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
               <input id="travelSpotSearch" class="travel-search-input" placeholder="🔍 搜索景点（如：故宫、洱海、浅草寺…）" oninput="onTravelSpotSearch()">
               <div id="travelSpotSearchResults" class="travel-search-results"></div>
             </div>
+            <div class="travel-map-tip">若地图空白，请点击左上角图层按钮切换其他底图</div>
             <div id="travelPlanMap" class="travel-map"></div>
             <p class="travel-hint">📍 地图默认展示「即将到来」的计划 · 点击下方计划可切换 · 搜索并点选景点即可在地图标记 ★（也可点击地图打点）</p>
             <button class="btn btn-primary" onclick="openPlanModal()">➕ 新建旅行计划</button>
@@ -12902,24 +12913,33 @@ const LEAFLET_CSS = [
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css'
 ];
 
-// 中国可访问的瓦片源（无需 Key），默认高德街道
+// 中国可访问的瓦片源（无需 Key），默认高德街道，加载失败自动 fallback
+function createTileLayer(url, opts) {
+  const layer = L.tileLayer(url, opts);
+  layer.on('tileloadstart', e => { if (e.tile) e.tile.referrerPolicy = 'no-referrer'; });
+  return layer;
+}
 function buildTravelBasemaps(L) {
-  const gaode = L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}', {
-    attribution: '© 高德地图', maxZoom: 18, subdomains: '1234'
+  const opts = { crossOrigin: true };
+  const gaode = createTileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}', {
+    ...opts, attribution: '© 高德地图', maxZoom: 18, subdomains: '1234'
   });
-  const gaodeSat = L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
-    attribution: '© 高德卫星', maxZoom: 18, subdomains: '1234'
+  const gaodeSat = createTileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
+    ...opts, attribution: '© 高德卫星', maxZoom: 18, subdomains: '1234'
   });
-  const geoq = L.tileLayer('https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', {
-    attribution: '© Geoq 智图', maxZoom: 18, subdomains: '123'
+  const geoq = createTileLayer('https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', {
+    ...opts, attribution: '© Geoq 智图', maxZoom: 18, subdomains: '123'
   });
-  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap', maxZoom: 19, subdomains: 'abc'
+  const osm = createTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    ...opts, attribution: '&copy; OpenStreetMap', maxZoom: 19, subdomains: 'abc'
   });
-  const carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; CARTO', maxZoom: 20, subdomains: 'abcd'
+  const carto = createTileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    ...opts, attribution: '&copy; CARTO', maxZoom: 20, subdomains: 'abcd'
   });
-  return { '高德街道': gaode, '高德卫星': gaodeSat, '智图街道': geoq, 'OpenStreetMap': osm, 'Carto 浅色': carto };
+  const esri = createTileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    ...opts, attribution: '© Esri', maxZoom: 18
+  });
+  return { '高德街道': gaode, '高德卫星': gaodeSat, '智图街道': geoq, 'OpenStreetMap': osm, 'Carto 浅色': carto, 'Esri 卫星': esri };
 }
 
 function loadTravelData() {
@@ -12982,6 +13002,29 @@ function ensureTravelReady() {
   });
 }
 
+function enableTileFallback(map, layer, basemaps) {
+  let loads = 0, errors = 0;
+  const order = Object.keys(basemaps);
+  layer.on('tileload', () => loads++);
+  layer.on('tileerror', () => {
+    errors++;
+    if (loads > 0) return;
+    if (errors >= 5) {
+      const currentKey = order.find(k => map.hasLayer(basemaps[k]));
+      const idx = currentKey ? order.indexOf(currentKey) : -1;
+      for (let i = idx + 1; i < order.length; i++) {
+        const key = order[i], next = basemaps[key];
+        if (!next) continue;
+        map.eachLayer(l => { if (l instanceof L.TileLayer) map.removeLayer(l); });
+        next.addTo(map);
+        showToast('当前底图在您网络下加载失败，已自动切换为“' + key + '”，可点击左上角图层按钮切换');
+        enableTileFallback(map, next, basemaps);
+        break;
+      }
+    }
+  });
+}
+
 function initTravelMaps(L) {
   travelL = L;
   const basemaps = buildTravelBasemaps(L);
@@ -12989,13 +13032,17 @@ function initTravelMaps(L) {
 
   travelOverviewMap = L.map('travelOverviewMap', { zoomControl: false }).setView([34.0, 108.0], 4);
   L.control.zoom({ position: 'topright' }).addTo(travelOverviewMap);
-  basemaps[baseNames[0]].addTo(travelOverviewMap);
-  L.control.layers(basemaps, null, { position: 'topleft', collapsed: true }).addTo(travelOverviewMap);
+  const ovBase = basemaps[baseNames[0]];
+  ovBase.addTo(travelOverviewMap);
+  L.control.layers(basemaps, null, { position: 'topleft', collapsed: false }).addTo(travelOverviewMap);
+  enableTileFallback(travelOverviewMap, ovBase, basemaps);
 
   travelPlanMap = L.map('travelPlanMap', { zoomControl: false }).setView([34.0, 108.0], 4);
   L.control.zoom({ position: 'topright' }).addTo(travelPlanMap);
-  basemaps[baseNames[0]].addTo(travelPlanMap);
-  L.control.layers(basemaps, null, { position: 'topleft', collapsed: true }).addTo(travelPlanMap);
+  const planBase = basemaps[baseNames[0]];
+  planBase.addTo(travelPlanMap);
+  L.control.layers(basemaps, null, { position: 'topleft', collapsed: false }).addTo(travelPlanMap);
+  enableTileFallback(travelPlanMap, planBase, basemaps);
 
   travelPlanMap.on('click', function(e) {
     if (!travelPlanSelectedId) { showToast('请先在下方选择一个旅行计划'); return; }
