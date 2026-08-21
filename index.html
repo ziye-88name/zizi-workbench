@@ -1578,6 +1578,18 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   display: flex; align-items: center; justify-content: center;
   color: #bbb; font-size: 13px; margin-top: 6px;
 }
+.it-photo {
+  width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px;
+  margin-top: 6px; display: block; background: #f3f3f3;
+}
+.it-img-upload { display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.it-file-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+  border-radius: 10px; background: var(--primary-light, #e8f5e9); color: var(--primary-dark);
+  font-size: 13px; cursor: pointer; font-weight: 700;
+}
+.it-file-btn input { display: none; }
+.it-img-tip { font-size: 12px; color: var(--text-secondary); }
 
 /* 行程单编辑器 */
 .travel-itinerary-tabs {
@@ -1645,6 +1657,38 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   background: transparent !important; border: none !important;
   font-size: 22px; line-height: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.25);
   display: flex; align-items: center; justify-content: center;
+}
+
+/* 景点搜索 */
+#panel-travel .travel-search { position: relative; z-index: 5; margin: 4px 0 12px; }
+#panel-travel .travel-search-input {
+  width: 100%; box-sizing: border-box; padding: 11px 14px; font-size: 14px;
+  border: 1.5px solid var(--border); border-radius: 12px; font-family: inherit;
+  background: #fff;
+}
+#panel-travel .travel-search-results {
+  display: none; position: absolute; left: 0; right: 0; top: calc(100% + 6px);
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.12); max-height: 280px; overflow-y: auto; z-index: 30;
+}
+#panel-travel .tsr-item {
+  padding: 11px 14px; font-size: 14px; cursor: pointer; display: flex;
+  justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);
+}
+#panel-travel .tsr-item:last-child { border-bottom: none; }
+#panel-travel .tsr-item:hover { background: var(--primary-light); }
+#panel-travel .tsr-city { font-size: 12px; color: var(--text-secondary); }
+#panel-travel .tsr-empty { padding: 14px; color: var(--text-secondary); font-size: 13px; text-align: center; }
+
+#panel-travel .travel-zoomhint { font-size: 12px; color: var(--text-secondary); align-self: center; }
+#panel-travel .plan-edit-btn {
+  margin-top: 10px; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: var(--primary); color: #fff; border: none; cursor: pointer;
+}
+#panel-travel .travel-plan-card .plan-meta { margin-top: 6px; }
+#panel-travel .travel-plan-card.selected {
+  border: 2px solid var(--primary); box-shadow: 0 8px 22px rgba(129,199,132,0.28);
+  background: linear-gradient(180deg, rgba(129,199,132,0.10), var(--card));
 }
 
 /* 卡片 */
@@ -3539,7 +3583,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
             <div id="travelOverviewMap" class="travel-map"></div>
             <div class="travel-actions">
               <button class="btn btn-primary" onclick="drawCityTrail()">🌟 城市轨迹</button>
-              <button class="btn btn-outline" onclick="openSpotModal()">➕ 添加足迹</button>
+              <span class="travel-zoomhint">可手动放大 / 缩小查看城市</span>
             </div>
             <div class="travel-stats">
               <div class="travel-stat" onclick="showVisitedCountries()">
@@ -3556,8 +3600,12 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 
           <!-- 我的旅行计划 -->
           <div class="kitty-tab-panel" id="travelPlans">
+            <div class="travel-search">
+              <input id="travelSpotSearch" class="travel-search-input" placeholder="🔍 搜索景点（如：故宫、洱海、浅草寺…）" oninput="onTravelSpotSearch()">
+              <div id="travelSpotSearchResults" class="travel-search-results"></div>
+            </div>
             <div id="travelPlanMap" class="travel-map"></div>
-            <p class="travel-hint">📍 在地图上点击，标记本次目的地</p>
+            <p class="travel-hint">📍 地图默认展示「即将到来」的计划 · 点击下方计划可切换 · 搜索并点选景点即可在地图标记 ★（也可点击地图打点）</p>
             <button class="btn btn-primary" onclick="openPlanModal()">➕ 新建旅行计划</button>
             <div id="travelPlanList" class="travel-plan-list"></div>
           </div>
@@ -4763,10 +4811,12 @@ function expandRecurringChecklist(dKey) {
   native.forEach((it, idx) => { it.__seq = idx; });
   const PRIORITY_RANK = { high: 4, mid: 3, low: 2, none: 0 };
   native.sort((a, b) => {
+    // 1) 已完成一律沉底（最优先），不按优先级区分
+    const d = (a.done ? 1 : 0) - (b.done ? 1 : 0);
+    if (d !== 0) return d;
+    // 2) 未完成按优先级：高 > 中 > 低 > 无
     const p = (PRIORITY_RANK[b.priority || 'none'] || 0) - (PRIORITY_RANK[a.priority || 'none'] || 0);
     if (p !== 0) return p;
-    const d = (a.done ? 1 : 0) - (b.done ? 1 : 0); // 未完成在前，已完成沉底
-    if (d !== 0) return d;
     return (a.__seq || 0) - (b.__seq || 0);
   });
   return native;
@@ -12761,23 +12811,68 @@ const TRAVEL_CITIES = [
   { name: '普吉岛', country: '泰国', lat: 7.8804, lng: 98.3923 }
 ];
 
-const SEED_SPOTS = [
-  { id: 'sp_seed1', city: '北京', country: '中国', lat: 39.9042, lng: 116.4074, date: '2023-04-01', note: '故宫' },
-  { id: 'sp_seed2', city: '上海', country: '中国', lat: 31.2304, lng: 121.4737, date: '2023-07-12', note: '外滩' },
-  { id: 'sp_seed3', city: '成都', country: '中国', lat: 30.5728, lng: 104.0668, date: '2023-10-05', note: '熊猫基地' },
-  { id: 'sp_seed4', city: '东京', country: '日本', lat: 35.6762, lng: 139.6503, date: '2024-02-20', note: '浅草寺' },
-  { id: 'sp_seed5', city: '巴黎', country: '法国', lat: 48.8566, lng: 2.3522, date: '2024-09-15', note: '埃菲尔铁塔' }
+// 景点坐标库（搜索用，亦用于自动定位行程坐标）
+const TRAVEL_SPOTS = [
+  { name: '故宫', city: '北京', lat: 39.9163, lng: 116.3972 },
+  { name: '天安门', city: '北京', lat: 39.9055, lng: 116.3976 },
+  { name: '颐和园', city: '北京', lat: 39.9999, lng: 116.2755 },
+  { name: '八达岭长城', city: '北京', lat: 40.4319, lng: 116.5704 },
+  { name: '外滩', city: '上海', lat: 31.2397, lng: 121.4905 },
+  { name: '东方明珠', city: '上海', lat: 31.2397, lng: 121.4998 },
+  { name: '豫园', city: '上海', lat: 31.2270, lng: 121.4923 },
+  { name: '宽窄巷子', city: '成都', lat: 30.6699, lng: 104.0560 },
+  { name: '熊猫基地', city: '成都', lat: 30.7333, lng: 104.1467 },
+  { name: '锦里', city: '成都', lat: 30.6425, lng: 104.0567 },
+  { name: '都江堰', city: '成都', lat: 31.0042, lng: 103.6155 },
+  { name: '大理古城', city: '大理', lat: 25.6892, lng: 100.1624 },
+  { name: '洱海', city: '大理', lat: 25.7823, lng: 100.2306 },
+  { name: '双廊', city: '大理', lat: 25.8530, lng: 100.1880 },
+  { name: '苍山', city: '大理', lat: 25.6226, lng: 100.1410 },
+  { name: '丽江古城', city: '丽江', lat: 26.8719, lng: 100.2298 },
+  { name: '玉龙雪山', city: '丽江', lat: 27.1000, lng: 100.1800 },
+  { name: '浅草寺', city: '东京', lat: 35.7148, lng: 139.7967 },
+  { name: '东京塔', city: '东京', lat: 35.6586, lng: 139.7454 },
+  { name: '秋叶原', city: '东京', lat: 35.7000, lng: 139.7717 },
+  { name: '东京迪士尼', city: '东京', lat: 35.6320, lng: 139.8840 },
+  { name: '埃菲尔铁塔', city: '巴黎', lat: 48.8584, lng: 2.2945 },
+  { name: '卢浮宫', city: '巴黎', lat: 48.8606, lng: 2.3376 },
+  { name: '凯旋门', city: '巴黎', lat: 48.8738, lng: 2.2950 },
+  { name: '西湖', city: '杭州', lat: 30.2592, lng: 120.1490 },
+  { name: '灵隐寺', city: '杭州', lat: 30.2410, lng: 120.1010 },
+  { name: '兵马俑', city: '西安', lat: 34.3853, lng: 109.2734 },
+  { name: '大雁塔', city: '西安', lat: 34.2170, lng: 108.9640 },
+  { name: '亚龙湾', city: '三亚', lat: 18.2180, lng: 109.6580 },
+  { name: '天涯海角', city: '三亚', lat: 18.2920, lng: 109.6580 },
+  { name: '鼓浪屿', city: '厦门', lat: 24.4470, lng: 118.0670 },
+  { name: '洪崖洞', city: '重庆', lat: 29.5620, lng: 106.5780 },
+  { name: '广州塔', city: '广州', lat: 23.1066, lng: 113.3245 },
+  { name: '拙政园', city: '苏州', lat: 31.3250, lng: 120.6270 },
+  { name: '维多利亚港', city: '香港', lat: 22.2940, lng: 114.1720 },
+  { name: '栈桥', city: '青岛', lat: 36.0580, lng: 120.3090 }
 ];
 const SEED_PLANS = [
   { id: 'pl_seed1', title: '示例·周末成都游', destination: '成都', destLat: 30.5728, destLng: 104.0668,
-    start: '2025-06-01', end: '2025-06-02',
+    start: '2026-10-01', end: '2026-10-03',
     itinerary: [
-      { id: 'it_s1', date: '2025-06-01', place: '宽窄巷子', type: '美食', note: '晚餐', img: '' },
-      { id: 'it_s2', date: '2025-06-02', place: '熊猫基地', type: '观光', note: '上午', img: '' }
+      { id: 'it_s1', date: '2026-10-01', time: '18:30', place: '宽窄巷子', type: '美食', note: '晚餐', img: '', lat: 30.6699, lng: 104.0560 },
+      { id: 'it_s2', date: '2026-10-02', time: '09:00', place: '熊猫基地', type: '观光', note: '上午看熊猫', img: '', lat: 30.7333, lng: 104.1467 }
+    ] },
+  { id: 'pl_seed2', title: '示例·大理环湖', destination: '大理', destLat: 25.6065, destLng: 100.2676,
+    start: '2026-12-12', end: '2026-12-14',
+    itinerary: [
+      { id: 'it_s3', date: '2026-12-12', time: '14:00', place: '大理古城', type: '观光', note: '', img: '', lat: 25.6892, lng: 100.1624 },
+      { id: 'it_s4', date: '2026-12-13', time: '10:00', place: '洱海', type: '观光', note: '环湖骑行', img: '', lat: 25.7823, lng: 100.2306 },
+      { id: 'it_s5', date: '2026-12-14', time: '11:00', place: '双廊', type: '美食', note: '', img: '', lat: 25.8530, lng: 100.1880 }
+    ] },
+  { id: 'pl_seed3', title: '示例·东京初体验', destination: '东京', destLat: 35.6762, destLng: 139.6503,
+    start: '2027-02-20', end: '2027-02-24',
+    itinerary: [
+      { id: 'it_s6', date: '2027-02-20', time: '10:00', place: '浅草寺', type: '观光', note: '', img: '', lat: 35.7148, lng: 139.7967 },
+      { id: 'it_s7', date: '2027-02-21', time: '15:00', place: '东京塔', type: '观光', note: '', img: '', lat: 35.6586, lng: 139.7454 }
     ] }
 ];
 
-let travelData = { version: 1, spots: [], plans: [] };
+let travelData = { version: 2, plans: [] };
 let travelCurrentTab = 'overview';
 let travelOverviewMap = null;
 let travelPlanMap = null;
@@ -12789,29 +12884,56 @@ let travelDetailDates = [];
 let travelDetailActiveDate = null;
 let travelDetailEditingItemId = null;
 let _leafletReady = null;
+let travelL = null;
+let travelPlanSelectedId = null;
+let _spotHits = [];
+let _planConnLayer = null;
 
 const LEAFLET_CDNS = [
+  'https://lib.baomitu.com/leaflet/1.9.4/leaflet.min.js',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
 ];
 const LEAFLET_CSS = [
+  'https://lib.baomitu.com/leaflet/1.9.4/leaflet.min.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css'
 ];
-const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const TILE_ATTRIBUTION = '&copy; OpenStreetMap contributors';
+
+// 中国可访问的瓦片源（无需 Key），默认高德街道
+function buildTravelBasemaps(L) {
+  const gaode = L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}', {
+    attribution: '© 高德地图', maxZoom: 18, subdomains: '1234'
+  });
+  const gaodeSat = L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
+    attribution: '© 高德卫星', maxZoom: 18, subdomains: '1234'
+  });
+  const geoq = L.tileLayer('https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '© Geoq 智图', maxZoom: 18, subdomains: '123'
+  });
+  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap', maxZoom: 19, subdomains: 'abc'
+  });
+  const carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; CARTO', maxZoom: 20, subdomains: 'abcd'
+  });
+  return { '高德街道': gaode, '高德卫星': gaodeSat, '智图街道': geoq, 'OpenStreetMap': osm, 'Carto 浅色': carto };
+}
 
 function loadTravelData() {
   const raw = localStorage.getItem('parrot_travel_v1');
   if (raw) {
-    try { travelData = JSON.parse(raw); } catch (e) { travelData = { version: 1, spots: [], plans: [] }; }
-  } else {
-    travelData = { version: 1, spots: SEED_SPOTS.slice(), plans: SEED_PLANS.slice() };
+    try {
+      const d = JSON.parse(raw);
+      travelData = { version: 2, plans: Array.isArray(d.plans) ? d.plans : [] };
+    } catch (e) { travelData = { version: 2, plans: [] }; }
+  }
+  if (!travelData.plans || travelData.plans.length === 0) {
+    travelData = { version: 2, plans: SEED_PLANS.slice() };
     saveTravelData();
   }
-  if (!travelData.spots) travelData.spots = [];
   if (!travelData.plans) travelData.plans = [];
 }
 function saveTravelData() {
@@ -12861,24 +12983,27 @@ function ensureTravelReady() {
 }
 
 function initTravelMaps(L) {
-  travelOverviewMap = L.map('travelOverviewMap', { zoomControl: false }).setView([35.0, 105.0], 3);
-  L.control.zoom({ position: 'topright' }).addTo(travelOverviewMap);
-  L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION, maxZoom: 18 }).addTo(travelOverviewMap);
+  travelL = L;
+  const basemaps = buildTravelBasemaps(L);
+  const baseNames = Object.keys(basemaps);
 
-  travelPlanMap = L.map('travelPlanMap', { zoomControl: false }).setView([35.0, 105.0], 3);
+  travelOverviewMap = L.map('travelOverviewMap', { zoomControl: false }).setView([34.0, 108.0], 4);
+  L.control.zoom({ position: 'topright' }).addTo(travelOverviewMap);
+  basemaps[baseNames[0]].addTo(travelOverviewMap);
+  L.control.layers(basemaps, null, { position: 'topleft', collapsed: true }).addTo(travelOverviewMap);
+
+  travelPlanMap = L.map('travelPlanMap', { zoomControl: false }).setView([34.0, 108.0], 4);
   L.control.zoom({ position: 'topright' }).addTo(travelPlanMap);
-  L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION, maxZoom: 18 }).addTo(travelPlanMap);
+  basemaps[baseNames[0]].addTo(travelPlanMap);
+  L.control.layers(basemaps, null, { position: 'topleft', collapsed: true }).addTo(travelPlanMap);
 
   travelPlanMap.on('click', function(e) {
-    travelPickedCoord = { lat: e.latlng.lat, lng: e.latlng.lng };
-    updatePlanCoordHint();
-    travelPlanMarkers.forEach(m => travelPlanMap.removeLayer(m));
-    travelPlanMarkers = [];
-    const marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(travelPlanMap);
-    travelPlanMarkers.push(marker);
-    showToast('📍 已选取目的地坐标');
+    if (!travelPlanSelectedId) { showToast('请先在下方选择一个旅行计划'); return; }
+    addAttractionToPlan(travelPlanSelectedId, { name: '标注点', lat: e.latlng.lat, lng: e.latlng.lng, type: '其他' });
   });
 }
+
+function lookupCity(name) { return TRAVEL_CITIES.find(c => c.name === name) || null; }
 
 function invalidateTravelMaps() {
   if (travelOverviewMap) travelOverviewMap.invalidateSize();
@@ -12897,10 +13022,21 @@ function switchTravelTab(tab) {
 
 function computeVisitedCities() {
   const map = new Map();
-  (travelData.spots || []).forEach(sp => {
-    const key = (sp.city || '') + '|' + (sp.country || '');
-    if (!map.has(key)) map.set(key, { city: sp.city, country: sp.country, lat: sp.lat, lng: sp.lng, spots: [] });
-    map.get(key).spots.push(sp);
+  (travelData.plans || []).forEach(p => {
+    const city = p.destination || '';
+    if (!city) return;
+    const key = city + '|' + (p.country || '');
+    if (!map.has(key)) {
+      const c = lookupCity(city);
+      map.set(key, {
+        city, country: p.country || (c ? c.country : ''),
+        lat: p.destLat || (c ? c.lat : 0), lng: p.destLng || (c ? c.lng : 0),
+        plans: 0, dates: []
+      });
+    }
+    const c = map.get(key);
+    c.plans++;
+    if (p.start) c.dates.push(p.start);
   });
   return Array.from(map.values());
 }
@@ -12914,39 +13050,52 @@ function renderTravelOverview() {
   });
 
   const cities = computeVisitedCities();
+  const latlngs = [];
   cities.forEach(c => {
+    latlngs.push([c.lat, c.lng]);
     L.marker([c.lat, c.lng], {
-      icon: L.divIcon({ className: 'travel-star-marker', html: '🌟', iconSize: [28, 28], iconAnchor: [14, 14] })
-    }).addTo(travelOverviewMap).bindPopup('<b>' + escapeHtml(c.city) + '</b><br>' + escapeHtml(c.country) + '<br>足迹 ' + c.spots.length + ' 处');
+      icon: L.divIcon({ className: 'travel-star-marker', html: '🌟', iconSize: [30, 30], iconAnchor: [15, 15] })
+    }).addTo(travelOverviewMap).bindPopup('<b>' + escapeHtml(c.city) + '</b><br>' + escapeHtml(c.country) + '<br>旅行 ' + c.plans + ' 次');
   });
 
   const list = document.getElementById('travelCityList');
   if (list) {
     if (cities.length === 0) {
-      list.innerHTML = '<div class="travel-empty">还没有足迹，点击「添加足迹」记录你的第一次旅行吧 ✈️</div>';
+      list.innerHTML = '<div class="travel-empty">还没有旅行计划，去「我的旅行计划」创建第一个吧 ✈️</div>';
     } else {
-      list.innerHTML = '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">到访城市：</div>' +
-        cities.map(c => '<span class="travel-city-chip">🌟 ' + escapeHtml(c.city) + '（' + c.spots.length + '）</span>').join('');
+      list.innerHTML = '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">到访城市（来自你的旅行计划）：</div>' +
+        cities.map(c => '<span class="travel-city-chip">🌟 ' + escapeHtml(c.city) + '（' + c.plans + '）</span>').join('');
     }
   }
   renderTravelStats();
+  // 打开总览即按城市维度展示，可手动缩放
+  requestAnimationFrame(() => {
+    invalidateTravelMaps();
+    if (latlngs.length === 1) travelOverviewMap.setView([latlngs[0][0], latlngs[0][1]], 6);
+    else if (latlngs.length > 1) travelOverviewMap.fitBounds(latlngs, { padding: [50, 50], maxZoom: 6 });
+    else travelOverviewMap.setView([34.0, 108.0], 4);
+  });
 }
 
 function drawCityTrail() {
   if (!travelOverviewMap) return;
   if (travelTrailLayer) { travelOverviewMap.removeLayer(travelTrailLayer); travelTrailLayer = null; }
-  const sorted = (travelData.spots || []).slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-  const unique = [];
+  const plans = (travelData.plans || []).slice().sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+  const seq = [];
   const seen = new Set();
-  sorted.forEach(sp => {
-    const key = (sp.city || '') + '|' + (sp.country || '');
-    if (!seen.has(key)) { seen.add(key); unique.push(sp); }
+  plans.forEach(p => {
+    const key = (p.destination || '');
+    if (!key || seen.has(key)) return; // 同一城市只连一次，避免来回折线
+    seen.add(key);
+    const c = lookupCity(p.destination);
+    const lat = p.destLat || (c ? c.lat : 0);
+    const lng = p.destLng || (c ? c.lng : 0);
+    if (lat && lng) seq.push([lat, lng]);
   });
-  if (unique.length < 2) { showToast('至少需要 2 个城市才能画出轨迹'); return; }
-  const latlngs = unique.map(sp => [sp.lat, sp.lng]);
-  travelTrailLayer = L.polyline(latlngs, { color: '#81C784', weight: 3, opacity: 0.8, dashArray: '6,8' }).addTo(travelOverviewMap);
-  travelOverviewMap.fitBounds(latlngs, { padding: [40, 40] });
-  showToast('🌟 已点亮 ' + unique.length + ' 座城市的轨迹');
+  if (seq.length < 2) { showToast('至少需要 2 个不同城市才能画出轨迹'); return; }
+  travelTrailLayer = L.polyline(seq, { color: '#42A5F5', weight: 3, opacity: 0.85, dashArray: '6,8' }).addTo(travelOverviewMap);
+  travelOverviewMap.fitBounds(seq, { padding: [40, 40] });
+  showToast('🌟 已点亮 ' + seq.length + ' 座城市的轨迹');
 }
 
 function renderTravelStats() {
@@ -12961,50 +13110,103 @@ function renderTravelStats() {
 function renderTravelPlans() {
   const container = document.getElementById('travelPlanList');
   if (!container) return;
-  const plans = travelData.plans || [];
+  const plans = (travelData.plans || []).slice().sort((a, b) => (a.start || '').localeCompare(b.start || ''));
   if (plans.length === 0) {
     container.innerHTML = '<div class="travel-empty">还没有旅行计划，点击上方按钮创建你的第一个计划吧 🗺️</div>';
+    travelPlanSelectedId = null;
+    if (travelPlanMap) travelPlanMap.setView([34.0, 108.0], 4);
     return;
+  }
+  if (!travelPlanSelectedId || !plans.find(p => p.id === travelPlanSelectedId)) {
+    travelPlanSelectedId = plans[0].id; // 默认展示「即将到来」的计划
   }
   container.innerHTML = plans.map(p => {
     const days = Math.max(1, Math.round((new Date(p.end) - new Date(p.start)) / 86400000) + 1);
-    return `<div class="travel-plan-card" onclick="openPlanDetail('${p.id}')">
+    const cnt = (p.itinerary || []).filter(i => (i.place || '').trim()).length;
+    const spots = (p.itinerary || []).filter(i => i.lat && i.lng).length;
+    const sel = p.id === travelPlanSelectedId ? ' selected' : '';
+    return `<div class="travel-plan-card${sel}" onclick="selectPlanOnMap('${p.id}')">
       <div class="plan-title">${escapeHtml(p.title)}</div>
       <div class="plan-meta">📍 ${escapeHtml(p.destination || '未选目的地')} · 📅 ${p.start || '?'} 至 ${p.end || '?'} · ${days} 天</div>
       <div class="plan-tags">
-        <span class="plan-tag">🗓️ ${(p.itinerary || []).filter(i => (i.place || '').trim()).length} 个安排</span>
-        <span class="plan-tag">${p.destLat ? '📍 已选坐标' : '✏️ 未选坐标'}</span>
+        <span class="plan-tag">🗓️ ${cnt} 个安排</span>
+        <span class="plan-tag">⭐ ${spots} 个景点</span>
       </div>
+      <button class="plan-edit-btn" onclick="event.stopPropagation();openPlanDetail('${p.id}')">✏️ 编辑行程</button>
     </div>`;
   }).join('');
+  showPlanOnMap(travelPlanSelectedId);
 }
 
-function openSpotModal() {
-  document.getElementById('spotCity').value = '';
-  document.getElementById('spotCountry').value = '';
-  document.getElementById('spotDate').value = formatDateYMD(new Date());
-  document.getElementById('spotNote').value = '';
-  document.getElementById('travelSpotModal').classList.add('open');
+function selectPlanOnMap(planId) {
+  travelPlanSelectedId = planId;
+  renderTravelPlans();
 }
-function closeSpotModal() { document.getElementById('travelSpotModal').classList.remove('open'); }
-function saveSpot() {
-  const city = document.getElementById('spotCity').value.trim();
-  if (!city) { showToast('请填写城市'); return; }
-  const found = TRAVEL_CITIES.find(c => c.name === city);
-  let country = document.getElementById('spotCountry').value.trim() || (found ? found.country : '');
-  let lat = found ? found.lat : 0;
-  let lng = found ? found.lng : 0;
-  if (!lat || !lng) { showToast('未找到该城市坐标，请选择列表中的城市'); return; }
-  travelData.spots.push({
-    id: 'sp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-    city, country, lat, lng,
-    date: document.getElementById('spotDate').value || formatDateYMD(new Date()),
-    note: document.getElementById('spotNote').value.trim()
+
+// 景点搜索（本地坐标库，无需联网）
+function onTravelSpotSearch() {
+  const q = document.getElementById('travelSpotSearch').value.trim();
+  const box = document.getElementById('travelSpotSearchResults');
+  if (!q) { box.innerHTML = ''; box.style.display = 'none'; return; }
+  _spotHits = TRAVEL_SPOTS.filter(s => s.name.indexOf(q) >= 0 || (s.city && s.city.indexOf(q) >= 0)).slice(0, 8);
+  if (_spotHits.length === 0) { box.innerHTML = '<div class="tsr-empty">未找到匹配景点，可点击地图打点</div>'; box.style.display = 'block'; return; }
+  box.innerHTML = _spotHits.map((s, i) => '<div class="tsr-item" onclick="pickSpotHit(' + i + ')">' + escapeHtml(s.name) + ' <span class="tsr-city">' + escapeHtml(s.city) + '</span></div>').join('');
+  box.style.display = 'block';
+}
+function pickSpotHit(i) {
+  const s = _spotHits[i]; if (!s) return;
+  addAttractionToPlan(null, { name: s.name, lat: s.lat, lng: s.lng, type: '景点' });
+}
+function addAttractionToPlan(planId, spot) {
+  const pid = planId || travelPlanSelectedId;
+  if (!pid) { showToast('请先选择或创建一个旅行计划'); return; }
+  const plan = (travelData.plans || []).find(p => p.id === pid);
+  if (!plan) return;
+  if (!plan.itinerary) plan.itinerary = [];
+  plan.itinerary.push({
+    id: 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    date: plan.start || formatDateYMD(new Date()),
+    time: '', place: spot.name, type: spot.type || '景点', note: '', img: '',
+    lat: spot.lat, lng: spot.lng
   });
   saveTravelData();
-  closeSpotModal();
-  renderTravelOverview(); renderTravelStats();
-  showToast('✅ 足迹已保存');
+  document.getElementById('travelSpotSearch').value = '';
+  const box = document.getElementById('travelSpotSearchResults');
+  if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+  renderTravelPlans();
+  showToast('⭐ 已标记：' + spot.name);
+}
+
+// 在「我的旅行计划」地图上展示某个计划的景点（景点维度 + 景点间连线）
+function showPlanOnMap(planId) {
+  if (!travelPlanMap) return;
+  travelPlanMarkers.forEach(m => travelPlanMap.removeLayer(m));
+  travelPlanMarkers = [];
+  if (_planConnLayer) { travelPlanMap.removeLayer(_planConnLayer); _planConnLayer = null; }
+  const plan = (travelData.plans || []).find(p => p.id === planId);
+  if (!plan) { travelPlanMap.setView([34.0, 108.0], 4); return; }
+  const items = (plan.itinerary || []).filter(it => it.lat && it.lng)
+    .slice().sort((a, b) => ((a.date || '') + (a.time || '')).localeCompare((b.date || '') + (b.time || '')));
+  const latlngs = [];
+  items.forEach(it => {
+    latlngs.push([it.lat, it.lng]);
+    const marker = L.marker([it.lat, it.lng], {
+      icon: L.divIcon({ className: 'travel-star-marker', html: '⭐', iconSize: [30, 30], iconAnchor: [15, 15] })
+    }).addTo(travelPlanMap).bindPopup('<b>' + escapeHtml(it.place || '景点') + '</b><br>' + escapeHtml(it.type || '') + (it.note ? ('<br>' + escapeHtml(it.note)) : ''));
+    travelPlanMarkers.push(marker);
+  });
+  requestAnimationFrame(() => {
+    invalidateTravelMaps();
+    if (latlngs.length === 1) {
+      travelPlanMap.setView([latlngs[0][0], latlngs[0][1]], 13);
+    } else if (latlngs.length > 1) {
+      travelPlanMap.fitBounds(latlngs, { padding: [50, 50], maxZoom: 14 });
+      _planConnLayer = L.polyline(latlngs, { color: '#FF8A65', weight: 3, opacity: 0.85, dashArray: '4,6' }).addTo(travelPlanMap);
+    } else {
+      const cl = plan.destLat ? [plan.destLat, plan.destLng] : [34.0, 108.0];
+      travelPlanMap.setView(cl, plan.destLat ? 11 : 4);
+    }
+  });
 }
 
 let editingPlanId = null;
@@ -13133,7 +13335,14 @@ function renderItineraryItem(plan, it) {
       </div>
       <div class="it-form-row"><label>地点 *</label><input id="it_place_${it.id}" placeholder="如：大理古城" value="${escapeHtml(it.place || '')}"></div>
       <div class="it-form-row"><label>备注</label><textarea id="it_note_${it.id}" rows="2" placeholder="小贴士 / 费用 / 同行人…">${escapeHtml(it.note || '')}</textarea></div>
-      <div class="it-form-row"><label>图片</label><div class="it-img">📷 图片占位（后续支持上传）</div></div>
+      <div class="it-form-row"><label>图片</label>
+        <input id="it_img_${it.id}" placeholder="粘贴图片链接(可选)" value="${escapeHtml(it.img && !String(it.img).startsWith('data:') ? it.img : '')}">
+        <div class="it-img-upload">
+          <label class="it-file-btn">📁 本地上传<input type="file" accept="image/*" onchange="travelPickImage('${it.id}', this)"></label>
+          <span class="it-img-tip">上传后自动压缩存储</span>
+        </div>
+        <div id="it_img_preview_${it.id}">${it.img ? '<img src="' + escapeHtml(it.img) + '" class="it-photo">' : ''}</div>
+      </div>
       <div class="it-form-actions">
         <button class="btn-outline" style="color:#E57373;border-color:#ffcdd2" onclick="travelDeleteItem('${it.id}')">删除</button>
         <button class="btn-outline" onclick="travelCancelEditItem()">取消</button>
@@ -13146,12 +13355,39 @@ function renderItineraryItem(plan, it) {
     <div class="it-body">
       <div><span class="it-type-badge">${escapeHtml(it.type || '其他')}</span><span class="it-place">${escapeHtml(it.place || '未命名地点')}</span></div>
       ${it.note ? '<div class="it-note">' + escapeHtml(it.note) + '</div>' : ''}
+      ${it.img ? '<img src="' + escapeHtml(it.img) + '" class="it-photo">' : ''}
     </div>
   </div>`;
 }
 
 function travelSwitchDay(date) { travelDetailActiveDate = date; travelDetailEditingItemId = null; renderItineraryEditor(); }
 function travelEditItem(itemId) { travelDetailEditingItemId = itemId; renderItineraryEditor(); }
+function travelPickImage(itemId, input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function() {
+    const img = new Image();
+    img.onload = function() {
+      let w = img.width, h = img.height;
+      const max = 900;
+      if (w > max || h > max) { const r = Math.min(max / w, max / h); w = Math.round(w * r); h = Math.round(h * r); }
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      const ctx = cv.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
+      let dataUrl;
+      try { dataUrl = cv.toDataURL('image/jpeg', 0.72); } catch (e) { dataUrl = reader.result; }
+      const plan = (travelData.plans || []).find(p => p.id === travelDetailPlanId);
+      const it = plan && (plan.itinerary || []).find(x => x.id === itemId);
+      if (it) it.img = dataUrl;
+      const pv = document.getElementById('it_img_preview_' + itemId);
+      if (pv) pv.innerHTML = '<img src="' + dataUrl + '" class="it-photo">';
+    };
+    img.onerror = function() { showToast('图片读取失败'); };
+    img.src = reader.result;
+  };
+  reader.onerror = function() { showToast('图片读取失败'); };
+  reader.readAsDataURL(file);
+}
 function travelCancelEditItem() { travelDetailEditingItemId = null; renderItineraryEditor(); }
 function travelAddItem(date) {
   const plan = (travelData.plans || []).find(p => p.id === travelDetailPlanId);
@@ -13177,10 +13413,21 @@ function travelSaveItem(itemId) {
   it.type = document.getElementById('it_type_' + itemId).value;
   it.place = place;
   it.note = document.getElementById('it_note_' + itemId).value.trim();
+  const imgInput = document.getElementById('it_img_' + itemId);
+  const imgVal = imgInput ? imgInput.value.trim() : '';
+  if (imgVal) it.img = imgVal;                       // 链接优先
+  else if (it.img && String(it.img).startsWith('data:')) { /* 保留已上传图片 */ }
+  else it.img = '';
+  // 若没有坐标，尝试从景点库自动定位（便于地图展示）
+  if (!it.lat || !it.lng) {
+    const sp = TRAVEL_SPOTS.find(s => s.name === place || (s.name && place && place.indexOf(s.name) >= 0));
+    if (sp) { it.lat = sp.lat; it.lng = sp.lng; }
+  }
   saveTravelData();
   travelDetailEditingItemId = null;
   renderItineraryEditor();
   renderTravelPlans();
+  if (travelPlanSelectedId) showPlanOnMap(travelPlanSelectedId);
   showToast('✅ 已保存');
 }
 function travelDeleteItem(itemId) {
@@ -13192,6 +13439,7 @@ function travelDeleteItem(itemId) {
     travelDetailEditingItemId = null;
     renderItineraryEditor();
     renderTravelPlans();
+    if (travelPlanSelectedId) showPlanOnMap(travelPlanSelectedId);
   });
 }
 function closePlanDetail() {
@@ -13239,7 +13487,7 @@ function showVisitedCities() {
         <div class="vv-icon">🌟</div>
         <div class="vv-main">
           <div class="vv-title">${escapeHtml(c.city)}</div>
-          <div class="vv-meta">${escapeHtml(c.country || '')} · ${c.spots.length} 处足迹</div>
+          <div class="vv-meta">${escapeHtml(c.country || '')} · 旅行 ${c.plans} 次</div>
         </div>
       </div>
     `).join('') + '</div>';
@@ -13648,35 +13896,6 @@ fillTravelDatalists();
       </div>
     </div>
   </div>
-
-<!-- ===== 逃离计划 · 添加足迹弹窗 ===== -->
-<div class="modal-mask" id="travelSpotModal" onclick="if(event.target===this)closeSpotModal()">
-  <div class="modal" style="max-width:460px;">
-    <div class="modal-head">
-      <div class="modal-title">➕ 添加足迹</div>
-      <button class="modal-close" onclick="closeSpotModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-row">
-        <label class="modal-label">城市 *</label>
-        <input class="modal-input" id="spotCity" list="travelCityOptions" placeholder="如：成都">
-        <datalist id="travelCityOptions"></datalist>
-      </div>
-      <div class="modal-row" style="display:flex;gap:12px;">
-        <div style="flex:1"><label class="modal-label">国家</label><input class="modal-input" id="spotCountry" placeholder="如：中国"></div>
-        <div style="flex:1"><label class="modal-label">到访日期</label><input class="modal-input" id="spotDate" type="date"></div>
-      </div>
-      <div class="modal-row">
-        <label class="modal-label">备注</label>
-        <textarea class="modal-textarea" id="spotNote" placeholder="记录一下这次旅行…"></textarea>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-outline" onclick="closeSpotModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveSpot()">💾 保存</button>
-    </div>
-  </div>
-</div>
 
 <!-- ===== 逃离计划 · 新建/编辑旅行计划弹窗 ===== -->
 <div class="modal-mask" id="travelPlanModal" onclick="if(event.target===this)closePlanModal()">
