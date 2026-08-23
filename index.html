@@ -3614,7 +3614,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
         <div class="kitty-content">
           <!-- 总览 -->
           <div class="kitty-tab-panel active" id="travelOverview">
-            <div class="travel-map-tip">地图默认卫星视图，若空白或想换风格，点左上角图层按钮切换</div>
+            <div class="travel-map-tip">地图加载较慢，若空白请点击左上角图层按钮切换其他底图</div>
             <div id="travelOverviewMap" class="travel-map"></div>
             <div class="travel-actions">
               <button class="btn btn-primary" onclick="drawCityTrail()">🌟 城市轨迹</button>
@@ -3639,7 +3639,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
               <input id="travelSpotSearch" class="travel-search-input" placeholder="🔍 搜索景点（如：故宫、洱海、浅草寺…）" oninput="onTravelSpotSearch()">
               <div id="travelSpotSearchResults" class="travel-search-results"></div>
             </div>
-            <div class="travel-map-tip">地图默认卫星视图，若空白或想换风格，点左上角图层按钮切换</div>
+            <div class="travel-map-tip">地图加载较慢，若空白请点击左上角图层按钮切换其他底图</div>
             <div id="travelPlanMap" class="travel-map"></div>
             <p class="travel-hint">📍 地图默认展示「即将到来」的计划 · 点击下方计划可切换 · 搜索并点选景点即可在地图标记 ★（也可点击地图打点）</p>
             <button class="btn btn-primary" onclick="openPlanModal()">➕ 新建旅行计划</button>
@@ -13071,7 +13071,7 @@ function buildTravelBasemaps(L) {
   const esri = createTileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     ...opts, attribution: '© Esri', maxZoom: 18
   });
-  return { 'Esri 卫星': esri, 'Carto 浅色': carto, 'OpenStreetMap': osm, '高德街道': gaode, '高德卫星': gaodeSat, '智图街道': geoq };
+  return { '高德街道': gaode, '高德卫星': gaodeSat, '智图街道': geoq, 'OpenStreetMap': osm, 'Carto 浅色': carto, 'Esri 卫星': esri };
 }
 
 function loadTravelData() {
