@@ -3614,7 +3614,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
         <div class="kitty-content">
           <!-- 总览 -->
           <div class="kitty-tab-panel active" id="travelOverview">
-            <div class="travel-map-tip">若地图空白，请点击左上角图层按钮切换其他底图</div>
+            <div class="travel-map-tip">地图默认卫星视图，若空白或想换风格，点左上角图层按钮切换</div>
             <div id="travelOverviewMap" class="travel-map"></div>
             <div class="travel-actions">
               <button class="btn btn-primary" onclick="drawCityTrail()">🌟 城市轨迹</button>
@@ -3639,7 +3639,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
               <input id="travelSpotSearch" class="travel-search-input" placeholder="🔍 搜索景点（如：故宫、洱海、浅草寺…）" oninput="onTravelSpotSearch()">
               <div id="travelSpotSearchResults" class="travel-search-results"></div>
             </div>
-            <div class="travel-map-tip">若地图空白，请点击左上角图层按钮切换其他底图</div>
+            <div class="travel-map-tip">地图默认卫星视图，若空白或想换风格，点左上角图层按钮切换</div>
             <div id="travelPlanMap" class="travel-map"></div>
             <p class="travel-hint">📍 地图默认展示「即将到来」的计划 · 点击下方计划可切换 · 搜索并点选景点即可在地图标记 ★（也可点击地图打点）</p>
             <button class="btn btn-primary" onclick="openPlanModal()">➕ 新建旅行计划</button>
@@ -13071,7 +13071,7 @@ function buildTravelBasemaps(L) {
   const esri = createTileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     ...opts, attribution: '© Esri', maxZoom: 18
   });
-  return { '高德街道': gaode, '高德卫星': gaodeSat, '智图街道': geoq, 'OpenStreetMap': osm, 'Carto 浅色': carto, 'Esri 卫星': esri };
+  return { 'Esri 卫星': esri, 'Carto 浅色': carto, 'OpenStreetMap': osm, '高德街道': gaode, '高德卫星': gaodeSat, '智图街道': geoq };
 }
 
 function loadTravelData() {
@@ -13135,25 +13135,30 @@ function ensureTravelReady() {
 }
 
 function enableTileFallback(map, layer, basemaps) {
-  let loads = 0, errors = 0;
+  let loads = 0, errors = 0, switched = false;
   const order = Object.keys(basemaps);
   layer.on('tileload', () => loads++);
+  const trySwitch = (reason) => {
+    if (switched || loads > 0) return;
+    switched = true;
+    const currentKey = order.find(k => map.hasLayer(basemaps[k]));
+    const idx = currentKey ? order.indexOf(currentKey) : -1;
+    for (let i = idx + 1; i < order.length; i++) {
+      const key = order[i], next = basemaps[key];
+      if (!next) continue;
+      map.eachLayer(l => { if (l instanceof L.TileLayer) map.removeLayer(l); });
+      next.addTo(map);
+      showToast('已自动切换为“' + key + '”底图（' + reason + '），可点击左上角图层按钮切换');
+      enableTileFallback(map, next, basemaps);
+      return;
+    }
+  };
+  // 超时兜底：3 秒内 0 张瓦片加载成功则切换（应对连接挂起不报错的情况）
+  setTimeout(() => { if (loads === 0) trySwitch('当前底图加载超时'); }, 3000);
   layer.on('tileerror', () => {
     errors++;
-    if (loads > 0) return;
-    if (errors >= 5) {
-      const currentKey = order.find(k => map.hasLayer(basemaps[k]));
-      const idx = currentKey ? order.indexOf(currentKey) : -1;
-      for (let i = idx + 1; i < order.length; i++) {
-        const key = order[i], next = basemaps[key];
-        if (!next) continue;
-        map.eachLayer(l => { if (l instanceof L.TileLayer) map.removeLayer(l); });
-        next.addTo(map);
-        showToast('当前底图在您网络下加载失败，已自动切换为“' + key + '”，可点击左上角图层按钮切换');
-        enableTileFallback(map, next, basemaps);
-        break;
-      }
-    }
+    if (loads > 0 || switched) return;
+    if (errors >= 5) trySwitch('当前底图加载失败');
   });
 }
 
@@ -13161,7 +13166,9 @@ function initTravelMaps(L) {
   travelL = L;
   const basemaps = buildTravelBasemaps(L);
   const baseNames = Object.keys(basemaps);
+  travelBasemapsCache = basemaps;
 
+  // 总览地图：默认 tab 可见，直接初始化
   travelOverviewMap = L.map('travelOverviewMap', { zoomControl: false }).setView([34.0, 108.0], 4);
   L.control.zoom({ position: 'topright' }).addTo(travelOverviewMap);
   const ovBase = basemaps[baseNames[0]];
@@ -13169,34 +13176,57 @@ function initTravelMaps(L) {
   L.control.layers(basemaps, null, { position: 'topleft', collapsed: false }).addTo(travelOverviewMap);
   enableTileFallback(travelOverviewMap, ovBase, basemaps);
 
+  // 计划地图：与总览同方式初始化
   travelPlanMap = L.map('travelPlanMap', { zoomControl: false }).setView([34.0, 108.0], 4);
   L.control.zoom({ position: 'topright' }).addTo(travelPlanMap);
   const planBase = basemaps[baseNames[0]];
   planBase.addTo(travelPlanMap);
-  L.control.layers(basemaps, null, { position: 'topleft', collapsed: false }).addTo(travelPlanMap);
   enableTileFallback(travelPlanMap, planBase, basemaps);
-
+  L.control.layers(basemaps, null, { position: 'topleft', collapsed: false }).addTo(travelPlanMap);
   travelPlanMap.on('click', function(e) {
     if (!travelPlanSelectedId) { showToast('请先在下方选择一个旅行计划'); return; }
     addAttractionToPlan(travelPlanSelectedId, { name: '标注点', lat: e.latlng.lat, lng: e.latlng.lng, type: '其他' });
   });
 }
 
+function ensurePlanMapInited() {
+  // 计划地图已在 initTravelMaps 中初始化
+}
+
 function lookupCity(name) { return TRAVEL_CITIES.find(c => c.name === name) || null; }
 
 function invalidateTravelMaps() {
-  if (travelOverviewMap) travelOverviewMap.invalidateSize();
-  if (travelPlanMap) travelPlanMap.invalidateSize();
+  [travelOverviewMap, travelPlanMap].forEach(m => {
+    if (!m || typeof m.invalidateSize !== 'function') return;
+    m.invalidateSize();
+  });
 }
 
 function switchTravelTab(tab) {
   travelCurrentTab = tab;
   document.querySelectorAll('#panel-travel .kitty-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('#panel-travel .kitty-tab-panel').forEach(p => p.classList.toggle('active', p.id === (tab === 'overview' ? 'travelOverview' : 'travelPlans')));
-  requestAnimationFrame(() => invalidateTravelMaps());
-  setTimeout(invalidateTravelMaps, 350);
-  if (tab === 'overview') renderTravelOverview();
-  if (tab === 'plans') renderTravelPlans();
+  if (tab === 'plans') {
+    ensurePlanMapInited();
+    requestAnimationFrame(() => invalidateTravelMaps());
+    setTimeout(invalidateTravelMaps, 400);
+    // 计划地图瓦片层修复：在地图显示后移除并重加底图 tileLayer，强制其进入 tilePane
+    setTimeout(() => {
+      if (travelPlanMap) {
+        const tl = [];
+        travelPlanMap.eachLayer(l => { if (l instanceof L.TileLayer) tl.push(l); });
+        tl.forEach(l => { travelPlanMap.removeLayer(l); l.addTo(travelPlanMap); });
+        travelPlanMap.invalidateSize();
+      }
+      invalidateTravelMaps();
+    }, 600);
+    setTimeout(invalidateTravelMaps, 900);
+    renderTravelPlans();
+  } else {
+    requestAnimationFrame(() => invalidateTravelMaps());
+    setTimeout(invalidateTravelMaps, 400);
+    renderTravelOverview();
+  }
 }
 
 function computeVisitedCities() {
@@ -13287,6 +13317,7 @@ function renderTravelStats() {
 }
 
 function renderTravelPlans() {
+  ensurePlanMapInited();
   const container = document.getElementById('travelPlanList');
   if (!container) return;
   const plans = (travelData.plans || []).slice().sort((a, b) => (a.start || '').localeCompare(b.start || ''));
