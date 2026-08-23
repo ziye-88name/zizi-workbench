@@ -1476,6 +1476,13 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   box-shadow: var(--shadow-soft); background: #eef6f0;
   overflow: hidden; position: relative; z-index: 1;
 }
+.travel-basemap-select {
+  position: absolute; top: 10px; left: 10px; z-index: 1000;
+  padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.95); font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: pointer;
+  max-width: 120px;
+}
 #panel-travel .travel-actions {
   position: relative; z-index: 1; display: flex; gap: 10px;
   flex-wrap: wrap; margin: 14px 0;
@@ -13053,25 +13060,15 @@ function createTileLayer(url, opts) {
 }
 function buildTravelBasemaps(L) {
   const opts = { crossOrigin: true };
-  const gaode = createTileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}', {
-    ...opts, attribution: '© 高德地图', maxZoom: 18, subdomains: '1234'
+  const make = () => ({
+    '高德街道': createTileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}', { ...opts, attribution: '© 高德地图', maxZoom: 18, subdomains: '1234' }),
+    '高德卫星': createTileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', { ...opts, attribution: '© 高德卫星', maxZoom: 18, subdomains: '1234' }),
+    '智图街道': createTileLayer('https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', { ...opts, attribution: '© Geoq 智图', maxZoom: 18, subdomains: '123' }),
+    'OpenStreetMap': createTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { ...opts, attribution: '&copy; OpenStreetMap', maxZoom: 19, subdomains: 'abc' }),
+    'Carto 浅色': createTileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { ...opts, attribution: '&copy; CARTO', maxZoom: 20, subdomains: 'abcd' }),
+    'Esri 卫星': createTileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { ...opts, attribution: '© Esri', maxZoom: 18 })
   });
-  const gaodeSat = createTileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
-    ...opts, attribution: '© 高德卫星', maxZoom: 18, subdomains: '1234'
-  });
-  const geoq = createTileLayer('https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', {
-    ...opts, attribution: '© Geoq 智图', maxZoom: 18, subdomains: '123'
-  });
-  const osm = createTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    ...opts, attribution: '&copy; OpenStreetMap', maxZoom: 19, subdomains: 'abc'
-  });
-  const carto = createTileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    ...opts, attribution: '&copy; CARTO', maxZoom: 20, subdomains: 'abcd'
-  });
-  const esri = createTileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    ...opts, attribution: '© Esri', maxZoom: 18
-  });
-  return { '高德街道': gaode, '高德卫星': gaodeSat, '智图街道': geoq, 'OpenStreetMap': osm, 'Carto 浅色': carto, 'Esri 卫星': esri };
+  return make;
 }
 
 function loadTravelData() {
@@ -13162,27 +13159,55 @@ function enableTileFallback(map, layer, basemaps) {
   });
 }
 
+// 自定义底图切换器（替代 L.control.layers，避免与 tileLayer 重建冲突）
+function renderBasemapSelector(map, selectId, basemaps, currentKey) {
+  if (!map || !basemaps) return;
+  map._basemaps = basemaps;
+  const container = map.getContainer();
+  let sel = document.getElementById(selectId);
+  if (!sel) {
+    sel = document.createElement('select');
+    sel.id = selectId;
+    sel.className = 'travel-basemap-select';
+    container.style.position = 'relative';
+    container.appendChild(sel);
+  }
+  sel.innerHTML = Object.keys(basemaps).map(k => `<option value="${escapeHtml(k)}" ${k === currentKey ? 'selected' : ''}>${escapeHtml(k)}</option>`).join('');
+  sel.onchange = () => {
+    const key = sel.value;
+    const next = basemaps[key];
+    if (!next) return;
+    map.eachLayer(l => { if (l instanceof L.TileLayer) map.removeLayer(l); });
+    next.addTo(map);
+    enableTileFallback(map, next, basemaps);
+  };
+}
+
 function initTravelMaps(L) {
   travelL = L;
-  const basemaps = buildTravelBasemaps(L);
-  const baseNames = Object.keys(basemaps);
-  travelBasemapsCache = basemaps;
+  const makeBasemaps = buildTravelBasemaps(L);
 
-  // 总览地图：默认 tab 可见，直接初始化
+  // 总览地图：默认 tab 可见，直接初始化（使用独立底图实例）
+  const ovBasemaps = makeBasemaps();
+  const ovBaseNames = Object.keys(ovBasemaps);
   travelOverviewMap = L.map('travelOverviewMap', { zoomControl: false }).setView([34.0, 108.0], 4);
   L.control.zoom({ position: 'topright' }).addTo(travelOverviewMap);
-  const ovBase = basemaps[baseNames[0]];
+  const ovBase = ovBasemaps[ovBaseNames[0]];
   ovBase.addTo(travelOverviewMap);
-  L.control.layers(basemaps, null, { position: 'topleft', collapsed: false }).addTo(travelOverviewMap);
-  enableTileFallback(travelOverviewMap, ovBase, basemaps);
+  travelOverviewMap._basemaps = ovBasemaps;
+  enableTileFallback(travelOverviewMap, ovBase, ovBasemaps);
+  renderBasemapSelector(travelOverviewMap, 'travelOverviewBasemap', ovBasemaps, ovBaseNames[0]);
 
-  // 计划地图：与总览同方式初始化
+  // 计划地图：与总览同方式初始化（使用独立底图实例）
+  const planBasemaps = makeBasemaps();
+  const planBaseNames = Object.keys(planBasemaps);
   travelPlanMap = L.map('travelPlanMap', { zoomControl: false }).setView([34.0, 108.0], 4);
   L.control.zoom({ position: 'topright' }).addTo(travelPlanMap);
-  const planBase = basemaps[baseNames[0]];
+  const planBase = planBasemaps[planBaseNames[0]];
   planBase.addTo(travelPlanMap);
-  enableTileFallback(travelPlanMap, planBase, basemaps);
-  L.control.layers(basemaps, null, { position: 'topleft', collapsed: false }).addTo(travelPlanMap);
+  travelPlanMap._basemaps = planBasemaps;
+  enableTileFallback(travelPlanMap, planBase, planBasemaps);
+  renderBasemapSelector(travelPlanMap, 'travelPlanBasemap', planBasemaps, planBaseNames[0]);
   travelPlanMap.on('click', function(e) {
     if (!travelPlanSelectedId) { showToast('请先在下方选择一个旅行计划'); return; }
     addAttractionToPlan(travelPlanSelectedId, { name: '标注点', lat: e.latlng.lat, lng: e.latlng.lng, type: '其他' });
@@ -13210,21 +13235,25 @@ function switchTravelTab(tab) {
     ensurePlanMapInited();
     requestAnimationFrame(() => invalidateTravelMaps());
     setTimeout(invalidateTravelMaps, 400);
-    // 计划地图瓦片层修复：在地图显示后移除并重加底图 tileLayer，强制其进入 tilePane
+    // 计划地图在隐藏容器初始化后瓦片层未正确渲染，切 tab 时强制重建底图
     setTimeout(() => {
-      if (travelPlanMap) {
-        const tl = [];
-        travelPlanMap.eachLayer(l => { if (l instanceof L.TileLayer) tl.push(l); });
-        tl.forEach(l => { travelPlanMap.removeLayer(l); l.addTo(travelPlanMap); });
+      if (travelPlanMap && travelPlanMap._basemaps) {
+        const baseNames = Object.keys(travelPlanMap._basemaps);
+        const currentKey = baseNames.find(k => travelPlanMap.hasLayer(travelPlanMap._basemaps[k])) || baseNames[0];
+        travelPlanMap.eachLayer(l => { if (l instanceof L.TileLayer) travelPlanMap.removeLayer(l); });
+        const next = travelPlanMap._basemaps[currentKey];
+        next.addTo(travelPlanMap);
+        enableTileFallback(travelPlanMap, next, travelPlanMap._basemaps);
+        renderBasemapSelector(travelPlanMap, 'travelPlanBasemap', travelPlanMap._basemaps, currentKey);
         travelPlanMap.invalidateSize();
       }
-      invalidateTravelMaps();
     }, 600);
     setTimeout(invalidateTravelMaps, 900);
     renderTravelPlans();
   } else {
     requestAnimationFrame(() => invalidateTravelMaps());
     setTimeout(invalidateTravelMaps, 400);
+    setTimeout(invalidateTravelMaps, 900);
     renderTravelOverview();
   }
 }
