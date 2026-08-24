@@ -2408,6 +2408,22 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .coin-set-row input { width:90px; padding:8px; border:1.5px solid rgba(123,111,160,.2); border-radius:10px; text-align:center; font-family:inherit; }
 .k2-savings-actions .deposit { background: linear-gradient(135deg,#C7B6E2,#A6E2CD); color: #fff; border-color: transparent; }
 .k2-savings-empty { text-align: center; padding: 30px; color: #9C95A8; }
+/* 类型筛选条 */
+.k2-type-filter { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }
+.k2-type-filter button { padding: 7px 14px; border: 1.5px solid rgba(123,111,160,.18); background: #fff; border-radius: 14px; font-size: 13px; color: #7B6FA0; cursor: pointer; transition: all .18s; }
+.k2-type-filter button:hover { background: #F8F5FC; }
+.k2-type-filter button.active { background: linear-gradient(135deg,#C7B6E2,#A6E2CD); color: #fff; border-color: transparent; font-weight: 700; }
+/* 类型徽章 */
+.k2-type-badge { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 9px; margin-left: 6px; vertical-align: middle; white-space: nowrap; }
+.k2-type-small { background: #F3ECFA; color: #9B7FC4; }
+.k2-type-month { background: #E3F2FB; color: #4A90C2; }
+.k2-type-long { background: #E6F7EE; color: #3FA776; }
+.k2-savings-link { font-size: 11px; color: #3FA776; background: #E6F7EE; padding: 1px 6px; border-radius: 8px; }
+.k2-savings-card-long { border-color: rgba(63,167,118,.28); }
+/* 本月概览：长期目标圆环 */
+.k2-longterm-row { cursor: pointer; }
+.k2-longterm-row .k2-ring-text div:last-child { color: #3FA776; }
+.k2-longterm-fill { background: linear-gradient(90deg,#A6E2CD,#7FD6A8); }
 .k2-social-summary { background: #fff; border: 1.5px solid rgba(123,111,160,.12); border-radius: 22px; padding: 14px 16px; margin-bottom: 14px; font-size: 15px; font-weight: 700; color: #7B6FA0; }
 .k2-social-list { display: flex; flex-direction: column; gap: 10px; }
 .k2-social-card { background: #fff; border: 1.5px solid rgba(123,111,160,.12); border-radius: 18px; padding: 14px; box-shadow: 0 4px 12px rgba(123,111,160,.08); display: flex; align-items: center; gap: 10px; }
@@ -2459,7 +2475,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260827</div>
+    <div class="splash-ver">v2.0.20260828</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3122,6 +3138,19 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
               </div>
             </div>
 
+            <div class="k2-card k2-longterm-row" id="ovLongTermRow" style="display:none;" onclick="switchExpenseTab('savings'); setSavingsTypeFilter('month')">
+              <div class="k2-ring-wrap">
+                <canvas id="longTermRingCanvas" width="120" height="120"></canvas>
+                <div class="k2-ring-text"><div id="ringLongLabel">长期目标</div><div id="ringLongPct">0%</div></div>
+              </div>
+              <div class="k2-budget-info">
+                <div class="k2-budget-title" id="ovLongTermTitle">🌟 长期目标</div>
+                <div class="k2-budget-line">已存入 <b id="ovLongTermSaved">¥0.00</b> / 目标 <b id="ovLongTermTarget">¥0.00</b></div>
+                <div class="k2-progress"><div class="k2-progress-fill k2-longterm-fill" id="longTermProgressFill"></div></div>
+                <div class="k2-budget-foot">还差 <b id="ovLongTermLeft">¥0.00</b> <span>🌱</span> · 点击查看每月明细</div>
+              </div>
+            </div>
+
             <div class="k2-card k2-quick">
               <div class="k2-section-title">⚡ 快速记一笔</div>
               <div class="k2-quick-grid" id="quickGrid"></div>
@@ -3311,6 +3340,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
                   <span class="coin-ico">💰</span><span id="coinBalanceNum">0</span>
                 </div>
               </div>
+              <div class="k2-type-filter" id="savingsTypeFilter"></div>
               <div id="savingsList"></div>
             </div>
             <!-- 心愿单 -->
@@ -3533,14 +3563,24 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
               <input type="text" id="savingsName" placeholder="例如：换手机">
             </div>
             <div class="kitty-field">
+              <label>类型（可输入或下拉选择）</label>
+              <input type="text" id="savingsType" list="savingsTypeList" placeholder="小目标 / 月度目标 / 长期目标" value="小目标" autocomplete="off" oninput="onSavingsTypeInput()">
+              <datalist id="savingsTypeList">
+                <option value="小目标"></option>
+                <option value="月度目标"></option>
+                <option value="长期目标"></option>
+              </datalist>
+              <small class="kitty-field-hint" id="savingsTypeHint">小目标：随月份独立；月度目标：绑定某月，其存入额会自动汇总到长期目标；长期目标：目标值自定，已存入=各月度目标之和（自动联动）。</small>
+            </div>
+            <div class="kitty-field">
               <label>图标</label>
               <input type="text" id="savingsIcon" placeholder="例如：📱" value="🎯">
             </div>
-            <div class="kitty-field">
+            <div class="kitty-field" id="savingsTargetField">
               <label>目标金额（元）</label>
               <input type="number" id="savingsTarget" placeholder="0.00" step="0.01" min="0">
             </div>
-            <div class="kitty-field">
+            <div class="kitty-field" id="savingsCurrentField">
               <label>当前已攒（元）</label>
               <input type="number" id="savingsCurrent" placeholder="0.00" step="0.01" min="0">
             </div>
@@ -11344,7 +11384,27 @@ function renderExpenseOverview() {
     return `<button class="k2-quick-btn" onclick="quickAdd('${escapeHtml(c)}')"><span class="emo">${parent.icon}</span><span>${escapeHtml(c)}</span></button>`;
   }).join('');
 
+  renderLongTermOverview();
   renderTemplateList();
+}
+// 本月概览：长期目标圆环（目标值=用户自定，已存入=各月度目标之和，实时联动）
+function renderLongTermOverview() {
+  const row = document.getElementById('ovLongTermRow');
+  if(!row) return;
+  const longGoals = savingsGoals.filter(g => (g.type || 'small') === 'long' && (parseFloat(g.target) || 0) > 0);
+  if(longGoals.length === 0) { row.style.display = 'none'; return; }
+  // 取第一个长期目标作为展示（通常一个）；若多个则合计目标值
+  const target = longGoals.reduce((s, g) => s + (parseFloat(g.target) || 0), 0);
+  const current = computeLongTerm().current;
+  const ratio = target > 0 ? Math.min(1, current / target) : 0;
+  const pct = Math.round(ratio * 100);
+  row.style.display = '';
+  document.getElementById('ringLongPct').textContent = pct + '%';
+  document.getElementById('ovLongTermSaved').textContent = formatCurrency(current);
+  document.getElementById('ovLongTermTarget').textContent = formatCurrency(target);
+  document.getElementById('ovLongTermLeft').textContent = formatCurrency(Math.max(0, target - current));
+  document.getElementById('longTermProgressFill').style.width = (ratio * 100) + '%';
+  drawBudgetRing(document.getElementById('longTermRingCanvas'), ratio, '#A6E2CD');
 }
 function renderTemplateList() {
   const tpl = document.getElementById('templateList');
@@ -11505,8 +11565,9 @@ function onPeriodChange(sel) {
   if(currentExpenseTab==='charts') renderExpenseCharts();
 }
 
-function drawBudgetRing(canvas, ratio) {
+function drawBudgetRing(canvas, ratio, color) {
   if(!canvas) return;
+  const ringColor = color || '#E8A9B2';
   const dpr = window.devicePixelRatio || 1;
   const size = 110;
   canvas.width = size * dpr; canvas.height = size * dpr;
@@ -11517,7 +11578,7 @@ function drawBudgetRing(canvas, ratio) {
   const cx = size/2, cy = size/2, r = 42, lw = 10;
   ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.lineWidth=lw; ctx.strokeStyle='#F0EAF3'; ctx.stroke();
   ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.min(1,ratio)*Math.PI*2); ctx.lineWidth=lw;
-  ctx.lineCap='round'; ctx.strokeStyle='#E8A9B2'; ctx.stroke();
+  ctx.lineCap='round'; ctx.strokeStyle=ringColor; ctx.stroke();
 }
 
 function openBudgetModal(){
@@ -12317,6 +12378,7 @@ const SOCIAL_KEY = 'parrot_social_ledger_v1';
 
 let savingsGoals = [];
 let savingsOwnedView = { goal: false, wish: false };
+let currentSavingsTypeFilter = 'small'; // 'all' | 'small' | 'month' | 'long'
 let socialRecords = [];
 let savingsPeriodType = 'month';
 let savingsPeriod = '';
@@ -12435,14 +12497,40 @@ function toggleSavingsOwned(sub) {
   if(sub === 'goal') renderSavingsGoals(); else renderWishlist();
 }
 
+// 长期目标联动：已存入 = 所有「月度目标」已存入额之和；目标值 = 各月度目标之和（用于参考）
+function computeLongTerm() {
+  const months = savingsGoals.filter(g => (g.type || 'small') === 'month' && (parseFloat(g.target) || 0) > 0);
+  const target = months.reduce((s, g) => s + (parseFloat(g.target) || 0), 0);
+  const current = months.reduce((s, g) => s + (parseFloat(g.current) || 0), 0);
+  return { target, current, count: months.length };
+}
+// 长期目标的「已存入」实时联动（不读取自身 current，始终=月度之和）
+function getLongTermCurrent(longGoal) {
+  return computeLongTerm().current;
+}
+
 function renderSavingsGoals() {
   const container = document.getElementById('savingsList');
   if(!container) return;
-  const range = getSavingsPeriodRange();
+  // 类型筛选条
+  const filterBar = document.getElementById('savingsTypeFilter');
+  if(filterBar) {
+    const types = [
+      { k:'all', label:'全部' }, { k:'small', label:'小目标' }, { k:'month', label:'月度目标' }, { k:'long', label:'长期目标' }
+    ];
+    filterBar.innerHTML = types.map(t => `<button class="${currentSavingsTypeFilter===t.k?'active':''}" data-type="${t.k}" onclick="setSavingsTypeFilter('${t.k}')">${t.label}</button>`).join('');
+  }
   let all = savingsGoals;
-  if(savingsPeriodType === 'year') all = all.filter(g => (g.period || '').startsWith(savingsPeriod));
-  else all = all.filter(g => (g.period || '') === savingsPeriod);
-  const isOwned = g => g.target > 0 && (parseFloat(g.current) || 0) >= parseFloat(g.target);
+  // 类型过滤
+  if(currentSavingsTypeFilter !== 'all') all = all.filter(g => (g.type || 'small') === currentSavingsTypeFilter);
+  // 周期过滤：长期目标不受 period 影响（永久显示），其余按 period 过滤
+  if(savingsPeriodType === 'year') all = all.filter(g => (g.type || 'small') === 'long' || (g.period || '').startsWith(savingsPeriod));
+  else all = all.filter(g => (g.type || 'small') === 'long' || (g.period || '') === savingsPeriod);
+  const isOwned = g => {
+    const t = parseFloat(g.target) || 0;
+    const c = (g.type || 'small') === 'long' ? getLongTermCurrent(g) : (parseFloat(g.current) || 0);
+    return t > 0 && c >= t;
+  };
   const ownedCount = all.filter(isOwned).length;
   const cntEl = document.getElementById('goalOwnedCount'); if(cntEl) cntEl.textContent = ownedCount;
   const ob = document.getElementById('goalOwnedBtn'); if(ob) ob.classList.toggle('active', !!savingsOwnedView.goal);
@@ -12450,19 +12538,22 @@ function renderSavingsGoals() {
   if(list.length === 0) {
     container.innerHTML = savingsOwnedView.goal
       ? '<div class="k2-savings-empty">🎉 暂无已拥有的攒钱目标<br><span style="font-size:13px;">进度达到 100% 的目标会归到这里</span></div>'
-      : '<div class="k2-savings-empty">🎯 暂无攒钱目标<br><span style="font-size:13px;">点击上方按钮新建一个心愿吧</span></div>';
+      : '<div class="k2-savings-empty">🎯 暂无相关目标<br><span style="font-size:13px;">点击上方按钮新建一个吧</span></div>';
     return;
   }
+  const typeBadge = t => ({ small:'🎯 小目标', month:'📅 月度目标', long:'🌟 长期目标' }[t] || '');
   container.innerHTML = '<div class="k2-savings-list">' + list.map(g => {
+    const isLong = (g.type || 'small') === 'long';
     const target = parseFloat(g.target) || 0;
-    const current = parseFloat(g.current) || 0;
+    const current = isLong ? getLongTermCurrent(g) : (parseFloat(g.current) || 0);
     const pct = target > 0 ? Math.min(100, Math.round(current / target * 100)) : 0;
-    return `<div class="k2-savings-card">
+    const metaExtra = isLong ? ` <span class="k2-savings-link">已存入=月度目标之和</span>` : '';
+    return `<div class="k2-savings-card${isLong?' k2-savings-card-long':''}">
       <div class="k2-savings-top">
         <div class="k2-savings-icon">${escapeHtml(g.icon || '🎯')}</div>
         <div class="k2-savings-info">
-          <div class="k2-savings-name">${escapeHtml(g.name || '未命名')}</div>
-          <div class="k2-savings-meta">${formatCurrency(current)} / ${formatCurrency(target)} · ${pct}%</div>
+          <div class="k2-savings-name">${escapeHtml(g.name || '未命名')} <span class="k2-type-badge k2-type-${g.type||'small'}">${typeBadge(g.type||'small')}</span></div>
+          <div class="k2-savings-meta">${formatCurrency(current)} / ${formatCurrency(target)} · ${pct}%${metaExtra}</div>
         </div>
       </div>
       <div class="k2-savings-progress"><div class="k2-savings-progress-fill" style="width:${pct}%"></div></div>
@@ -12475,16 +12566,40 @@ function renderSavingsGoals() {
     </div>`;
   }).join('') + '</div>';
 }
+function setSavingsTypeFilter(t) {
+  currentSavingsTypeFilter = t;
+  renderSavingsGoals();
+}
+const SAVINGS_TYPE_MAP = { '小目标':'small', '月度目标':'month', '长期目标':'long', 'small':'small', 'month':'month', 'long':'long' };
+function normalizeSavingsType(v) { return SAVINGS_TYPE_MAP[(v||'').trim()] || 'small'; }
+
+function onSavingsTypeInput() {
+  const typeVal = normalizeSavingsType(document.getElementById('savingsType').value);
+  const curField = document.getElementById('savingsCurrentField');
+  if(curField) curField.style.display = typeVal === 'long' ? 'none' : '';
+}
 function openSavingsModal(id) {
   editingSavingsId = id || null;
   const title = document.getElementById('savingsModalTitle');
   title.textContent = id ? '编辑攒钱目标' : '新建攒钱目标';
   if(id) {
     const g = savingsGoals.find(x => x.id === id);
-    if(g) { document.getElementById('savingsName').value = g.name || ''; document.getElementById('savingsIcon').value = g.icon || '🎯'; document.getElementById('savingsTarget').value = g.target || ''; document.getElementById('savingsCurrent').value = g.current || ''; }
+    if(g) {
+      document.getElementById('savingsName').value = g.name || '';
+      document.getElementById('savingsIcon').value = g.icon || '🎯';
+      const tLabel = { small:'小目标', month:'月度目标', long:'长期目标' }[g.type||'small'] || '小目标';
+      document.getElementById('savingsType').value = tLabel;
+      document.getElementById('savingsTarget').value = g.target || '';
+      document.getElementById('savingsCurrent').value = g.current || '';
+    }
   } else {
-    document.getElementById('savingsName').value = ''; document.getElementById('savingsIcon').value = '🎯'; document.getElementById('savingsTarget').value = ''; document.getElementById('savingsCurrent').value = '';
+    document.getElementById('savingsName').value = ''; document.getElementById('savingsIcon').value = '🎯';
+    document.getElementById('savingsType').value = '小目标';
+    document.getElementById('savingsTarget').value = ''; document.getElementById('savingsCurrent').value = '';
   }
+  // 长期目标：隐藏「当前已攒」（自动=月度之和）
+  const typeVal = normalizeSavingsType(document.getElementById('savingsType').value);
+  document.getElementById('savingsCurrentField').style.display = typeVal === 'long' ? 'none' : '';
   document.getElementById('savingsModal').classList.add('show');
 }
 function closeSavingsModal() { document.getElementById('savingsModal').classList.remove('show'); editingSavingsId = null; }
@@ -12492,14 +12607,16 @@ function saveSavingsGoal() {
   const name = document.getElementById('savingsName').value.trim();
   const icon = document.getElementById('savingsIcon').value.trim() || '🎯';
   const target = parseFloat(document.getElementById('savingsTarget').value) || 0;
-  const current = parseFloat(document.getElementById('savingsCurrent').value) || 0;
+  const type = normalizeSavingsType(document.getElementById('savingsType').value);
+  // 长期目标：当前已攒自动=月度目标之和，不读用户输入
+  const current = type === 'long' ? computeLongTerm().current : (parseFloat(document.getElementById('savingsCurrent').value) || 0);
   if(!name) { showToast('请输入目标名称'); return; }
   if(target <= 0) { showToast('请输入目标金额'); return; }
   if(editingSavingsId) {
     const g = savingsGoals.find(x => x.id === editingSavingsId);
-    if(g) { g.name = name; g.icon = icon; g.target = target; g.current = current; }
+    if(g) { g.name = name; g.icon = icon; g.target = target; g.type = type; if(type !== 'long') g.current = current; }
   } else {
-    savingsGoals.push({ id: 'sav_'+Date.now(), name, icon, target, current, period: savingsPeriod, createdAt: Date.now() });
+    savingsGoals.push({ id: 'sav_'+Date.now(), name, icon, target, current, type, period: savingsPeriod, createdAt: Date.now() });
   }
   saveSavingsGoals();
   closeSavingsModal();
