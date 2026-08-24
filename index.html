@@ -2438,7 +2438,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260824</div>
+    <div class="splash-ver">v2.0.20260825</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -13077,12 +13077,18 @@ function createTileLayer(url, opts) {
 }
 function buildTravelBasemaps(L) {
   const opts = { crossOrigin: true };
+  // 对象顺序用于下拉选择器展示（高德街道打头，符合用户习惯）。
+  // 实际 fallback 切换顺序由 BASEMAP_FALLBACK_CHAIN 控制（见 enableTileFallback），
+  // 优先回退到「街道类」底图，保证电脑端高德街道加载失败时仍显示街道效果（与手机一致），
+  // 全部街道源失败后才回退到卫星图兜底。
   const make = () => ({
     '高德街道': createTileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}', { ...opts, attribution: '© 高德地图', maxZoom: 18, subdomains: '1234' }),
-    '高德卫星': createTileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', { ...opts, attribution: '© 高德卫星', maxZoom: 18, subdomains: '1234' }),
+    // 高德街道(路网)：同一高德品牌、不同子域 wprd，街道效果一致，作为高德街道的就近备选
+    '高德街道(路网)': createTileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { ...opts, attribution: '© 高德地图', maxZoom: 18, subdomains: '1234' }),
     '智图街道': createTileLayer('https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', { ...opts, attribution: '© Geoq 智图', maxZoom: 18, subdomains: '123' }),
-    'OpenStreetMap': createTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { ...opts, attribution: '&copy; OpenStreetMap', maxZoom: 19, subdomains: 'abc' }),
     'Carto 浅色': createTileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { ...opts, attribution: '&copy; CARTO', maxZoom: 20, subdomains: 'abcd' }),
+    'OpenStreetMap': createTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { ...opts, attribution: '&copy; OpenStreetMap', maxZoom: 19, subdomains: 'abc' }),
+    '高德卫星': createTileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', { ...opts, attribution: '© 高德卫星', maxZoom: 18, subdomains: '1234' }),
     'Esri 卫星': createTileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { ...opts, attribution: '© Esri', maxZoom: 18 })
   });
   return make;
@@ -13148,20 +13154,31 @@ function ensureTravelReady() {
   });
 }
 
+// fallback 链：优先切到「街道类」底图（与手机高德街道效果一致），全部失败后
+// 才回退到卫星图兜底，避免电脑端误显示卫星图而与手机不一致。
+const BASEMAP_FALLBACK_CHAIN = [
+  '高德街道', '高德街道(路网)', '智图街道', 'Carto 浅色', 'OpenStreetMap', '高德卫星', 'Esri 卫星'
+];
 function enableTileFallback(map, layer, basemaps) {
   let loads = 0, errors = 0, switched = false;
   const order = Object.keys(basemaps);
+  // 实际切换顺序：按 fallback 链过滤出当前实例中存在的底图
+  const chain = BASEMAP_FALLBACK_CHAIN.filter(k => basemaps[k]);
   layer.on('tileload', () => loads++);
   const trySwitch = (reason) => {
     if (switched || loads > 0) return;
     switched = true;
     const currentKey = order.find(k => map.hasLayer(basemaps[k]));
-    const idx = currentKey ? order.indexOf(currentKey) : -1;
-    for (let i = idx + 1; i < order.length; i++) {
-      const key = order[i], next = basemaps[key];
+    const idx = currentKey ? chain.indexOf(currentKey) : -1;
+    for (let i = idx + 1; i < chain.length; i++) {
+      const key = chain[i], next = basemaps[key];
       if (!next) continue;
       map.eachLayer(l => { if (l instanceof L.TileLayer) map.removeLayer(l); });
       next.addTo(map);
+      // 同步更新左上角底图选择器的高亮项
+      const selId = map._basemapSelId || ((map.getContainer().id || '') + 'Basemap');
+      const sel = document.getElementById(selId);
+      if (sel) sel.value = key;
       showToast('已自动切换为“' + key + '”底图（' + reason + '），可点击左上角图层按钮切换');
       enableTileFallback(map, next, basemaps);
       return;
@@ -13180,6 +13197,7 @@ function enableTileFallback(map, layer, basemaps) {
 function renderBasemapSelector(map, selectId, basemaps, currentKey) {
   if (!map || !basemaps) return;
   map._basemaps = basemaps;
+  map._basemapSelId = selectId;
   const container = map.getContainer();
   let sel = document.getElementById(selectId);
   if (!sel) {
