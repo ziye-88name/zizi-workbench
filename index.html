@@ -614,6 +614,27 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 /* ===== 飞书式文档树（左侧） ===== */
 /* 我的拆解左树容器取消 .doc-list 的网格 12px 间距，与"我的知识"树一致（仅保留 .doc-tree-l1 的 6px） */
 #hotDocList { display:block; gap:0; }
+/* 直播话术「我的文档」恢复为卡片网格，电脑端默认三列，小屏单列 */
+#scriptDocList {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 8px;
+  max-width: none;
+  max-height: none;
+  flex: none;
+  overflow: visible;
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+#scriptDocList .doc-card { min-width: 0; }
+@media (max-width: 1100px) {
+  #scriptDocList { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  #scriptDocList { grid-template-columns: 1fr; }
+}
 .doc-tree-l1 { margin-bottom:6px; }
 .doc-tree-l1-head, .doc-tree-l2-head, .doc-tree-l3-head {
   display:flex; align-items:center; gap:6px; padding:7px 8px; border-radius:9px;
@@ -2438,7 +2459,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260825</div>
+    <div class="splash-ver">v2.0.20260826</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -11756,11 +11777,17 @@ function drawCategoryBar() {
   const { start, end } = getPeriodRange();
   const recs = countedRecs(expenseRecords).filter(r=>r.type==='expense' && r.date>=start && r.date<=end);
   const map = {};
-  recs.forEach(r=>{ const key = r.subCategory || r.category; map[key]=(map[key]||0)+(parseFloat(r.amount)||0); });
+  recs.forEach(r=>{
+    const key = r.subCategory || r.category;
+    if(!map[key]) map[key] = { display:key, parent:r.category, value:0 };
+    map[key].value += (parseFloat(r.amount)||0);
+  });
   // 参考图一：竖向柱状图，顶部显示金额，柱内显示百分比，底部显示分类名
-  const items = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const total = items.reduce((s,[,v])=>s+v,0);
-  const { c, ctx, w, h } = resizeCanvas('expenseCategoryBarCanvas');
+  const items = Object.values(map).sort((a,b)=>b.value-a.value).slice(0,6);
+  const total = items.reduce((s,it)=>s+it.value,0);
+  const c = resizeCanvas('expenseCategoryBarCanvas').c;
+  const ctx = c.getContext('2d');
+  const { w, h } = { w:c.width/(window.devicePixelRatio||1), h:c.height/(window.devicePixelRatio||1) };
   const dpr = window.devicePixelRatio||1; ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,w,h);
   if(total<=0){ ctx.fillStyle='#9C95A8'; ctx.textAlign='center'; ctx.font='14px sans-serif'; ctx.fillText('暂无支出数据', w/2, h/2); return; }
@@ -11770,8 +11797,13 @@ function drawCategoryBar() {
   const n = items.length;
   const slotW = chartW / n;
   const barW = Math.min(34, slotW * 0.55);
-  const max = Math.max(...items.map(([,v])=>v));
+  const max = Math.max(...items.map(it=>it.value));
   const intY = n => '¥' + Math.round(n).toLocaleString('zh-CN');
+
+  // 保存 items 与布局元信息，供点击事件使用
+  c._categoryBarItems = items;
+  c._categoryBarMeta = { pad, chartW, n, slotW, barW };
+  bindCategoryBarClick();
 
   // Y 轴网格
   ctx.strokeStyle='rgba(163,126,159,0.2)'; ctx.lineWidth=1;
@@ -11784,7 +11816,8 @@ function drawCategoryBar() {
   // X 轴
   ctx.beginPath(); ctx.moveTo(pad.left, h-pad.bottom); ctx.lineTo(w-pad.right, h-pad.bottom); ctx.stroke();
 
-  items.forEach(([cat,val],i)=>{
+  items.forEach((it,i)=>{
+    const { display:cat, value:val } = it;
     const x = pad.left + i*slotW + (slotW-barW)/2;
     const bh = (val/max)*chartH;
     const y = h - pad.bottom - bh;
@@ -11807,6 +11840,31 @@ function drawCategoryBar() {
     const catIcon = getCategoryIcon('expense', cat);
     ctx.fillStyle='#7B6FA0'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='11px sans-serif';
     ctx.fillText(catIcon + ' ' + cat, x+barW/2, h-pad.bottom+8);
+  });
+}
+
+function bindCategoryBarClick() {
+  const c = document.getElementById('expenseCategoryBarCanvas');
+  if (!c || c._categoryClickBound) return;
+  c._categoryClickBound = true;
+  c.style.cursor = 'pointer';
+  c.addEventListener('click', e => {
+    const items = c._categoryBarItems;
+    const meta = c._categoryBarMeta;
+    if (!items || !items.length || !meta) return;
+    const rect = c.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (c.width / rect.width / (window.devicePixelRatio||1));
+    const { pad, chartW, n, slotW } = meta;
+    let idx = Math.floor((x - pad.left) / slotW);
+    if (idx < 0) idx = 0; if (idx >= n) idx = n - 1;
+    const item = items[idx];
+    if (!item || !item.parent) return;
+    // 跳转明细并带上大类筛选
+    switchExpenseTab('list');
+    const sel = document.getElementById('filterCategory');
+    if (sel) sel.value = item.parent;
+    renderExpenseList();
+    showToast('已跳转「' + item.display + '」收支明细');
   });
 }
 
