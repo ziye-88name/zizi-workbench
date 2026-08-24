@@ -57,7 +57,12 @@ body {
   color: var(--text); line-height: 1.6; min-height: 100vh;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
+}
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  body { -webkit-font-smoothing: antialiased; }
 }
 .app-layout { display: flex; min-height: 100vh; }
 
@@ -1440,11 +1445,12 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   position: relative; z-index: 1; margin-bottom: 18px;
 }
 #panel-travel .travel-header h2 {
-  font-size: 22px; color: var(--primary-dark); margin: 6px 0 4px;
+  font-size: 22px; color: #1B5E20; margin: 6px 0 4px;
   display: flex; align-items: center; gap: 10px;
+  font-weight: 700; -webkit-font-smoothing: subpixel-antialiased;
 }
 #panel-travel .travel-sub {
-  font-size: 13px; color: var(--text-secondary);
+  font-size: 13px; color: #4A6B4C; font-weight: 500;
 }
 #panel-travel .kitty-tabs {
   position: relative; z-index: 1; display: flex; gap: 12px;
@@ -1452,10 +1458,11 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 }
 #panel-travel .kitty-tab {
   flex: 1; min-width: 110px; border: none; outline: none;
-  padding: 12px 10px; font-family: inherit; font-size: 15px;
-  color: var(--primary-dark); background: rgba(255,255,255,0.7);
+  padding: 12px 10px; font-family: inherit; font-size: 15px; font-weight: 600;
+  color: #2E7D32; background: rgba(255,255,255,0.92);
   border-radius: 999px; box-shadow: 0 5px 0 var(--primary-soft), 0 6px 10px rgba(129,199,132,0.22);
   cursor: pointer; transition: all .15s ease;
+  -webkit-font-smoothing: subpixel-antialiased;
 }
 #panel-travel .kitty-tab.active {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -1529,24 +1536,24 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   font-size: 20px; opacity: 0.15;
 }
 #panel-travel .travel-plan-card .plan-title {
-  font-weight: 800; color: var(--text); font-size: 16px;
+  font-weight: 800; color: #2c3e50; font-size: 16px;
 }
 #panel-travel .travel-plan-card .plan-meta {
-  font-size: 13px; color: var(--text-secondary); margin-top: 6px;
+  font-size: 13px; color: #546E7A; margin-top: 6px; font-weight: 500;
 }
 #panel-travel .travel-plan-card .plan-tags {
   display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;
 }
 #panel-travel .travel-plan-card .plan-tag {
   font-size: 12px; padding: 4px 10px; border-radius: 999px;
-  background: var(--primary-light); color: var(--primary-dark);
+  background: var(--primary-light); color: #2E7D32; font-weight: 600;
 }
 #panel-travel .travel-hint {
-  position: relative; z-index: 1; font-size: 13px; color: var(--text-secondary);
-  margin: 8px 0 14px;
+  position: relative; z-index: 1; font-size: 13px; color: #4A6B4C;
+  margin: 8px 0 14px; font-weight: 500;
 }
 #panel-travel .travel-map-tip {
-  position: relative; z-index: 1; font-size: 12px; color: var(--primary-dark);
+  position: relative; z-index: 1; font-size: 12px; color: #1B5E20;
   background: linear-gradient(90deg, #E8F5E9, #FFF8E1);
   border: 1px dashed var(--primary);
   border-radius: 10px;
@@ -1674,13 +1681,18 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   font-size: 22px; line-height: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.25);
   display: flex; align-items: center; justify-content: center;
 }
+.travel-del-marker {
+  margin-top: 8px; padding: 5px 10px; border: none; border-radius: 8px;
+  background: #FFEBEE; color: #C62828; font-size: 12px; cursor: pointer;
+}
+.travel-del-marker:active { background: #EF9A9A; }
 
 /* 景点搜索 */
 #panel-travel .travel-search { position: relative; z-index: 5; margin: 4px 0 12px; }
 #panel-travel .travel-search-input {
-  width: 100%; box-sizing: border-box; padding: 11px 14px; font-size: 14px;
+  width: 100%; box-sizing: border-box; padding: 11px 14px; font-size: 14px; font-weight: 500;
   border: 1.5px solid var(--border); border-radius: 12px; font-family: inherit;
-  background: #fff;
+  background: #fff; color: #2c3e50;
 }
 #panel-travel .travel-search-results {
   display: none; position: absolute; left: 0; right: 0; top: calc(100% + 6px);
@@ -3621,7 +3633,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
         <div class="kitty-content">
           <!-- 总览 -->
           <div class="kitty-tab-panel active" id="travelOverview">
-            <div class="travel-map-tip">地图加载较慢，若空白请点击左上角图层按钮切换其他底图</div>
+            <div class="travel-map-tip">地图加载较慢，若空白请点击左上角底图下拉框切换</div>
             <div id="travelOverviewMap" class="travel-map"></div>
             <div class="travel-actions">
               <button class="btn btn-primary" onclick="drawCityTrail()">🌟 城市轨迹</button>
@@ -3646,7 +3658,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
               <input id="travelSpotSearch" class="travel-search-input" placeholder="🔍 搜索景点（如：故宫、洱海、浅草寺…）" oninput="onTravelSpotSearch()">
               <div id="travelSpotSearchResults" class="travel-search-results"></div>
             </div>
-            <div class="travel-map-tip">地图加载较慢，若空白请点击左上角图层按钮切换其他底图</div>
+            <div class="travel-map-tip">地图加载较慢，若空白请点击左上角底图下拉框切换</div>
             <div id="travelPlanMap" class="travel-map"></div>
             <p class="travel-hint">📍 地图默认展示「即将到来」的计划 · 点击下方计划可切换 · 搜索并点选景点即可在地图标记 ★（也可点击地图打点）</p>
             <button class="btn btn-primary" onclick="openPlanModal()">➕ 新建旅行计划</button>
@@ -13416,6 +13428,16 @@ function addAttractionToPlan(planId, spot) {
   showToast('⭐ 已标记：' + spot.name);
 }
 
+// 删除行程中的某个标记点
+function deleteItineraryItem(planId, itemId) {
+  const plan = (travelData.plans || []).find(p => p.id === planId);
+  if (!plan) return;
+  plan.itinerary = (plan.itinerary || []).filter(it => it.id !== itemId);
+  saveTravelData();
+  renderTravelPlans();
+  showToast('已删除标记');
+}
+
 // 在「我的旅行计划」地图上展示某个计划的景点（景点维度 + 景点间连线）
 function showPlanOnMap(planId) {
   if (!travelPlanMap) return;
@@ -13431,7 +13453,12 @@ function showPlanOnMap(planId) {
     latlngs.push([it.lat, it.lng]);
     const marker = L.marker([it.lat, it.lng], {
       icon: L.divIcon({ className: 'travel-star-marker', html: '⭐', iconSize: [30, 30], iconAnchor: [15, 15] })
-    }).addTo(travelPlanMap).bindPopup('<b>' + escapeHtml(it.place || '景点') + '</b><br>' + escapeHtml(it.type || '') + (it.note ? ('<br>' + escapeHtml(it.note)) : ''));
+    }).addTo(travelPlanMap).bindPopup(
+      '<b>' + escapeHtml(it.place || '景点') + '</b><br>' +
+      escapeHtml(it.type || '') +
+      (it.note ? ('<br>' + escapeHtml(it.note)) : '') +
+      '<br><button class="travel-del-marker" onclick="deleteItineraryItem(\'' + plan.id + '\',\'' + it.id + '\')">🗑 删除标记</button>'
+    );
     travelPlanMarkers.push(marker);
   });
   requestAnimationFrame(() => {
