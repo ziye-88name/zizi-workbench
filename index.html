@@ -2459,7 +2459,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260826</div>
+    <div class="splash-ver">v2.0.20260827</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -11783,7 +11783,8 @@ function drawCategoryBar() {
     map[key].value += (parseFloat(r.amount)||0);
   });
   // 参考图一：竖向柱状图，顶部显示金额，柱内显示百分比，底部显示分类名
-  const items = Object.values(map).sort((a,b)=>b.value-a.value).slice(0,6);
+  // 展示本月所有子类（无子类则展示大类），不截断
+  const items = Object.values(map).sort((a,b)=>b.value-a.value);
   const total = items.reduce((s,it)=>s+it.value,0);
   const c = resizeCanvas('expenseCategoryBarCanvas').c;
   const ctx = c.getContext('2d');
@@ -11836,10 +11837,17 @@ function drawCategoryBar() {
       ctx.fillStyle='#9C95A8'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.font='10px sans-serif';
       ctx.fillText(pctStr, x+barW/2, y-18);
     }
-    // 分类名
+    // 分类名（柱子多时缩小字号并按柱宽截断，避免重叠）
     const catIcon = getCategoryIcon('expense', cat);
-    ctx.fillStyle='#7B6FA0'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='11px sans-serif';
-    ctx.fillText(catIcon + ' ' + cat, x+barW/2, h-pad.bottom+8);
+    const labelFont = n > 8 ? 9 : 11;
+    ctx.fillStyle='#7B6FA0'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font=labelFont+'px sans-serif';
+    let label = catIcon + ' ' + cat;
+    const maxLabelW = barW + 10;
+    if (ctx.measureText(label).width > maxLabelW) {
+      while (label.length > 1 && ctx.measureText(label + '…').width > maxLabelW) label = label.slice(0, -1);
+      label += '…';
+    }
+    ctx.fillText(label, x+barW/2, h-pad.bottom+8);
   });
 }
 
