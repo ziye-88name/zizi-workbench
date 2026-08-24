@@ -2475,7 +2475,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260828</div>
+    <div class="splash-ver">v2.0.20260829</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -11387,15 +11387,15 @@ function renderExpenseOverview() {
   renderLongTermOverview();
   renderTemplateList();
 }
-// 本月概览：长期目标圆环（目标值=用户自定，已存入=各月度目标之和，实时联动）
+// 本月概览：长期目标圆环（目标值 + 已存入均=各月度目标之和，实时联动）
 function renderLongTermOverview() {
   const row = document.getElementById('ovLongTermRow');
   if(!row) return;
-  const longGoals = savingsGoals.filter(g => (g.type || 'small') === 'long' && (parseFloat(g.target) || 0) > 0);
-  if(longGoals.length === 0) { row.style.display = 'none'; return; }
-  // 取第一个长期目标作为展示（通常一个）；若多个则合计目标值
-  const target = longGoals.reduce((s, g) => s + (parseFloat(g.target) || 0), 0);
-  const current = computeLongTerm().current;
+  const longGoals = savingsGoals.filter(g => (g.type || 'small') === 'long');
+  const lt = computeLongTerm();
+  if(longGoals.length === 0 || lt.count === 0) { row.style.display = 'none'; return; }
+  const target = lt.target;
+  const current = lt.current;
   const ratio = target > 0 ? Math.min(1, current / target) : 0;
   const pct = Math.round(ratio * 100);
   row.style.display = '';
@@ -12527,8 +12527,10 @@ function renderSavingsGoals() {
   if(savingsPeriodType === 'year') all = all.filter(g => (g.type || 'small') === 'long' || (g.period || '').startsWith(savingsPeriod));
   else all = all.filter(g => (g.type || 'small') === 'long' || (g.period || '') === savingsPeriod);
   const isOwned = g => {
-    const t = parseFloat(g.target) || 0;
-    const c = (g.type || 'small') === 'long' ? getLongTermCurrent(g) : (parseFloat(g.current) || 0);
+    const isLong = (g.type || 'small') === 'long';
+    const lt = isLong ? computeLongTerm() : null;
+    const t = isLong ? (lt ? lt.target : 0) : (parseFloat(g.target) || 0);
+    const c = isLong ? (lt ? lt.current : 0) : (parseFloat(g.current) || 0);
     return t > 0 && c >= t;
   };
   const ownedCount = all.filter(isOwned).length;
@@ -12544,10 +12546,13 @@ function renderSavingsGoals() {
   const typeBadge = t => ({ small:'🎯 小目标', month:'📅 月度目标', long:'🌟 长期目标' }[t] || '');
   container.innerHTML = '<div class="k2-savings-list">' + list.map(g => {
     const isLong = (g.type || 'small') === 'long';
-    const target = parseFloat(g.target) || 0;
-    const current = isLong ? getLongTermCurrent(g) : (parseFloat(g.current) || 0);
+    const lt = isLong ? computeLongTerm() : null;
+    const target = isLong ? (lt ? lt.target : 0) : (parseFloat(g.target) || 0);
+    const current = isLong ? (lt ? lt.current : 0) : (parseFloat(g.current) || 0);
     const pct = target > 0 ? Math.min(100, Math.round(current / target * 100)) : 0;
-    const metaExtra = isLong ? ` <span class="k2-savings-link">已存入=月度目标之和</span>` : '';
+    const metaExtra = isLong ? ` <span class="k2-savings-link">目标/已存入=月度目标之和</span>` : '';
+    const depositBtn = isLong ? '' : `<button class="deposit" onclick="openSavingsDepositModal('${g.id}')">+ 存入</button>`;
+    const revertBtn = (!isLong && (parseFloat(g.coinDeposited) || 0) > 0) ? `<button class="revert-coin" onclick="revertSavingsCoins('${g.id}')">↩ 退回 ${g.coinDeposited}💰</button>` : '';
     return `<div class="k2-savings-card${isLong?' k2-savings-card-long':''}">
       <div class="k2-savings-top">
         <div class="k2-savings-icon">${escapeHtml(g.icon || '🎯')}</div>
@@ -12558,10 +12563,10 @@ function renderSavingsGoals() {
       </div>
       <div class="k2-savings-progress"><div class="k2-savings-progress-fill" style="width:${pct}%"></div></div>
       <div class="k2-savings-actions">
-        <button class="deposit" onclick="openSavingsDepositModal('${g.id}')">+ 存入</button>
+        ${depositBtn}
         <button onclick="openSavingsModal('${g.id}')">改</button>
         <button onclick="deleteSavingsGoal('${g.id}')">删</button>
-        ${(parseFloat(g.coinDeposited) || 0) > 0 ? `<button class="revert-coin" onclick="revertSavingsCoins('${g.id}')">↩ 退回 ${g.coinDeposited}💰</button>` : ''}
+        ${revertBtn}
       </div>
     </div>`;
   }).join('') + '</div>';
@@ -12570,13 +12575,24 @@ function setSavingsTypeFilter(t) {
   currentSavingsTypeFilter = t;
   renderSavingsGoals();
 }
-const SAVINGS_TYPE_MAP = { '小目标':'small', '月度目标':'month', '长期目标':'long', 'small':'small', 'month':'month', 'long':'long' };
-function normalizeSavingsType(v) { return SAVINGS_TYPE_MAP[(v||'').trim()] || 'small'; }
+const SAVINGS_TYPE_MAP = { '小目标':'small', '月度目标':'month', '长期目标':'long', '年度目标':'long', 'small':'small', 'month':'month', 'long':'long' };
+function normalizeSavingsType(v) {
+  const raw = (v||'').trim();
+  if(SAVINGS_TYPE_MAP[raw]) return SAVINGS_TYPE_MAP[raw];
+  // 容错：用户可能只输入关键字
+  if(/月/.test(raw) && !/年|长期/.test(raw)) return 'month';
+  if(/年|长期|年度/.test(raw)) return 'long';
+  return 'small';
+}
 
 function onSavingsTypeInput() {
   const typeVal = normalizeSavingsType(document.getElementById('savingsType').value);
   const curField = document.getElementById('savingsCurrentField');
+  const targetField = document.getElementById('savingsTargetField');
+  const hint = document.getElementById('savingsTypeHint');
   if(curField) curField.style.display = typeVal === 'long' ? 'none' : '';
+  if(targetField) targetField.style.display = typeVal === 'long' ? 'none' : '';
+  if(hint) hint.textContent = typeVal === 'long' ? '长期目标：目标值和已存入均自动等于各月度目标之和，无需手动填写。' : '小目标：随月份独立；月度目标：绑定当前月，其存入额会自动汇总到长期目标。';
 }
 function openSavingsModal(id) {
   editingSavingsId = id || null;
@@ -12597,8 +12613,9 @@ function openSavingsModal(id) {
     document.getElementById('savingsType').value = '小目标';
     document.getElementById('savingsTarget').value = ''; document.getElementById('savingsCurrent').value = '';
   }
-  // 长期目标：隐藏「当前已攒」（自动=月度之和）
+  // 长期目标：隐藏「目标金额」和「当前已攒」（均自动=月度之和）
   const typeVal = normalizeSavingsType(document.getElementById('savingsType').value);
+  document.getElementById('savingsTargetField').style.display = typeVal === 'long' ? 'none' : '';
   document.getElementById('savingsCurrentField').style.display = typeVal === 'long' ? 'none' : '';
   document.getElementById('savingsModal').classList.add('show');
 }
@@ -12606,17 +12623,25 @@ function closeSavingsModal() { document.getElementById('savingsModal').classList
 function saveSavingsGoal() {
   const name = document.getElementById('savingsName').value.trim();
   const icon = document.getElementById('savingsIcon').value.trim() || '🎯';
-  const target = parseFloat(document.getElementById('savingsTarget').value) || 0;
   const type = normalizeSavingsType(document.getElementById('savingsType').value);
-  // 长期目标：当前已攒自动=月度目标之和，不读用户输入
-  const current = type === 'long' ? computeLongTerm().current : (parseFloat(document.getElementById('savingsCurrent').value) || 0);
+  const lt = computeLongTerm();
+  // 长期目标：目标值 + 已存入均自动=各月度目标之和，不读用户输入
+  const target = type === 'long' ? lt.target : (parseFloat(document.getElementById('savingsTarget').value) || 0);
+  const current = type === 'long' ? lt.current : (parseFloat(document.getElementById('savingsCurrent').value) || 0);
   if(!name) { showToast('请输入目标名称'); return; }
+  if(type === 'long' && lt.count === 0) { showToast('请先添加月度目标，长期目标会自动汇总'); return; }
   if(target <= 0) { showToast('请输入目标金额'); return; }
+  // 月度目标必须绑定到当前月份（避免在年视图下创建导致 period 错误）
+  let period = savingsPeriod;
+  if(type === 'month') {
+    const now = new Date();
+    period = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  }
   if(editingSavingsId) {
     const g = savingsGoals.find(x => x.id === editingSavingsId);
-    if(g) { g.name = name; g.icon = icon; g.target = target; g.type = type; if(type !== 'long') g.current = current; }
+    if(g) { g.name = name; g.icon = icon; g.target = target; g.type = type; g.period = period; if(type !== 'long') g.current = current; }
   } else {
-    savingsGoals.push({ id: 'sav_'+Date.now(), name, icon, target, current, type, period: savingsPeriod, createdAt: Date.now() });
+    savingsGoals.push({ id: 'sav_'+Date.now(), name, icon, target, current, type, period, createdAt: Date.now() });
   }
   saveSavingsGoals();
   closeSavingsModal();
