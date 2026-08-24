@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="工作台">
@@ -1274,6 +1277,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .splash-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(129,199,132,.45); }
 .splash-btn:active { transform: translateY(0); }
 .splash-footer { position: absolute; bottom: 30px; left: 0; right: 0; text-align: center; font-size: 13px; color: var(--gray, #b6bbae); opacity: .85; }
+.splash-ver { margin-top: 14px; font-size: 11px; color: var(--gray, #b6bbae); opacity: .7; letter-spacing: .5px; }
 @media (max-width: 480px) { .splash-avatar { width: 140px; height: 140px; } .splash-greeting { font-size: 26px; } .splash-quote { font-size: 15px; } }
 
 #panel-expense {
@@ -2434,6 +2438,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
+    <div class="splash-ver">v2.0.20260824</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
