@@ -2442,15 +2442,20 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 /* ===== 内容复盘：自动保存提示 ===== */
 .review-autosave-tip { font-size: 12px; color: var(--text-secondary); margin: 0 0 14px; }
 
-/* ===== 选品：类型筛选 chips（可在类型后方重命名 / 删除） ===== */
-.prod-type-filter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-.ptf-chip { display: inline-flex; align-items: center; gap: 2px; padding: 6px 10px; border-radius: 999px; background: var(--primary-light); color: var(--primary-dark); font-size: 13px; cursor: pointer; border: 1px solid transparent; transition: all .15s; }
-.ptf-chip:hover { border-color: var(--primary); }
-.ptf-chip.active { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; }
-.ptf-name { padding: 0 2px; }
-.ptf-edit, .ptf-del { border: none; background: transparent; cursor: pointer; font-size: 12px; line-height: 1; padding: 2px 4px; border-radius: 6px; }
-.ptf-edit:hover { background: rgba(0,0,0,.08); }
-.ptf-del:hover { background: rgba(229,57,53,.15); }
+/* ===== 选品：类型筛选下拉 ===== */
+.prod-type-select { padding: 8px 32px 8px 12px; border: 1.5px solid rgba(123,111,160,.2); border-radius: 12px; background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%237B6FA0' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 12px center; font-family: inherit; font-size: 14px; color: var(--primary-dark); cursor: pointer; appearance: none; -webkit-appearance: none; max-width: 200px; }
+.prod-type-select:focus { border-color: var(--primary); outline: none; }
+.btn-ghost { background: transparent; border: 1.5px solid rgba(123,111,160,.2); color: var(--text-secondary); }
+.btn-ghost:hover { border-color: var(--primary); color: var(--primary-dark); }
+.prod-type-manage-list { display: flex; flex-direction: column; gap: 8px; }
+.prod-type-manage-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: #faf8fc; }
+.prod-type-manage-row .ptm-name { font-size: 14px; color: var(--primary-dark); font-weight: 600; }
+.prod-type-manage-row .ptm-actions { display: flex; gap: 6px; }
+.prod-type-manage-row .ptm-actions button { border: none; border-radius: 8px; padding: 5px 10px; font-size: 13px; cursor: pointer; font-family: inherit; }
+.ptm-rename { background: var(--primary-light); color: var(--primary-dark); }
+.ptm-rename:hover { background: #fff; }
+.ptm-del { background: rgba(229,57,53,.12); color: #E53935; }
+.ptm-del:hover { background: rgba(229,57,53,.2); }
 
 /* ===== 岁岁花销记：攒钱目标「已拥有」按钮 ===== */
 .savings-subpane-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -2475,7 +2480,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260832</div>
+    <div class="splash-ver">v2.0.20260833</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -2916,7 +2921,10 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
             </div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
               <label style="font-size:13px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;">🔍 按类型筛选：</label>
-              <div id="prodTypeFilterBar" class="prod-type-filter-bar"></div>
+              <select id="prodTypeFilter" class="prod-type-select" onchange="onProdTypeFilter(this.value)">
+                <option value="">全部</option>
+              </select>
+              <button class="btn btn-sm btn-ghost" type="button" onclick="openProdTypeManage()">⚙ 管理类型</button>
             </div>
             <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">添加你关注的鹦鹉用品，记录购买理由和拍摄计划（日期倒序，支持分页）。类型可自由输入，新类型会自动加入筛选候选。</p>
             <div class="table-container">
@@ -10445,21 +10453,43 @@ function syncProdTypeFilter() {
   dl.innerHTML = all.map(v => `<option value="${escapeHtml(v)}">`).join('');
 }
 function onProdTypeFilter(v) { prodTypeFilterVal = v; prodPage = 1; renderProductTable(); renderProdTypeFilterBar(); }
-// 类型筛选 chips：点击筛选；✎ 重命名该类型（同步更新所有选品）；🗑 删除该类型（及该类型下所有选品）
+// 类型筛选下拉：选中即筛选；类型管理（重命名 / 删除）走「管理类型」弹窗
 function renderProdTypeFilterBar() {
-  const bar = document.getElementById('prodTypeFilterBar');
-  if(!bar) return;
+  const sel = document.getElementById('prodTypeFilter');
+  if(!sel) return;
   const builtin = ['食品', '玩具', '笼具', '保健', '清洁', '外出', '训练', '其他'];
   const used = loadProdTypes();
   const usedInRows = [...new Set(userProductRows.map(r => r.type).filter(Boolean))];
   const all = Array.from(new Set([].concat(builtin, used, usedInRows)));
-  let html = `<span class="ptf-chip ${prodTypeFilterVal === '' ? 'active' : ''}" onclick="onProdTypeFilter('')">全部</span>`;
-  html += all.map(v => `<span class="ptf-chip ${prodTypeFilterVal === v ? 'active' : ''}" onclick="onProdTypeFilter('${escapeHtml(v)}')">
-    <span class="ptf-name">${escapeHtml(v)}</span>
-    <button class="ptf-edit" title="重命名类型" onclick="event.stopPropagation();editProdType('${escapeHtml(v)}')">✎</button>
-    <button class="ptf-del" title="删除类型" onclick="event.stopPropagation();deleteProdType('${escapeHtml(v)}')">🗑</button>
-  </span>`).join('');
-  bar.innerHTML = html;
+  const opts = ['<option value="">全部</option>'].concat(
+    all.map(v => `<option value="${escapeHtml(v)}" ${prodTypeFilterVal === v ? 'selected' : ''}>${escapeHtml(v)}</option>`)
+  );
+  sel.innerHTML = opts.join('');
+  // 保持当前选中（例如刚重命名 / 删除后）
+  sel.value = prodTypeFilterVal || '';
+}
+function openProdTypeManage() {
+  renderProdTypeManageList();
+  document.getElementById('prodTypeManageModal').classList.add('open');
+}
+function closeProdTypeManage() {
+  document.getElementById('prodTypeManageModal').classList.remove('open');
+}
+function renderProdTypeManageList() {
+  const builtin = ['食品', '玩具', '笼具', '保健', '清洁', '外出', '训练', '其他'];
+  const used = loadProdTypes();
+  const usedInRows = [...new Set(userProductRows.map(r => r.type).filter(Boolean))];
+  const all = Array.from(new Set([].concat(builtin, used, usedInRows)));
+  const list = document.getElementById('prodTypeManageList');
+  if(!list) return;
+  if(!all.length) { list.innerHTML = '<p style="color:var(--text-secondary);font-size:13px;">暂无类型，先去表格里添加选品并填写类型吧。</p>'; return; }
+  list.innerHTML = all.map(v => `<div class="prod-type-manage-row">
+    <span class="ptm-name">${escapeHtml(v)}</span>
+    <span class="ptm-actions">
+      <button class="ptm-rename" onclick="editProdType('${escapeHtml(v)}')">重命名</button>
+      <button class="ptm-del" onclick="deleteProdType('${escapeHtml(v)}')">删除</button>
+    </span>
+  </div>`).join('');
 }
 function editProdType(oldName) {
   const nv = window.prompt('修改类型名称', oldName);
@@ -10471,7 +10501,7 @@ function editProdType(oldName) {
   const types = loadProdTypes().filter(t => t !== oldName);
   types.push(newName); saveProdTypes(types);
   persistUserProducts();
-  renderProductTable(); syncProdTypeFilter();
+  renderProductTable(); syncProdTypeFilter(); renderProdTypeManageList();
   showToast('已重命名为「' + newName + '」');
 }
 function deleteProdType(oldName) {
@@ -10481,7 +10511,8 @@ function deleteProdType(oldName) {
     saveProdTypes(loadProdTypes().filter(t => t !== oldName));
     if(prodTypeFilterVal === oldName) prodTypeFilterVal = '';
     persistUserProducts();
-    renderProductTable(); syncProdTypeFilter();
+    renderProductTable(); syncProdTypeFilter(); renderProdTypeManageList();
+    closeProdTypeManage();
     showToast('已删除类型「' + oldName + '」');
   }, { title:'删除类型', danger:true, okText:'删除', icon:'🗑️' });
 }
@@ -14491,5 +14522,23 @@ fillTravelDatalists();
 </div>
 
 <script>document.querySelectorAll("img[data-bird]").forEach(function(im){var u=BIRD_B64[im.dataset.bird];if(u)im.src=u;});</script>
+
+<!-- 选品：类型管理弹窗 -->
+<div class="modal-mask" id="prodTypeManageModal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">管理选品类型</span>
+      <button class="modal-close" type="button" onclick="closeProdTypeManage()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 14px;">重命名会同步更新该类型下所有选品；删除会同时移除该类型下的全部选品。</p>
+      <div class="prod-type-manage-list" id="prodTypeManageList"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" type="button" onclick="closeProdTypeManage()">关闭</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
