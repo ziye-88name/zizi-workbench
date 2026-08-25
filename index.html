@@ -2480,7 +2480,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260834</div>
+    <div class="splash-ver">v2.0.20260835</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3128,7 +3128,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
               <b id="ovNotCount">¥0.00</b>
             </div>
 
-            <div class="k2-setting-row" onclick="openBudgetModal()">
+            <div class="k2-setting-row" id="ovBudgetSettingRow" onclick="openBudgetModal()">
               <span id="ovBudgetSettingLabel">⚙️ 设置本月预算</span>
               <span>当前预算 <b id="ovBudgetSetting">¥0.00</b></span>
             </div>
@@ -11414,7 +11414,10 @@ function renderExpenseOverview() {
   document.querySelector('.k2-notcount-card span').textContent = '🙈 ' + labelMap.notCount;
 
   // 年/月维度文案统一切换
-  document.getElementById('ovBudgetSettingLabel').textContent = (type === 'year' ? '⚙️ 设置年预算' : '⚙️ 设置本月预算');
+  // 年视图下：年预算完全由月预算日历聚算，不提供设置入口，隐藏设置行
+  const settingRow = document.getElementById('ovBudgetSettingRow');
+  if (settingRow) settingRow.style.display = (type === 'year' ? 'none' : '');
+  document.getElementById('ovBudgetSettingLabel').textContent = '⚙️ 设置本月预算';
   document.getElementById('ringLabel').textContent = (type === 'year' ? '年预算' : '月预算');
   document.getElementById('ovBudgetTitle').textContent = (type === 'year' ? '📒 日常账本 · 本年' : '📒 日常账本 · 本月');
 
