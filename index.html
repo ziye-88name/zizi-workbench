@@ -2480,7 +2480,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260833</div>
+    <div class="splash-ver">v2.0.20260834</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3143,6 +3143,19 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
                 <div class="k2-budget-line">已花 <b id="ovSpent">¥0.00</b> / 预算 <b id="ovBudget">¥0.00</b></div>
                 <div class="k2-progress"><div class="k2-progress-fill" id="budgetProgressFill"></div></div>
                 <div class="k2-budget-foot">还能花 <b id="ovLeft">¥0.00</b> <span>😊</span> | <span id="ovDailyLabel">日均</span> <b id="ovDaily">¥0.00</b></div>
+              </div>
+            </div>
+
+            <div class="k2-card k2-longterm-row" id="ovMonthlyRow" style="display:none;" onclick="switchExpenseTab('savings'); setSavingsTypeFilter('month')">
+              <div class="k2-ring-wrap">
+                <canvas id="monthlyRingCanvas" width="120" height="120"></canvas>
+                <div class="k2-ring-text"><div id="ringMonthlyLabel">月度目标</div><div id="ringMonthlyPct">0%</div></div>
+              </div>
+              <div class="k2-budget-info">
+                <div class="k2-budget-title" id="ovMonthlyTitle">📅 月度目标</div>
+                <div class="k2-budget-line">已存入 <b id="ovMonthlySaved">¥0.00</b> / 目标 <b id="ovMonthlyTarget">¥0.00</b></div>
+                <div class="k2-progress"><div class="k2-progress-fill k2-longterm-fill" id="monthlyProgressFill"></div></div>
+                <div class="k2-budget-foot">还差 <b id="ovMonthlyLeft">¥0.00</b> <span>🌱</span> · 点击查看明细</div>
               </div>
             </div>
 
@@ -11243,6 +11256,30 @@ let editingTemplateId = null;
 let expensePeriodType = localStorage.getItem('parrot_period_type_v1') || 'month'; // 'month' | 'year'
 let currentPeriod = localStorage.getItem('parrot_period_v1') || (function(){ const d=new Date(); return expensePeriodType==='year'?String(d.getFullYear()):d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); })();
 let expenseBudget = parseFloat(localStorage.getItem('parrot_budget_v1') || '3000');
+// 按月预算历史（键 'YYYY-MM'），用于年视图按日历年聚合
+let monthlyBudgets = {};
+try { const mb = localStorage.getItem('parrot_monthly_budgets_v1'); if (mb) monthlyBudgets = JSON.parse(mb); } catch (e) {}
+function saveMonthlyBudgets() { localStorage.setItem('parrot_monthly_budgets_v1', JSON.stringify(monthlyBudgets)); }
+// 年预算：按日历年(1/1~12/31)聚合——从最早有设置的月份到 12 月逐月累计，
+// 有设置值用设置值，未来无设置月用「最新有设置月」的值补齐，之前无设置月忽略；
+// 无任何历史月值时，按当前月~12月用 expenseBudget 兜底
+function computeYearBudget() {
+  const keys = Object.keys(monthlyBudgets).filter(k => (parseFloat(monthlyBudgets[k]) || 0) > 0).sort();
+  if (keys.length === 0) {
+    const now = new Date();
+    const m = now.getMonth() + 1;
+    return expenseBudget * (13 - m); // 当前月~12月
+  }
+  const y = parseInt(keys[0].split('-')[0], 10);
+  const m0 = parseInt(keys[0].split('-')[1], 10);
+  let latest = 0, total = 0;
+  for (let mm = m0; mm <= 12; mm++) {
+    const k = y + '-' + String(mm).padStart(2, '0');
+    if (monthlyBudgets[k] != null && (parseFloat(monthlyBudgets[k]) || 0) > 0) { latest = parseFloat(monthlyBudgets[k]); total += latest; }
+    else { total += latest; }
+  }
+  return total;
+}
 
 function loadExpenseRecords() {
   try {
@@ -11388,7 +11425,7 @@ function renderExpenseOverview() {
   document.getElementById('ovNotCount').textContent = formatCurrency(notCount);
 
   const isYear = type === 'year';
-  const budget = isYear ? expenseBudget * 12 : expenseBudget;
+  const budget = isYear ? computeYearBudget() : (monthlyBudgets[currentPeriod] != null ? parseFloat(monthlyBudgets[currentPeriod]) : expenseBudget);
   document.getElementById('ovSpent').textContent = formatCurrency(exp);
   document.getElementById('ovBudget').textContent = formatCurrency(budget);
   const left = budget - exp;
@@ -11397,8 +11434,7 @@ function renderExpenseOverview() {
   let avgLabel, avgValue;
   if (isYear) {
     avgLabel = '月均';
-    const m = new Date().getMonth() + 1;
-    avgValue = m > 0 ? exp / m : 0;
+    avgValue = exp / 12; // 按日历年 12 个月
   } else {
     avgLabel = '日均';
     const today = new Date().getDate();
@@ -11423,6 +11459,7 @@ function renderExpenseOverview() {
     return `<button class="k2-quick-btn" onclick="quickAdd('${escapeHtml(c)}')"><span class="emo">${parent.icon}</span><span>${escapeHtml(c)}</span></button>`;
   }).join('');
 
+  renderMonthlyOverview();
   renderLongTermOverview();
   renderTemplateList();
 }
@@ -11443,6 +11480,51 @@ function renderLongTermOverview() {
   document.getElementById('ovLongTermLeft').textContent = formatCurrency(Math.max(0, target - current));
   document.getElementById('longTermProgressFill').style.width = (ratio * 100) + '%';
   drawBudgetRing(document.getElementById('longTermRingCanvas'), ratio, '#A6E2CD');
+}
+// 本月概览：月度目标卡片（月视图显示当月月度目标之和；年视图按日历聚合）
+function computeMonthlyAgg(isYear) {
+  const months = (savingsGoals || []).filter(g => (g.type || 'small') === 'month');
+  if (!isYear) {
+    const cur = months.filter(g => (g.period || '') === currentPeriod);
+    const target = cur.reduce((s, g) => s + (parseFloat(g.target) || 0), 0);
+    const current = cur.reduce((s, g) => s + (parseFloat(g.current) || 0), 0);
+    return { target, current, count: cur.length };
+  }
+  // 年视图：日历聚合——从最早有设置的月份到 12 月，逐月累计；
+  // 有设置值用设置值，未来无设置月用「最新有设置月」的值补齐；之前无设置月忽略
+  const byMonth = {};
+  months.forEach(g => {
+    const k = g.period || ''; if (!k) return;
+    if (!byMonth[k]) byMonth[k] = { target: 0, current: 0 };
+    byMonth[k].target += (parseFloat(g.target) || 0);
+    byMonth[k].current += (parseFloat(g.current) || 0);
+  });
+  const keys = Object.keys(byMonth).sort();
+  if (keys.length === 0) return { target: 0, current: 0, count: 0 };
+  const y = parseInt(keys[0].split('-')[0], 10);
+  const m0 = parseInt(keys[0].split('-')[1], 10);
+  let latestTarget = 0, target = 0, current = 0;
+  for (let m = m0; m <= 12; m++) {
+    const k = y + '-' + String(m).padStart(2, '0');
+    if (byMonth[k]) { latestTarget = byMonth[k].target; target += byMonth[k].target; current += byMonth[k].current; }
+    else { target += latestTarget; }
+  }
+  return { target, current, count: keys.length };
+}
+function renderMonthlyOverview() {
+  const row = document.getElementById('ovMonthlyRow');
+  if (!row) return;
+  const agg = computeMonthlyAgg(expensePeriodType === 'year');
+  if (agg.count === 0 || agg.target <= 0) { row.style.display = 'none'; return; }
+  const ratio = agg.target > 0 ? Math.min(1, agg.current / agg.target) : 0;
+  const pct = Math.round(ratio * 100);
+  row.style.display = '';
+  document.getElementById('ringMonthlyPct').textContent = pct + '%';
+  document.getElementById('ovMonthlySaved').textContent = formatCurrency(agg.current);
+  document.getElementById('ovMonthlyTarget').textContent = formatCurrency(agg.target);
+  document.getElementById('ovMonthlyLeft').textContent = formatCurrency(Math.max(0, agg.target - agg.current));
+  document.getElementById('monthlyProgressFill').style.width = (ratio * 100) + '%';
+  drawBudgetRing(document.getElementById('monthlyRingCanvas'), ratio, '#A6E2CD');
 }
 function renderTemplateList() {
   const tpl = document.getElementById('templateList');
@@ -11631,6 +11713,8 @@ function saveBudget(){
   const n = parseFloat(v);
   if(isNaN(n) || n<0){ showToast('请输入有效金额'); return; }
   expenseBudget = n; localStorage.setItem('parrot_budget_v1', String(n));
+  // 月视图下把该月预算写入按月历史，支撑年视图日历聚合
+  if(expensePeriodType === 'month'){ monthlyBudgets[currentPeriod] = n; saveMonthlyBudgets(); }
   const budSet = document.getElementById('ovBudgetSetting'); if(budSet) budSet.textContent = formatCurrency(n);
   renderExpenseOverview();
   renderExpenseCharts();
@@ -11841,7 +11925,7 @@ function renderReportCharts() {
   document.getElementById('reportRate').style.color = rate > 0 ? '#5BB98E' : (rate < 0 ? '#E8A9B2' : '#9C95A8');
 
   // budget exec
-  const budget = isYear ? expenseBudget * 12 : expenseBudget;
+  const budget = isYear ? computeYearBudget() : (monthlyBudgets[currentPeriod] != null ? parseFloat(monthlyBudgets[currentPeriod]) : expenseBudget);
   const spent = exp;
   const left = budget - spent;
   const ratio = budget > 0 ? Math.min(1, spent / budget) : 0;
@@ -13746,8 +13830,14 @@ function showPlanOnMap(planId) {
       '<b>' + escapeHtml(it.place || '景点') + '</b><br>' +
       escapeHtml(it.type || '') +
       (it.note ? ('<br>' + escapeHtml(it.note)) : '') +
-      '<br><button class="travel-del-marker" onclick="deleteItineraryItem(\'' + plan.id + '\',\'' + it.id + '\')">🗑 删除标记</button>'
+      '<br><button class="travel-del-marker" id="delMarker-' + it.id + '">🗑 删除标记</button>'
     );
+    // Leaflet popup 内按钮用事件委托绑定，避免内联 onclick 在 popup 动态 DOM 中失效
+    marker.on('popupopen', function () {
+      const btn = travelPlanMap._container.querySelector('#delMarker-' + it.id) ||
+                  (marker.getPopup() && marker.getPopup()._contentNode && marker.getPopup()._contentNode.querySelector('#delMarker-' + it.id));
+      if (btn) L.DomEvent.on(btn, 'click', function () { deleteItineraryItem(plan.id, it.id); });
+    });
     travelPlanMarkers.push(marker);
   });
   requestAnimationFrame(() => {
