@@ -2475,7 +2475,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260831</div>
+    <div class="splash-ver">v2.0.20260832</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -11305,6 +11305,14 @@ function switchExpenseTab(tab) {
   if(tab==='savings') { buildSavingsPeriodOptions(); renderSavingsGoals(); }
   if(tab==='social') { buildSocialPeriodOptions(); switchSocialSubTab(currentSocialSubTab); }
 }
+// 窗口尺寸变化后重绘报表图表（横竖屏切换等）
+let _expenseResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_expenseResizeTimer);
+  _expenseResizeTimer = setTimeout(() => {
+    if (currentExpenseTab === 'charts') renderExpenseCharts();
+  }, 200);
+});
 function switchExpenseFilter(f) {
   currentExpenseFilter = f;
   document.querySelectorAll('#panel-expense .k2-filter-tabs button').forEach(b=>{
@@ -11736,7 +11744,8 @@ function switchChartSubTab(sub) {
   document.querySelectorAll('#expenseCharts .k2-chart-sub').forEach(p=>{
     p.classList.toggle('active', p.id===(sub==='stat'?'chartsStat':'chartsReport'));
   });
-  renderExpenseCharts();
+  // 等待 display 切换完成 layout 后再绘制，避免 canvas 取到 0 宽度
+  requestAnimationFrame(() => setTimeout(() => renderExpenseCharts(), 60));
 }
 function renderExpenseCharts() {
   document.querySelectorAll('#expenseCharts .period-label').forEach(el=>el.textContent = expensePeriodType==='year'?'本年':'本月');
@@ -11843,13 +11852,22 @@ function drawCategoryBar() {
     map[key].value += (parseFloat(r.amount)||0);
   });
   // 参考图一：竖向柱状图，顶部显示金额，柱内显示百分比，底部显示分类名
-  // 展示本月所有子类（无子类则展示大类），不截断
-  const items = Object.values(map).sort((a,b)=>b.value-a.value);
-  const total = items.reduce((s,it)=>s+it.value,0);
+  let items = Object.values(map).sort((a,b)=>b.value-a.value);
   const c = resizeCanvas('expenseCategoryBarCanvas').c;
   const ctx = c.getContext('2d');
   const { w, h } = { w:c.width/(window.devicePixelRatio||1), h:c.height/(window.devicePixelRatio||1) };
-  const dpr = window.devicePixelRatio||1; ctx.setTransform(dpr,0,0,dpr,0,0);
+  // 手机上（宽度<480）柱子过多会挤成一团，取 Top8 + 合并"其他"
+  const isNarrow = w < 480;
+  const MAX_NARROW_ITEMS = 8;
+  let othersValue = 0;
+  if (isNarrow && items.length > MAX_NARROW_ITEMS) {
+    const shown = items.slice(0, MAX_NARROW_ITEMS);
+    othersValue = items.slice(MAX_NARROW_ITEMS).reduce((s,it)=>s+it.value,0);
+    if (othersValue > 0) shown.push({ display:'其他', parent:'其他', value:othersValue, isOther:true });
+    items = shown;
+  }
+  const total = items.reduce((s,it)=>s+it.value,0);
+  ctx.setTransform(window.devicePixelRatio||1,0,0,window.devicePixelRatio||1,0,0);
   ctx.clearRect(0,0,w,h);
   if(total<=0){ ctx.fillStyle='#9C95A8'; ctx.textAlign='center'; ctx.font='14px sans-serif'; ctx.fillText('暂无支出数据', w/2, h/2); return; }
   const pad = { top:36, right:14, bottom:46, left:44 };
@@ -11926,7 +11944,7 @@ function bindCategoryBarClick() {
     let idx = Math.floor((x - pad.left) / slotW);
     if (idx < 0) idx = 0; if (idx >= n) idx = n - 1;
     const item = items[idx];
-    if (!item || !item.parent) return;
+    if (!item || !item.parent || item.isOther) return;
     // 跳转明细并带上大类筛选
     switchExpenseTab('list');
     const sel = document.getElementById('filterCategory');
@@ -11959,7 +11977,6 @@ function drawSixMonthBar() {
   });
   const max = Math.max(...data.map(d=>Math.max(d.inc,d.exp)), 1);
   const { c, ctx, w, h } = resizeCanvas('expenseSixMonthCanvas');
-  c.height = 240 * (window.devicePixelRatio||1); c.style.height = '240px';
   const dpr = window.devicePixelRatio||1; ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,w,h);
   const pad = { top:28, right:30, bottom:30, left:42 };
@@ -12027,7 +12044,6 @@ function drawBalanceLine() {
   const min = Math.min(...vals, 0), max = Math.max(...vals, 0);
   const range = max - min || 1;
   const { c, ctx, w, h } = resizeCanvas('expenseBalanceLineCanvas');
-  c.height = 220 * (window.devicePixelRatio||1); c.style.height = '220px';
   const dpr = window.devicePixelRatio||1; ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,w,h);
   const pad = { top:25, right:40, bottom:30, left:42 };
@@ -12087,14 +12103,21 @@ function resizeCanvas(id) {
   if(!c) return { c, ctx:null, w:0, h:0 };
   const rect = c.parentElement.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  const logicalW = rect.width - 32;
-  const logicalH = parseInt(c.getAttribute('height'), 10) || 260;
-  c.width = logicalW * dpr;
-  c.height = logicalH * dpr;
+  // 父容器隐藏时 getBoundingClientRect 可能为 0，回退到已有 style 宽度或一个最小安全值
+  const parentW = rect.width || parseFloat(c.style.width) || c.parentElement.clientWidth || 300;
+  const logicalW = Math.max(100, parentW - 32);
+  // 逻辑高度只应读取一次（原始 attribute），避免 c.height 被放大后再污染 attribute
+  let logicalH = parseInt(c.dataset.logicalHeight, 10);
+  if (!logicalH) {
+    logicalH = parseInt(c.getAttribute('height'), 10) || 260;
+    c.dataset.logicalHeight = logicalH;
+  }
+  c.width = Math.floor(logicalW * dpr);
+  c.height = Math.floor(logicalH * dpr);
   c.style.width = logicalW + 'px';
   c.style.height = logicalH + 'px';
   const ctx = c.getContext('2d');
-  ctx.scale(dpr, dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   return { c, ctx, w: logicalW, h: logicalH };
 }
 function roundRect(ctx, x, y, w, h, r) {
