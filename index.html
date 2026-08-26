@@ -835,6 +835,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .calendar-day.selected { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; box-shadow: 0 4px 12px rgba(129,199,132,0.3); }
 .calendar-day.has-content::after { content: '🐤'; position: absolute; bottom: 4px; font-size: 10px; }
 .calendar-day.selected.has-content::after { content: '🐤'; }
+.calendar-day.has-repeat { border-color: rgba(129,199,132,.55); background: linear-gradient(135deg,#F1FBEF 0%,#FFFFFF 100%); }
+.calendar-day .rep-dot { position:absolute; top:2px; right:3px; font-size:9px; line-height:1; opacity:.85; }
 
 /* 内容复盘：日历与复盘表单左右排列 */
 .review-layout { display:flex; gap:16px; align-items:flex-start; }
@@ -2533,7 +2535,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260839</div>
+    <div class="splash-ver">v2.0.20260840</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -4578,14 +4580,14 @@ function getHomeStreakMessages() {
   const tKey = dailyDateKey(today), yKey = dailyDateKey(yesterday), dKey = dailyDateKey(dayBefore);
 
   const doneOn = (it, key) => {
-    if (key === it.base) return !!it.done;
+    if (key === it.base) return !!it.done || !!(it.instances && it.instances[key] && it.instances[key].done);
     return !!(it.instances && it.instances[key] && it.instances[key].done);
   };
   const shouldAppear = (it, key) => matchesRecurring(it.base, key, it.repeat, it.repeatCustom);
 
   const msgs = [];
   repeatItems.forEach(it => {
-    // 从今天往前数连续完成天数（只数应出现的日子）
+    // 从今天往前数连续完成天数（只数应出现的日子）；今天未完成则 todayStreak=0
     let todayStreak = 0;
     let cur = new Date(today);
     while (true) {
@@ -4594,10 +4596,20 @@ function getHomeStreakMessages() {
       if (!doneOn(it, ck)) break;
       todayStreak++;
       cur = new Date(cur.getTime() - 86400000);
-      // 安全上限，避免极端循环
       if (todayStreak > 4000) break;
     }
-    // 从前天往前数连续完成天数（断卡判断基准）
+    // 截至昨天为止的连续完成天数（今天还没做也能算上昨天的连续）
+    let yesterdayStreak = 0;
+    cur = new Date(yesterday);
+    while (true) {
+      const ck = dailyDateKey(cur);
+      if (!shouldAppear(it, ck)) break;
+      if (!doneOn(it, ck)) break;
+      yesterdayStreak++;
+      cur = new Date(cur.getTime() - 86400000);
+      if (yesterdayStreak > 4000) break;
+    }
+    // 从前天往前数（断卡判断基准，避免与 yesterdayStreak 重叠时重复）
     let preStreak = 0;
     cur = new Date(dayBefore);
     while (true) {
@@ -4611,8 +4623,13 @@ function getHomeStreakMessages() {
     const yesterdayShould = shouldAppear(it, yKey);
     const yesterdayDone = doneOn(it, yKey);
     if (todayStreak >= 2) {
+      // 今天也完成了，且连续≥2天：正常夸奖
       msgs.push({ type:'praise', text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${todayStreak}</b> 天，太棒了！继续保持这份坚持 🌟` });
+    } else if (yesterdayStreak >= 2 && !doneOn(it, tKey)) {
+      // 今天还没做，但截至昨天已连续≥2天：仍夸奖连续成果，并鼓励今天继续
+      msgs.push({ type:'praise', text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${yesterdayStreak}</b> 天啦，超棒！今天也来打卡，把连击续上吧 🔥` });
     } else if (preStreak >= 2 && yesterdayShould && !yesterdayDone) {
+      // 连续≥2天后昨天断卡：鼓励
       msgs.push({ type:'cheer', text:`💪 <b>${escapeHtml(it.text)}</b> 昨天没打卡，别气馁～ 之前已经连续坚持了 <b>${preStreak}</b> 天，今天重新开始就好！` });
     }
   });
@@ -5339,11 +5356,23 @@ function renderDailyCalendar() {
   for(let d=1; d<=daysInMonth; d++) {
     const dKey = dateKey(new Date(y, m, d));
     const hasContent = dailyTaskData[dKey] && ((dailyTaskData[dKey].checklist && dailyTaskData[dKey].checklist.length>0) || (dailyTaskData[dKey].tasks && dailyTaskData[dKey].tasks.length>0));
+    // 重复任务：该日期是否有按规则应出现的重复清单项
+    let hasRepeat = false;
+    for (const k in dailyTaskData) {
+      const list = dailyTaskData[k] && dailyTaskData[k].checklist;
+      if (!list) continue;
+      for (const it of list) {
+        if (it.repeat && it.repeat !== 'none' && matchesRecurring(it.date, dKey, it.repeat, it.repeatCustom)) { hasRepeat = true; break; }
+      }
+      if (hasRepeat) break;
+    }
     let cls = 'calendar-day';
     if(dKey === todayKey) cls += ' today';
     if(dKey === selKey) cls += ' selected';
     if(hasContent) cls += ' has-content';
-    html += `<div class="${cls}" onclick="selectDailyDate('${dKey}')">${d}</div>`;
+    if(hasRepeat) cls += ' has-repeat';
+    const repMark = hasRepeat ? '<span class="rep-dot">🔄</span>' : '';
+    html += `<div class="${cls}" onclick="selectDailyDate('${dKey}')">${d}${repMark}</div>`;
   }
   document.getElementById('dailyCalendarGrid').innerHTML = html;
   // 更新选中日期标签
