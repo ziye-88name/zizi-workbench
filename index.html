@@ -2537,7 +2537,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260841</div>
+    <div class="splash-ver">v2.0.20260842</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -4228,6 +4228,10 @@ function applyCloudData(data) {
   });
   if(skippedCorrupt > 0) console.warn('云端同步已跳过 ' + skippedCorrupt + ' 个含乱码的 key，未覆盖本地数据。请在本机用干净数据重新推送以修复云端。');
   if(changed) reloadAllData();
+  // 同步回填后，若当前在首页则刷新首页（否则首屏/切换前渲染的空数据会一直停留，直到手动切换面板）
+  if(changed && document.getElementById('panel-home') && document.getElementById('panel-home').classList.contains('active')) {
+    renderHome();
+  }
 }
 
 async function manualSync() {
@@ -4452,9 +4456,12 @@ function hasTodayPush(arr) { const t = todayDash(); return (arr || []).some(x =>
 function enterWorkbench() {
   const s = document.getElementById('splashScreen');
   if (s) s.classList.add('is-hidden');
-  if (document.getElementById('panel-home') && document.getElementById('panel-home').classList.contains('active')) {
-    renderHome();
-  }
+  // 延迟一帧再渲染首页：确保 splash 隐藏、面板布局完成，且本地/云端数据已就绪
+  requestAnimationFrame(() => {
+    if (document.getElementById('panel-home') && document.getElementById('panel-home').classList.contains('active')) {
+      renderHome();
+    }
+  });
 }
 // 每日金句（按日期轮换）
 const SPLASH_QUOTES = [
