@@ -511,6 +511,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .task-option-item.selected .task-option-radio { border-color:var(--green); background:var(--green); }
 .task-option-item.selected .task-option-radio::after { content:''; width:8px; height:8px; background:#fff; border-radius:50%; display:block; }
 .task-option-label { flex:1; font-size:15px; color:var(--text); }
+.task-option-hint { font-size:11.5px; color:var(--text-secondary); margin-top:2px; }
+.task-sub-title { font-size:13px; color:var(--text-secondary); font-weight:600; margin-bottom:8px; }
 .task-option-desc { font-size:12px; color:var(--text-secondary); }
 .priority-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
 .priority-dot.priority-high { background:#EF5350; }
@@ -2535,7 +2537,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260840</div>
+    <div class="splash-ver">v2.0.20260841</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -5217,13 +5219,12 @@ const PRIORITY_OPTIONS = [
 ];
 const REPEAT_OPTIONS = [
   { key:'none', label:'无' },
-  { key:'daily', label:'每天' },
-  { key:'weekly', label:'每周' },
-  { key:'monthly', label:'每月' },
-  { key:'yearly', label:'每年' },
-  { key:'lunar-yearly', label:'农历每年' },
-  { key:'workday', label:'法定工作日' },
-  { key:'custom', label:'自定义' }
+  { key:'monthDaily', label:'当月每天', hint:'截止本月最后一天每天都重复' },
+  { key:'weekly', label:'每周', hint:'选具体周几，跨月（如每周一）' },
+  { key:'monthly', label:'每月', hint:'选具体日期，跨月（如每月5号）' },
+  { key:'yearly', label:'每年', hint:'选月+日，跨年（如每年3月12日）' },
+  { key:'workday', label:'法定工作日', hint:'当月周一至周五（近似）' },
+  { key:'custom', label:'自定义', hint:'按固定间隔重复' }
 ];
 function priorityClass(p) { return 'priority-' + (p || 'none'); }
 function priorityText(p) { const o = PRIORITY_OPTIONS.find(x=>x.key===(p||'none')); return o ? o.label : '无优先级'; }
@@ -5231,51 +5232,88 @@ function priorityColor(p) { const o = PRIORITY_OPTIONS.find(x=>x.key===(p||'none
 function repeatIcon(repeat) { return (!repeat || repeat==='none') ? '' : '🔄'; }
 function repeatText(repeat, custom) {
   if(!repeat || repeat==='none') return '无';
-  const o = REPEAT_OPTIONS.find(x=>x.key===repeat);
-  let base = o ? o.label : repeat;
-  if(repeat==='custom' && custom) {
-    if(custom.type==='weekdays' && Array.isArray(custom.weekdays)) {
-      const wdNames=['日','一','二','三','四','五','六'];
-      const days = custom.weekdays.map(d=>wdNames[d]||'?').join('');
-      base += (days ? '（周'+days+'）' : '');
-    } else if(custom.type==='interval') {
-      const unitMap={day:'天',week:'周',month:'月'};
-      base += '（每'+custom.interval+unitMap[custom.unit]+'）';
-    }
-  }
-  return base;
-}
-function matchesRecurring(baseDateStr, targetDateStr, repeat, repeatCustom) {
-  if(!repeat || repeat==='none' || baseDateStr===targetDateStr) return baseDateStr===targetDateStr;
-  const base = new Date(baseDateStr+'T00:00:00');
-  const target = new Date(targetDateStr+'T00:00:00');
-  if(isNaN(base.getTime()) || isNaN(target.getTime())) return false;
-  if(target < base) return false; // 重复任务从基准日开始及之后生效
+  custom = custom || {};
+  const wdNames = ['日','一','二','三','四','五','六'];
+  const moNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   switch(repeat) {
-    case 'daily': return true;
-    case 'weekly': return base.getDay() === target.getDay();
-    case 'monthly': return base.getDate() === target.getDate();
-    case 'yearly':
-    case 'lunar-yearly': // 当前按公历每年同月同日近似，后续可接入农历库精确判断
-      return base.getMonth()===target.getMonth() && base.getDate()===target.getDate();
+    case 'monthDaily': return '当月每天';
+    case 'weekly': {
+      const days = (custom.weekdays && custom.weekdays.length) ? custom.weekdays.map(d=>wdNames[d]||'?').join('、') : '每天';
+      return '每周（周' + days + '）';
+    }
+    case 'monthly': return '每月' + (custom.monthDay || '当月') + '号';
+    case 'yearly': {
+      const mo = (custom.month != null) ? custom.month : 0;
+      const dy = custom.monthDay || 1;
+      return '每年' + moNames[mo] + dy + '日';
+    }
+    case 'workday': return '法定工作日（当月）';
+    case 'custom': {
+      if(custom.type === 'weekdays' && Array.isArray(custom.weekdays)) {
+        return '每周（周' + (custom.weekdays.map(d=>wdNames[d]||'?').join('、') || '每天') + '）';
+      }
+      if(custom.type === 'interval') {
+        const unitMap = { day:'天', week:'周', month:'月' };
+        return '每' + (custom.interval||1) + (unitMap[custom.unit]||'天');
+      }
+      return '自定义';
+    }
+    default: return (repeat === 'daily') ? '当月每天' : repeat;
+  }
+}
+// 重复任务按规则判断 target 是否应出现。
+// 统一规则：target 必须 >= base（从基准日开始及之后生效）；
+// 若 custom.endDate 存在，target 必须 <= endDate（含截止日）；
+// 旧 'daily' 兼容为当月每天。
+function matchesRecurring(baseDateStr, targetDateStr, repeat, repeatCustom) {
+  if(!repeat || repeat==='none') return false;
+  const base = new Date(baseDateStr + 'T00:00:00');
+  const target = new Date(targetDateStr + 'T00:00:00');
+  if(isNaN(base.getTime()) || isNaN(target.getTime())) return false;
+  if(target < base) return false; // 早于基准日不出现
+  // 截止日期（含当天）
+  if(repeatCustom && repeatCustom.endDate) {
+    const e = new Date(repeatCustom.endDate + 'T00:00:00');
+    if(!isNaN(e.getTime()) && target > e) return false;
+  }
+  switch(repeat) {
+    case 'daily':        // 旧数据兼容：视为当月每天
+    case 'monthDaily':   // 当月每天：与 base 同月（含跨年判断，base 当月内每天都重复）
+      return base.getFullYear() === target.getFullYear() && base.getMonth() === target.getMonth();
+    case 'weekly': {
+      const days = (repeatCustom && repeatCustom.weekdays && repeatCustom.weekdays.length) ? repeatCustom.weekdays : [base.getDay()];
+      return days.includes(target.getDay());
+    }
+    case 'monthly': {
+      const day = (repeatCustom && repeatCustom.monthDay) ? repeatCustom.monthDay : base.getDate();
+      return target.getDate() === day;
+    }
+    case 'yearly': {
+      const mo = (repeatCustom && repeatCustom.month != null) ? repeatCustom.month : base.getMonth();
+      const dy = (repeatCustom && repeatCustom.monthDay) ? repeatCustom.monthDay : base.getDate();
+      return target.getMonth() === mo && target.getDate() === dy;
+    }
+    case 'lunar-yearly': // 旧数据兼容：公历每年同月同日
+      return base.getMonth() === target.getMonth() && base.getDate() === target.getDate();
     case 'workday': {
       const wd = target.getDay();
-      return wd>=1 && wd<=5;
+      // 当月法定工作日近似：周一~周五，且与 base 同月（不跨月）
+      return wd >= 1 && wd <= 5 && base.getFullYear() === target.getFullYear() && base.getMonth() === target.getMonth();
     }
     case 'custom': {
       if(!repeatCustom) return false;
-      if(repeatCustom.type==='weekdays') {
+      if(repeatCustom.type === 'weekdays') {
         const days = repeatCustom.weekdays || [];
         return days.includes(target.getDay());
       }
-      if(repeatCustom.type==='interval') {
+      if(repeatCustom.type === 'interval') {
         const diffDays = Math.round((target - base) / (1000*60*60*24));
         if(diffDays < 0) return false;
         const unit = repeatCustom.unit || 'day';
         const n = repeatCustom.interval || 1;
-        if(unit==='day') return diffDays % n === 0;
-        if(unit==='week') return diffDays % (n*7) === 0;
-        if(unit==='month') {
+        if(unit === 'day') return diffDays % n === 0;
+        if(unit === 'week') return diffDays % (n*7) === 0;
+        if(unit === 'month') {
           const months = (target.getFullYear()-base.getFullYear())*12 + (target.getMonth()-base.getMonth());
           return months % n === 0 && base.getDate() === target.getDate();
         }
@@ -5637,6 +5675,13 @@ function openTaskTimeModal(dKey, i, evt) {
     repeatCustom: viewItem.repeatCustom || null,
     priority: viewItem.priority || 'none'
   };
+  // 旧数据兼容：'daily' 统一视为当月每天；'lunar-yearly' 视为每年（公历近似）
+  if(taskTimeState.repeat === 'daily') { taskTimeState.repeat = 'monthDaily'; if(!taskTimeState.repeatCustom) taskTimeState.repeatCustom = { type:'none' }; }
+  else if(taskTimeState.repeat === 'lunar-yearly') {
+    taskTimeState.repeat = 'yearly';
+    const dt = new Date((taskTimeState.date||dKey)+'T00:00:00');
+    taskTimeState.repeatCustom = { type:'yearDay', month: dt.getMonth(), monthDay: dt.getDate() };
+  }
   renderTaskTimeModal();
   document.getElementById('taskTimeModal').classList.add('open');
 }
@@ -5714,57 +5759,125 @@ function renderTaskRepeatList() {
     <div class="task-option-item ${taskTimeState.repeat===o.key?'selected':''}" onclick="selectTaskRepeat('${o.key}')">
       <div class="task-option-radio"></div>
       <div class="task-option-label">${o.label}</div>
+      ${o.hint ? `<div class="task-option-hint">${o.hint}</div>` : ''}
     </div>
   `).join('');
-  const customForm = document.getElementById('taskRepeatCustomForm');
-  if(taskTimeState.repeat === 'custom') {
-    customForm.style.display = 'block';
-    const rc = taskTimeState.repeatCustom || { type:'weekdays', weekdays:[], interval:1, unit:'day' };
-    if(rc.type === 'weekdays') {
-      switchTaskRepeatCustom('weekdays');
-      document.querySelectorAll('#taskRepeatWeekdaysForm .task-weekday-btn').forEach(btn => {
-        const wd = parseInt(btn.dataset.wd, 10);
-        btn.classList.toggle('active', (rc.weekdays||[]).includes(wd));
-      });
-    } else {
-      switchTaskRepeatCustom('interval');
-      document.getElementById('taskRepeatIntervalN').value = rc.interval || 1;
-      document.getElementById('taskRepeatIntervalUnit').value = rc.unit || 'day';
-    }
-  } else {
-    customForm.style.display = 'none';
-  }
+  renderTaskRepeatSubForm();
 }
 function selectTaskRepeat(rule) {
   if(!taskTimeState) return;
   taskTimeState.repeat = rule;
-  if(rule === 'custom') {
-    if(!taskTimeState.repeatCustom) {
+  if(rule === 'none') {
+    taskTimeState.repeatCustom = null;
+  } else if(rule === 'custom') {
+    if(!taskTimeState.repeatCustom || taskTimeState.repeatCustom.type === 'monthDay' || taskTimeState.repeatCustom.type === 'yearDay') {
       taskTimeState.repeatCustom = { type:'weekdays', weekdays:[], interval:1, unit:'day' };
     }
-  } else {
-    taskTimeState.repeatCustom = null;
+  } else if(rule === 'monthDaily' || rule === 'workday') {
+    // 无需子选项，仅保留截止日期
+    if(!taskTimeState.repeatCustom || taskTimeState.repeatCustom.type === 'weekdays' || taskTimeState.repeatCustom.type === 'interval') {
+      taskTimeState.repeatCustom = { type:'none' };
+    }
+  } else if(rule === 'weekly') {
+    if(!taskTimeState.repeatCustom || taskTimeState.repeatCustom.type !== 'weekdays') {
+      taskTimeState.repeatCustom = { type:'weekdays', weekdays: taskTimeState.repeatCustom && taskTimeState.repeatCustom.weekdays ? taskTimeState.repeatCustom.weekdays : [] };
+    }
+  } else if(rule === 'monthly') {
+    const d = (taskTimeState.repeatCustom && taskTimeState.repeatCustom.monthDay) ? taskTimeState.repeatCustom.monthDay : new Date(taskTimeState.date+'T00:00:00').getDate();
+    taskTimeState.repeatCustom = { type:'monthDay', monthDay: d };
+  } else if(rule === 'yearly') {
+    const dt = new Date(taskTimeState.date+'T00:00:00');
+    const mo = (taskTimeState.repeatCustom && taskTimeState.repeatCustom.month != null) ? taskTimeState.repeatCustom.month : dt.getMonth();
+    const dy = (taskTimeState.repeatCustom && taskTimeState.repeatCustom.monthDay) ? taskTimeState.repeatCustom.monthDay : dt.getDate();
+    taskTimeState.repeatCustom = { type:'yearDay', month: mo, monthDay: dy };
   }
   renderTaskRepeatList();
   if(rule !== 'custom') closeTaskRepeatModal();
 }
-function switchTaskRepeatCustom(type) {
-  document.getElementById('taskRepeatTabWeekdays').classList.toggle('active', type==='weekdays');
-  document.getElementById('taskRepeatTabInterval').classList.toggle('active', type==='interval');
-  document.getElementById('taskRepeatWeekdaysForm').style.display = type==='weekdays'?'block':'none';
-  document.getElementById('taskRepeatIntervalForm').style.display = type==='interval'?'block':'none';
-  if(taskTimeState && taskTimeState.repeatCustom) taskTimeState.repeatCustom.type = type;
+// 根据当前规则渲染子表单（周几 / 每月几号 / 每年月日 / 截止日期）
+function renderTaskRepeatSubForm() {
+  const wrap = document.getElementById('taskRepeatSubForm');
+  if(!wrap) return;
+  const rc = taskTimeState.repeatCustom || {};
+  const rule = taskTimeState.repeat;
+  if(rule === 'none') { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+  wrap.style.display = 'block';
+  let html = '';
+  if(rule === 'weekly') {
+    const days = rc.weekdays || [];
+    html += '<div class="task-sub-title">选择每周几（可多选，跨月生效）</div><div class="task-weekdays-row">';
+    ['日','一','二','三','四','五','六'].forEach((n, wd) => {
+      html += `<button class="task-weekday-btn ${days.includes(wd)?'active':''}" data-wd="${wd}" onclick="toggleTaskWeekday(this)">${n}</button>`;
+    });
+    html += '</div>';
+  } else if(rule === 'monthly') {
+    const d = rc.monthDay || new Date(taskTimeState.date+'T00:00:00').getDate();
+    let opts = '';
+    for(let i=1;i<=31;i++) opts += `<option value="${i}" ${i===d?'selected':''}>${i}号</option>`;
+    html += '<div class="task-sub-title">选择每月几号（跨月生效）</div><select class="modal-input" style="width:120px;" onchange="onTaskMonthDayChange(this.value)">' + opts + '</select>';
+  } else if(rule === 'yearly') {
+    const mo = (rc.month != null) ? rc.month : new Date(taskTimeState.date+'T00:00:00').getMonth();
+    const dy = rc.monthDay || new Date(taskTimeState.date+'T00:00:00').getDate();
+    let mopts = '', dopts = '';
+    ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'].forEach((n,i)=>{ mopts += `<option value="${i}" ${i===mo?'selected':''}>${n}</option>`; });
+    for(let i=1;i<=31;i++) dopts += `<option value="${i}" ${i===dy?'selected':''}>${i}日</option>`;
+    html += '<div class="task-sub-title">选择每年几月几日（跨年生效）</div><div style="display:flex;gap:8px;"><select class="modal-input" style="width:90px;" onchange="onTaskYearMonthChange(this.value)">' + mopts + '</select><select class="modal-input" style="width:90px;" onchange="onTaskYearDayChange(this.value)">' + dopts + '</select></div>';
+  } else if(rule === 'custom') {
+    const c = taskTimeState.repeatCustom || { type:'weekdays', weekdays:[], interval:1, unit:'day' };
+    if(c.type === 'weekdays') {
+      const days = c.weekdays || [];
+      html += '<div class="task-sub-title">选择每周几（可多选）</div><div class="task-weekdays-row">';
+      ['日','一','二','三','四','五','六'].forEach((n, wd) => {
+        html += `<button class="task-weekday-btn ${days.includes(wd)?'active':''}" data-wd="${wd}" onclick="toggleTaskWeekday(this)">${n}</button>`;
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="task-sub-title">固定间隔</div><div class="task-interval-row">每 <input type="number" id="taskRepeatIntervalN" min="1" value="' + (c.interval||1) + '" class="modal-input" style="width:60px;text-align:center;" oninput="onTaskRepeatIntervalChange()"> <select id="taskRepeatIntervalUnit" class="modal-input" style="width:80px;" onchange="onTaskRepeatIntervalChange()"><option value="day" '+(c.unit==='day'?'selected':'')+'>天</option><option value="week" '+(c.unit==='week'?'selected':'')+'>周</option><option value="month" '+(c.unit==='month'?'selected':'')+'>月</option></select> 重复</div>';
+    }
+  }
+  // 截止日期：所有规则通用
+  html += '<div class="task-sub-title" style="margin-top:14px;">结束日期（可选，留空表示一直重复）</div>';
+  html += '<div style="display:flex;align-items:center;gap:8px;"><input type="date" id="taskRepeatEndDate" class="modal-input" style="width:150px;" value="' + (rc.endDate || '') + '" onchange="onTaskRepeatEndDateChange(this.value)"><button class="btn btn-ghost" style="padding:6px 10px;" onclick="clearTaskRepeatEndDate()">清除</button></div>';
+  wrap.innerHTML = html;
+}
+function onTaskMonthDayChange(v) {
+  if(!taskTimeState) return;
+  taskTimeState.repeatCustom = Object.assign({}, taskTimeState.repeatCustom, { type:'monthDay', monthDay: parseInt(v,10) || 1 });
+}
+function onTaskYearMonthChange(v) {
+  if(!taskTimeState) return;
+  taskTimeState.repeatCustom = Object.assign({}, taskTimeState.repeatCustom, { month: parseInt(v,10) || 0 });
+}
+function onTaskYearDayChange(v) {
+  if(!taskTimeState) return;
+  taskTimeState.repeatCustom = Object.assign({}, taskTimeState.repeatCustom, { monthDay: parseInt(v,10) || 1 });
+}
+function onTaskRepeatEndDateChange(v) {
+  if(!taskTimeState) return;
+  if(!taskTimeState.repeatCustom) taskTimeState.repeatCustom = { type:'none' };
+  taskTimeState.repeatCustom.endDate = v || '';
+  renderTaskTimeModal();
+}
+function clearTaskRepeatEndDate() {
+  if(!taskTimeState || !taskTimeState.repeatCustom) return;
+  taskTimeState.repeatCustom.endDate = '';
+  const el = document.getElementById('taskRepeatEndDate');
+  if(el) el.value = '';
+  renderTaskTimeModal();
 }
 function toggleTaskWeekday(btn) {
-  if(!taskTimeState || taskTimeState.repeat !== 'custom' || !taskTimeState.repeatCustom) return;
+  if(!taskTimeState) return;
+  const useCustom = taskTimeState.repeat === 'custom';
+  if(taskTimeState.repeat !== 'weekly' && !useCustom) return;
+  let rc = taskTimeState.repeatCustom;
+  if(!rc) { rc = { type:'weekdays', weekdays: [] }; taskTimeState.repeatCustom = rc; }
   const wd = parseInt(btn.dataset.wd, 10);
-  const rc = taskTimeState.repeatCustom;
   rc.type = 'weekdays';
   const days = rc.weekdays || [];
   const pos = days.indexOf(wd);
   if(pos >= 0) days.splice(pos, 1); else days.push(wd);
   rc.weekdays = days;
-  renderTaskRepeatList();
+  renderTaskRepeatSubForm();
 }
 function onTaskRepeatIntervalChange() {
   if(!taskTimeState || taskTimeState.repeat !== 'custom' || !taskTimeState.repeatCustom) return;
@@ -14854,35 +14967,7 @@ fillTravelDatalists();
       </div>
       <div class="modal-body" style="padding:0;">
         <div class="task-option-list" id="taskRepeatList"></div>
-        <div id="taskRepeatCustomForm" style="display:none;border-top:1px solid var(--border);background:#FAFBFC;">
-          <div style="padding:14px 18px 10px;">
-            <div class="task-custom-tabs">
-              <button class="task-custom-tab active" id="taskRepeatTabWeekdays" onclick="switchTaskRepeatCustom('weekdays')">按星期</button>
-              <button class="task-custom-tab" id="taskRepeatTabInterval" onclick="switchTaskRepeatCustom('interval')">按间隔</button>
-            </div>
-            <div id="taskRepeatWeekdaysForm" style="margin-top:12px;">
-              <div class="task-weekdays-row">
-                <button class="task-weekday-btn" data-wd="0" onclick="toggleTaskWeekday(this)">日</button>
-                <button class="task-weekday-btn" data-wd="1" onclick="toggleTaskWeekday(this)">一</button>
-                <button class="task-weekday-btn" data-wd="2" onclick="toggleTaskWeekday(this)">二</button>
-                <button class="task-weekday-btn" data-wd="3" onclick="toggleTaskWeekday(this)">三</button>
-                <button class="task-weekday-btn" data-wd="4" onclick="toggleTaskWeekday(this)">四</button>
-                <button class="task-weekday-btn" data-wd="5" onclick="toggleTaskWeekday(this)">五</button>
-                <button class="task-weekday-btn" data-wd="6" onclick="toggleTaskWeekday(this)">六</button>
-              </div>
-            </div>
-            <div id="taskRepeatIntervalForm" style="display:none;margin-top:12px;">
-              <div class="task-interval-row">
-                每 <input type="number" id="taskRepeatIntervalN" min="1" value="1" class="modal-input" style="width:60px;text-align:center;" oninput="onTaskRepeatIntervalChange()"> 
-                <select id="taskRepeatIntervalUnit" class="modal-input" style="width:80px;" onchange="onTaskRepeatIntervalChange()">
-                  <option value="day">天</option>
-                  <option value="week">周</option>
-                  <option value="month">月</option>
-                </select> 重复
-              </div>
-            </div>
-          </div>
-        </div>
+        <div id="taskRepeatSubForm" style="display:none;border-top:1px solid var(--border);background:#FAFBFC;padding:14px 18px 16px;"></div>
       </div>
     </div>
   </div>
