@@ -2529,7 +2529,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260837</div>
+    <div class="splash-ver">v2.0.20260838</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -4639,12 +4639,13 @@ function renderHome() {
   const ex = document.getElementById('homeExpense');
   if (ex) ex.textContent = '¥' + getHomeTodayExpense().toFixed(2);
 
-  // 连续打卡公告
+  // 连续打卡公告（始终显示在快捷入口上方；无消息时给温和占位）
   const streakWrap = document.getElementById('homeStreak');
   if (streakWrap) {
     const msgs = getHomeStreakMessages();
     if (!msgs.length) {
-      streakWrap.innerHTML = '';
+      streakWrap.innerHTML = '<div class="k2-section-title">🔔 打卡小播报</div>' +
+        '<div class="home-streak-item"><div class="si-emo">🌿</div><div class="si-text">今天还没有打卡动态～ 坚持的小习惯最可爱，去完成一个重复任务开启今天的连击吧！</div></div>';
     } else {
       streakWrap.innerHTML = '<div class="k2-section-title">🔔 打卡小播报</div>' +
         msgs.map(m => `<div class="home-streak-item ${m.type}"><div class="si-emo">${m.type === 'praise' ? '🎉' : '💪'}</div><div class="si-text">${m.text}</div></div>`).join('');
@@ -4671,15 +4672,21 @@ function renderHomeShortcuts() {
 function homeShortcutClick(id) {
   const item = (loadHomeShortcuts().find(s => s.id === id)) || HOME_SHORTCUT_DEFAULT.find(s => s.id === id);
   if (!item) return;
-  if (item.action) {
-    try { eval(item.action); } catch (e) {}
-    return;
+  // 按 id 硬编码跳转，避免旧配置缺字段 / eval 失败导致无反应
+  switch (id) {
+    case 'expense': openExpenseModal(); return;       // 记一笔 → 直接弹记一笔弹窗
+    case 'task': openHomeAddTask(); return;           // 建任务 → 今日任务输入
+    case 'review':  openHomePanel('contentReview'); return;
+    case 'hot':     openHomePanel('hotVideos'); return;
+    case 'bird':    openHomePanel('birdCare'); return;
+    case 'product': openHomePanel('products'); return;
+    case 'script':  openHomePanel('liveScript'); return;
+    case 'travel':  openHomePanel('travel'); return;
+    default:
+      if (item.action) { try { eval(item.action); } catch (e) {} return; }
+      if (item.addTask) { openHomeAddTask(); return; }
+      if (item.panel) openHomePanel(item.panel);
   }
-  if (item.addTask) {
-    openHomeAddTask();
-    return;
-  }
-  if (item.panel) openHomePanel(item.panel);
 }
 
 function openHomePanel(pid) {
