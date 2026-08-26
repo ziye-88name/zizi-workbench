@@ -2103,6 +2103,55 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .k2-budget-foot b { color:#4C4556; }
 .k2-section-title { font-size:15px; color:#7B6FA0; font-weight:700; margin-bottom:12px; }
 .k2-quick-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+
+/* ===================== 首页面板 ===================== */
+.home-greeting { background:linear-gradient(120deg,#E8F5E9 0%,#F3E8FB 100%); border-radius:22px; padding:18px 20px; margin-bottom:16px;
+  box-shadow:0 6px 16px rgba(123,111,160,.08); border:1.5px solid rgba(123,111,160,.1); }
+.home-greeting .hg-hello { font-size:20px; font-weight:800; color:#5E8B6A; display:flex; align-items:center; gap:8px; }
+.home-greeting .hg-date { font-size:13px; color:#9C95A8; margin-top:6px; }
+.home-greeting .hg-quote { font-size:13px; color:#7B6FA0; margin-top:8px; font-style:italic; }
+.home-stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+.home-stat { background:#fff; border:1.5px solid rgba(123,111,160,.12); border-radius:20px; padding:16px 12px; text-align:center;
+  box-shadow:0 6px 16px rgba(123,111,160,.08); }
+.home-stat .hs-num { font-size:26px; font-weight:800; color:#7B6FA0; line-height:1.1; }
+.home-stat .hs-num small { font-size:15px; color:#B8A8B8; font-weight:700; }
+.home-stat .hs-label { font-size:12px; color:#9C95A8; margin-top:6px; }
+.home-stat.accent .hs-num { color:#5BB98E; }
+.home-stats-grid .home-stat.full { grid-column:auto; }
+.home-streak-wrap { margin-bottom:16px; }
+.home-streak-item { display:flex; align-items:flex-start; gap:10px; background:#fff; border-radius:18px; padding:14px 16px; margin-bottom:10px;
+  border:1.5px solid rgba(123,111,160,.12); box-shadow:0 4px 12px rgba(123,111,160,.06); }
+.home-streak-item.praise { background:linear-gradient(120deg,#E8F5E9,#F1FBEF); border-color:rgba(91,185,142,.25); }
+.home-streak-item.cheer { background:linear-gradient(120deg,#FFF6EC,#FDF0F3); border-color:rgba(232,169,178,.25); }
+.home-streak-item .si-emo { font-size:24px; line-height:1.2; }
+.home-streak-item .si-text { font-size:13.5px; color:#4C4556; line-height:1.6; }
+.home-streak-item .si-text b { color:#7B6FA0; }
+.home-shortcut-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.home-shortcut-item { border:1.5px solid rgba(123,111,160,.14); background:#fff; border-radius:18px; padding:14px 4px; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:6px; font-size:12px; color:#4C4556; box-shadow:0 3px 8px rgba(123,111,160,.06); transition:.15s; }
+.home-shortcut-item:active { transform:translateY(2px) scale(.98); }
+.home-shortcut-item .emo { font-size:28px; }
+.home-shortcut-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.home-shortcut-head .set-btn { border:none; background:var(--primary-light); color:var(--primary-dark); border-radius:12px; padding:6px 12px;
+  font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+.home-shortcut-head .set-btn:active { transform:translateY(1px); }
+.home-empty-hint { font-size:13px; color:#9C95A8; text-align:center; padding:18px 0; }
+@media (max-width:520px){
+  .home-stats-grid { grid-template-columns:repeat(3,1fr); }
+  .home-shortcut-grid { grid-template-columns:repeat(4,1fr); gap:8px; }
+  .home-shortcut-item { padding:10px 2px; font-size:11px; }
+  .home-shortcut-item .emo { font-size:24px; }
+}
+/* 快捷入口设置弹窗 */
+.sc-list { display:flex; flex-direction:column; gap:8px; }
+.sc-row { display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid rgba(123,111,160,.12); border-radius:14px; padding:10px 12px; }
+.sc-row.dragging { opacity:.5; }
+.sc-handle { cursor:grab; color:#B8A8B8; font-size:18px; user-select:none; }
+.sc-row input[type=checkbox] { width:18px; height:18px; accent-color:#7B6FA0; }
+.sc-name { flex:1; font-size:14px; color:#4C4556; }
+.sc-up, .sc-down { border:none; background:var(--primary-light); color:var(--primary-dark); border-radius:10px; width:30px; height:30px;
+  font-size:16px; cursor:pointer; font-family:inherit; }
+.sc-up:disabled, .sc-down:disabled { opacity:.35; cursor:not-allowed; }
 .k2-quick-btn { border:1.5px solid rgba(123,111,160,.14); background:#fff; border-radius:18px; padding:12px 4px; cursor:pointer;
   display:flex; flex-direction:column; align-items:center; gap:6px; font-family:inherit; font-size:12px; color:#4C4556;
   box-shadow:0 3px 8px rgba(123,111,160,.06); transition:.15s; }
@@ -2480,7 +2529,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260836</div>
+    <div class="splash-ver">v2.0.20260837</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -2525,7 +2574,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     </div>
     <div class="sidebar-section">工作台菜单</div>
     <div class="menu-list">
-      <div class="menu-item active" data-panel="myGoals"><div class="menu-icon">🎯</div><span>我的目标</span></div>
+      <div class="menu-item active" data-panel="home"><div class="menu-icon">🏠</div><span>首页</span></div>
+      <div class="menu-item" data-panel="myGoals"><div class="menu-icon">🎯</div><span>我的目标</span></div>
       <div class="menu-item" data-panel="dailyTask"><div class="menu-icon">📋</div><span>今日任务</span></div>
       <div class="menu-item" data-panel="hotVideos"><div class="menu-icon">🔥</div><span>学习爆款视频</span></div>
       <div class="menu-item" data-panel="birdCare"><div class="menu-icon">🦜</div><span>养鸟知识</span></div>
@@ -2550,8 +2600,39 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     </div>
     <div class="main">
 
+      <!-- 首页 -->
+      <div class="panel active" id="panel-home">
+        <div class="home-greeting">
+          <div class="hg-hello" id="homeHello">早上好呀！☀️</div>
+          <div class="hg-date" id="homeDate"></div>
+          <div class="hg-quote" id="homeQuote"></div>
+        </div>
+        <div class="home-stats-grid">
+          <div class="home-stat">
+            <div class="hs-num" id="homeTaskDone">0<small>/0</small></div>
+            <div class="hs-label">今日任务完成</div>
+          </div>
+          <div class="home-stat accent">
+            <div class="hs-num" id="homeShootDone">0<small>/0</small></div>
+            <div class="hs-label">今日已拍</div>
+          </div>
+          <div class="home-stat">
+            <div class="hs-num" id="homeExpense">¥0</div>
+            <div class="hs-label">今日消费</div>
+          </div>
+        </div>
+        <div class="home-streak-wrap" id="homeStreak"></div>
+        <div class="k2-card">
+          <div class="home-shortcut-head">
+            <div class="k2-section-title" style="margin-bottom:0;">⚡ 快捷入口</div>
+            <button class="set-btn" onclick="openShortcutSettings()">⚙ 设置</button>
+          </div>
+          <div class="home-shortcut-grid" id="homeShortcutGrid"></div>
+        </div>
+      </div>
+
       <!-- 我的目标 -->
-      <div class="panel active" id="panel-myGoals">
+      <div class="panel" id="panel-myGoals">
         <!-- 本月目标 -->
         <div class="goal-panel-card" id="monthGoalCard" style="position:relative;overflow:visible;">
           <div class="goal-card-head">
@@ -4363,6 +4444,9 @@ function hasTodayPush(arr) { const t = todayDash(); return (arr || []).some(x =>
 function enterWorkbench() {
   const s = document.getElementById('splashScreen');
   if (s) s.classList.add('is-hidden');
+  if (document.getElementById('panel-home') && document.getElementById('panel-home').classList.contains('active')) {
+    renderHome();
+  }
 }
 // 每日金句（按日期轮换）
 const SPLASH_QUOTES = [
@@ -4398,7 +4482,7 @@ document.getElementById('dateDisplay').textContent = todayStr;
 document.getElementById('sidebarDate').textContent = todayStr;
 
 // ===================== 菜单切换 =====================
-const menuLabels = { myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
+const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
 
 document.querySelectorAll('.menu-item').forEach(item => {
   item.addEventListener('click', () => {
@@ -4409,6 +4493,7 @@ document.querySelectorAll('.menu-item').forEach(item => {
     document.getElementById('panel-'+pid).classList.add('active');
     document.getElementById('topbarText').textContent=menuLabels[pid].text;
     document.getElementById('topbarIcon').textContent=menuLabels[pid].icon;
+    if(pid==='home') renderHome();
     if(pid==='travel') ensureTravelReady();
     if(window.innerWidth<=767) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
   });
@@ -4425,6 +4510,257 @@ function toggleSidebar() {
   sb.classList.toggle('open');
   ov.classList.toggle('show', sb.classList.contains('open'));
   if(hint) hint.style.display = sb.classList.contains('open') ? 'none' : '';
+}
+
+// ===================== 首页面板 =====================
+const HOME_SHORTCUT_KEY = 'parrot_home_shortcuts_v1';
+const HOME_SHORTCUT_DEFAULT = [
+  { id:'review',  label:'每日复盘', icon:'📝', panel:'contentReview' },
+  { id:'task',    label:'建任务',   icon:'📋', panel:'dailyTask',   addTask:true },
+  { id:'expense', label:'记一笔',   icon:'💰', action:'openExpenseModal()' },
+  { id:'hot',     label:'拆爆款',   icon:'🔥', panel:'hotVideos' },
+  { id:'bird',    label:'增知识',   icon:'🦜', panel:'birdCare' },
+  { id:'product', label:'增选品',   icon:'🛒', panel:'products' },
+  { id:'script',  label:'增直播话术', icon:'🎙️', panel:'liveScript' },
+  { id:'travel',  label:'出去玩',   icon:'🧳', panel:'travel' }
+];
+function loadHomeShortcuts() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(HOME_SHORTCUT_KEY) || 'null');
+    if (Array.isArray(raw) && raw.length) return raw;
+  } catch (e) {}
+  // 首次使用：按默认顺序写入完整配置（全部显示）
+  const def = HOME_SHORTCUT_DEFAULT.map(s => Object.assign({}, s, { visible:true }));
+  localStorage.setItem(HOME_SHORTCUT_KEY, JSON.stringify(def));
+  return def;
+}
+function saveHomeShortcuts(list) { localStorage.setItem(HOME_SHORTCUT_KEY, JSON.stringify(list)); }
+
+function getHomeTaskStats() {
+  const dKey = dailyDateKey(new Date());
+  const day = dailyTaskData[dKey] || { checklist: [], tasks: [] };
+  const tasks = (day.tasks || []);
+  const expanded = expandRecurringChecklist(dKey);
+  const checklistDone = expanded.filter(c => c.done).length;
+  const shootTotal = tasks.length;
+  const shoot = tasks.filter(t => t.status === 'green').length;
+  const done = checklistDone + shoot;
+  const total = expanded.length + shootTotal;
+  return { done, total, shoot, shootTotal };
+}
+
+function getHomeTodayExpense() {
+  const today = formatDateYMD(new Date());
+  return activeRecs(expenseRecords).filter(r => r.type === 'expense' && r.date === today)
+    .reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+}
+
+// 重复任务连续打卡/断卡消息
+function getHomeStreakMessages() {
+  // 收集所有日期键里带有 repeat 的 checklist 项（含本日原生项与历史项）
+  const repeatItems = [];
+  Object.keys(dailyTaskData).forEach(k => {
+    const list = dailyTaskData[k] && dailyTaskData[k].checklist;
+    if (!list) return;
+    list.forEach(it => {
+      if (it.repeat && it.repeat !== 'none') {
+        repeatItems.push({ base: it.date, text: it.text, repeat: it.repeat, repeatCustom: it.repeatCustom, done: it.done, instances: it.instances || {} });
+      }
+    });
+  });
+  const today = new Date();
+  const yesterday = new Date(today.getTime() - 86400000);
+  const dayBefore = new Date(today.getTime() - 2 * 86400000);
+  const tKey = dailyDateKey(today), yKey = dailyDateKey(yesterday), dKey = dailyDateKey(dayBefore);
+
+  const doneOn = (it, key) => {
+    if (key === it.base) return !!it.done;
+    return !!(it.instances && it.instances[key] && it.instances[key].done);
+  };
+  const shouldAppear = (it, key) => matchesRecurring(it.base, key, it.repeat, it.repeatCustom);
+
+  const msgs = [];
+  repeatItems.forEach(it => {
+    // 从今天往前数连续完成天数（只数应出现的日子）
+    let todayStreak = 0;
+    let cur = new Date(today);
+    while (true) {
+      const ck = dailyDateKey(cur);
+      if (!shouldAppear(it, ck)) break;
+      if (!doneOn(it, ck)) break;
+      todayStreak++;
+      cur = new Date(cur.getTime() - 86400000);
+      // 安全上限，避免极端循环
+      if (todayStreak > 4000) break;
+    }
+    // 从前天往前数连续完成天数（断卡判断基准）
+    let preStreak = 0;
+    cur = new Date(dayBefore);
+    while (true) {
+      const ck = dailyDateKey(cur);
+      if (!shouldAppear(it, ck)) break;
+      if (!doneOn(it, ck)) break;
+      preStreak++;
+      cur = new Date(cur.getTime() - 86400000);
+      if (preStreak > 4000) break;
+    }
+    const yesterdayShould = shouldAppear(it, yKey);
+    const yesterdayDone = doneOn(it, yKey);
+    if (todayStreak >= 2) {
+      msgs.push({ type:'praise', text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${todayStreak}</b> 天，太棒了！继续保持这份坚持 🌟` });
+    } else if (preStreak >= 2 && yesterdayShould && !yesterdayDone) {
+      msgs.push({ type:'cheer', text:`💪 <b>${escapeHtml(it.text)}</b> 昨天没打卡，别气馁～ 之前已经连续坚持了 <b>${preStreak}</b> 天，今天重新开始就好！` });
+    }
+  });
+  return msgs;
+}
+
+function renderHome() {
+  // 问候
+  const h = new Date().getHours();
+  let hello = '晚上好呀！🌙';
+  if (h < 6) hello = '夜深了，注意休息哦 🌛';
+  else if (h < 12) hello = '早上好呀！☀️';
+  else if (h < 14) hello = '中午好呀！🍱';
+  else if (h < 18) hello = '下午好呀！🌤️';
+  const helloEl = document.getElementById('homeHello');
+  if (helloEl) helloEl.textContent = hello;
+  const dateEl = document.getElementById('homeDate');
+  if (dateEl) dateEl.textContent = formatDate(new Date()) + ' · ' + ['周日','周一','周二','周三','周四','周五','周六'][new Date().getDay()];
+  const qEl = document.getElementById('homeQuote');
+  if (qEl) qEl.textContent = '「' + (SPLASH_QUOTES[(new Date().getDate() + new Date().getMonth() * 31) % SPLASH_QUOTES.length]) + '」';
+
+  // 今日统计
+  const st = getHomeTaskStats();
+  const td = document.getElementById('homeTaskDone');
+  if (td) td.innerHTML = st.done + '<small>/' + st.total + '</small>';
+  const sd = document.getElementById('homeShootDone');
+  if (sd) sd.innerHTML = st.shoot + '<small>/' + st.shootTotal + '</small>';
+  const ex = document.getElementById('homeExpense');
+  if (ex) ex.textContent = '¥' + getHomeTodayExpense().toFixed(2);
+
+  // 连续打卡公告
+  const streakWrap = document.getElementById('homeStreak');
+  if (streakWrap) {
+    const msgs = getHomeStreakMessages();
+    if (!msgs.length) {
+      streakWrap.innerHTML = '';
+    } else {
+      streakWrap.innerHTML = '<div class="k2-section-title">🔔 打卡小播报</div>' +
+        msgs.map(m => `<div class="home-streak-item ${m.type}"><div class="si-emo">${m.type === 'praise' ? '🎉' : '💪'}</div><div class="si-text">${m.text}</div></div>`).join('');
+    }
+  }
+
+  // 快捷入口
+  renderHomeShortcuts();
+}
+
+function renderHomeShortcuts() {
+  const grid = document.getElementById('homeShortcutGrid');
+  if (!grid) return;
+  const list = loadHomeShortcuts().filter(s => s.visible !== false);
+  if (!list.length) {
+    grid.innerHTML = '<div class="home-empty-hint">还没有快捷入口，点右上角「设置」添加吧～</div>';
+    return;
+  }
+  grid.innerHTML = list.map(s =>
+    `<div class="home-shortcut-item" onclick="homeShortcutClick('${s.id}')"><div class="emo">${s.icon}</div><span>${escapeHtml(s.label)}</span></div>`
+  ).join('');
+}
+
+function homeShortcutClick(id) {
+  const item = (loadHomeShortcuts().find(s => s.id === id)) || HOME_SHORTCUT_DEFAULT.find(s => s.id === id);
+  if (!item) return;
+  if (item.action) {
+    try { eval(item.action); } catch (e) {}
+    return;
+  }
+  if (item.addTask) {
+    openHomeAddTask();
+    return;
+  }
+  if (item.panel) openHomePanel(item.panel);
+}
+
+function openHomePanel(pid) {
+  const mi = document.querySelector('.menu-item[data-panel="' + pid + '"]');
+  if (mi) mi.click();
+}
+
+function openHomeAddTask() {
+  const mi = document.querySelector('.menu-item[data-panel="dailyTask"]');
+  if (mi) mi.click();
+  setTimeout(() => {
+    const inp = document.getElementById('checklistInput');
+    if (inp) { inp.focus(); showToast('📋 在这里输入今日任务，回车添加'); }
+  }, 120);
+}
+
+// 快捷入口设置弹窗（拖拽排序 + 显示/隐藏）
+let shortcutDragFrom = null;
+function openShortcutSettings() {
+  const list = loadHomeShortcuts();
+  const box = document.getElementById('shortcutSettingsModal');
+  if (!box) return;
+  renderShortcutSettingsList(list);
+  box.style.display = 'flex';
+}
+function closeShortcutSettings() {
+  const box = document.getElementById('shortcutSettingsModal');
+  if (box) box.style.display = 'none';
+}
+function renderShortcutSettingsList(list) {
+  const wrap = document.getElementById('scList');
+  if (!wrap) return;
+  wrap.innerHTML = list.map((s, i) =>
+    `<div class="sc-row" draggable="true" data-id="${s.id}" data-idx="${i}">
+       <span class="sc-handle" title="拖拽排序">⠿</span>
+       <input type="checkbox" ${s.visible !== false ? 'checked' : ''} onchange="toggleShortcut('${s.id}', this.checked)">
+       <span class="sc-name">${s.icon} ${escapeHtml(s.label)}</span>
+       <button class="sc-up" ${i === 0 ? 'disabled' : ''} onclick="moveShortcut('${s.id}',-1)">↑</button>
+       <button class="sc-down" ${i === list.length - 1 ? 'disabled' : ''} onclick="moveShortcut('${s.id}',1)">↓</button>
+     </div>`
+  ).join('');
+  bindShortcutDnD();
+}
+function toggleShortcut(id, on) {
+  const list = loadHomeShortcuts();
+  const it = list.find(s => s.id === id);
+  if (it) { it.visible = on; saveHomeShortcuts(list); renderHomeShortcuts(); renderShortcutSettingsList(list); }
+}
+function moveShortcut(id, dir) {
+  const list = loadHomeShortcuts();
+  const i = list.findIndex(s => s.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  const t = list[i]; list[i] = list[j]; list[j] = t;
+  saveHomeShortcuts(list);
+  renderShortcutSettingsList(list);
+  renderHomeShortcuts();
+}
+function bindShortcutDnD() {
+  const wrap = document.getElementById('scList');
+  if (!wrap) return;
+  const rows = wrap.querySelectorAll('.sc-row');
+  rows.forEach(row => {
+    row.addEventListener('dragstart', () => { shortcutDragFrom = row.dataset.id; row.classList.add('dragging'); });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); shortcutDragFrom = null; });
+    row.addEventListener('dragover', e => e.preventDefault());
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      const toId = row.dataset.id;
+      if (!shortcutDragFrom || shortcutDragFrom === toId) return;
+      const list = loadHomeShortcuts();
+      const from = list.findIndex(s => s.id === shortcutDragFrom);
+      const to = list.findIndex(s => s.id === toId);
+      if (from < 0 || to < 0) return;
+      const [m] = list.splice(from, 1);
+      list.splice(to, 0, m);
+      saveHomeShortcuts(list);
+      renderShortcutSettingsList(list);
+      renderHomeShortcuts();
+    });
+  });
 }
 
 // 移动端左滑打开侧边栏 / 右滑关闭
@@ -5606,6 +5942,7 @@ function updateDailyStats(dKey) {
 function saveDailyData() {
   localStorage.setItem('parrot_daily_data_v2', JSON.stringify(dailyTaskData));
   onLocalDataChange();
+  if (document.getElementById('panel-home') && document.getElementById('panel-home').classList.contains('active')) renderHome();
 }
 
 // --- 飞书导出 ---
@@ -11312,6 +11649,7 @@ function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;
 function saveExpenseRecords() {
   localStorage.setItem(EXPENSE_KEY, JSON.stringify(expenseRecords));
   onLocalDataChange();
+  if (document.getElementById('panel-home') && document.getElementById('panel-home').classList.contains('active')) renderHome();
 }
 function loadExpenseCategories() {
   try {
@@ -14640,6 +14978,24 @@ fillTravelDatalists();
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" type="button" onclick="closeProdTypeManage()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 快捷入口设置 -->
+<div class="modal-mask" id="shortcutSettingsModal" onclick="if(event.target===this)closeShortcutSettings()">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <span class="modal-title">⚡ 设置快捷入口</span>
+      <button class="modal-close" type="button" onclick="closeShortcutSettings()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 14px;">勾选可显示/隐藏，拖拽 ⠿ 或点 ↑↓ 调整顺序，保存后首页立即生效。</p>
+      <div class="sc-list" id="scList"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" type="button" onclick="closeShortcutSettings()">取消</button>
+      <button class="btn btn-primary" type="button" onclick="closeShortcutSettings()">完成</button>
     </div>
   </div>
 </div>
