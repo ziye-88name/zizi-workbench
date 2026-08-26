@@ -2480,7 +2480,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260835</div>
+    <div class="splash-ver">v2.0.20260836</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3900,6 +3900,9 @@ let SYNC_TIMER = null;
 let SYNC_LAST_PULL = 0;
 // 本地有尚未推送到云的改动时为 true：期间自动拉取不覆盖本地，避免刚新建/修改的任务被云端旧快照冲掉
 let localPendingPush = false;
+// 本地最后改动时间戳（ms）：用于 pull 时判断云端快照是否比本地新，避免旧快照覆盖新改动
+let localLastChange = parseInt(localStorage.getItem('parrot_sync_lastchange') || '0', 10) || 0;
+function markLocalChange() { localLastChange = Date.now(); localStorage.setItem('parrot_sync_lastchange', String(localLastChange)); }
 
 // 同步API地址（相对路径，与页面同域）
 const SYNC_API = '/api/sync';
@@ -4074,6 +4077,7 @@ async function pushToCloud(showMsg) {
       const v = localStorage.getItem(k);
       if(v) allData[k] = v;
     });
+    allData._local_ts = localLastChange; // 标记本次快照的最后改动时刻，供 pull 判断新旧
     const resp = await cloudPush(SYNC_ID, allData);
     if(!resp.ok) throw new Error('上传失败: ' + resp.status);
     localPendingPush = false;   // 推送成功，本地改动已上云，后续拉取可正常合并
@@ -4113,6 +4117,12 @@ async function pullFromCloud(showMsg) {
 function applyCloudData(data) {
   let changed = false;
   let skippedCorrupt = 0;
+  // 云端快照的最后改动时刻；若云端不比本地新，则整体跳过覆盖，避免旧快照冲掉刚改的本地数据
+  const cloudTs = (data && typeof data._local_ts === 'number') ? data._local_ts : 0;
+  if(cloudTs && localLastChange && cloudTs < localLastChange) {
+    console.warn('云端快照较旧(云端' + cloudTs + ' < 本地' + localLastChange + ')，跳过覆盖，保留本地新数据');
+    return;
+  }
   Object.keys(data || {}).forEach(k => {
     if(k && k.indexOf('parrot_') === 0 && k !== 'parrot_sync_id' && data[k] !== undefined && data[k] !== null) {
       // 云端值必须是字符串（localStorage 只存字符串）；非字符串跳过，避免存成 "[object Object]" 损坏数据
@@ -4287,6 +4297,7 @@ function startAutoSync() {
 }
 
 function onLocalDataChange() {
+  markLocalChange();
   if(SYNC_ID) localPendingPush = true;
   if(SYNC_ID && !SYNC_BUSY) {
     clearTimeout(window._syncDebounce);
