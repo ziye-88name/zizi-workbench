@@ -1490,17 +1490,18 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .gold-item-profit { font-size:12px; font-weight:700; margin-top:4px; }
 .gold-item-date { font-size:11px; color:#b6bbae; margin-top:4px; }
 .gold-empty { text-align:center; padding:36px 12px; color:#9e8a9e; font-size:13px; }
-.gold-jar-wrap { display:flex; justify-content:center; align-items:center; padding:30px 0 24px; }
-.gold-jar-glass { position:relative; width:180px; height:260px; border-radius:30px 30px 50px 50px; background:linear-gradient(135deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,.15) 100%); border:2px solid rgba(255,255,255,.55); box-shadow:0 12px 30px rgba(123,111,160,.18), inset 0 0 30px rgba(255,255,255,.35); overflow:hidden; backdrop-filter:blur(4px); }
-.gold-jar-liquid { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(180deg, #FFD700 0%, #FFC107 60%, #FFB300 100%); transition:height .8s cubic-bezier(.34,1.56,.64,1); box-shadow:inset 0 10px 20px rgba(255,255,255,.35); }
-.gold-jar-liquid::after { content:''; position:absolute; top:0; left:0; right:0; height:12px; background:rgba(255,255,255,.35); border-radius:50%; filter:blur(3px); }
-.gold-jar-shine { position:absolute; top:16px; left:14px; width:18px; height:60px; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.05)); transform:rotate(8deg); pointer-events:none; }
-.gold-jar-bubbles { position:absolute; bottom:0; left:0; right:0; top:0; pointer-events:none; }
-.gold-bubble { position:absolute; background:rgba(255,255,255,.55); border-radius:50%; animation:goldBubble 2.5s ease-in infinite; }
-@keyframes goldBubble { 0% { transform:translateY(0) scale(1); opacity:.8; } 100% { transform:translateY(-90px) scale(.6); opacity:0; } }
-.gold-jar-label { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; pointer-events:none; }
-.gold-jar-grams { font-size:26px; font-weight:900; color:#5c4b00; text-shadow:0 2px 4px rgba(255,255,255,.6); }
-.gold-jar-hint { font-size:11px; color:#7a6210; margin-top:4px; }
+.gold-jar-topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.gold-jar-set-target { border:1px solid rgba(255,193,7,.5); background:rgba(255,248,225,.6); color:#7a6210; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; }
+.gold-jar-wrap { display:flex; flex-direction:column; align-items:center; padding:10px 0 18px; }
+.gold-jar-canvas { width:260px; height:310px; max-width:100%; filter:drop-shadow(0 14px 30px rgba(123,111,160,.2)); }
+.gold-jar-shake-hint { font-size:11px; color:#9e8a9e; margin-top:8px; }
+.gold-jar-progress-card { background:#fff; border-radius:18px; padding:16px; margin:0 0 16px; border:1.5px solid rgba(123,111,160,.1); box-shadow:0 4px 12px rgba(123,111,160,.06); }
+.gold-jar-progress-head { display:flex; justify-content:space-between; font-size:12px; color:#9e8a9e; margin-bottom:8px; }
+.gold-jar-progress-value { color:#7a6210; font-weight:700; }
+.gold-jar-progress-main { font-size:24px; font-weight:900; color:#FFC107; margin-bottom:10px; }
+.gold-jar-progress-target { font-size:14px; color:#9e8a9e; font-weight:500; }
+.gold-jar-progress-bar { height:10px; background:#f0f0f0; border-radius:999px; overflow:hidden; }
+.gold-jar-progress-fill { height:100%; width:0%; background:linear-gradient(90deg,#FFD700,#FFC107); border-radius:999px; transition:width .6s cubic-bezier(.34,1.56,.64,1); }
 .gold-cal-tabs { display:flex; gap:8px; justify-content:center; margin-bottom:14px; }
 .gold-cal-tabs button { border:none; border-radius:999px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; background:#fff; color:#7B6FA0; box-shadow:0 2px 0 rgba(123,111,160,.12); }
 .gold-cal-tabs button.active { background:linear-gradient(135deg,#FFD700,#FFC107); color:#4a3b00; }
@@ -1511,25 +1512,30 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .gold-cal-cell .gold-cal-day { font-size:13px; font-weight:700; }
 .gold-cal-cell .gold-cal-grams { font-size:10px; color:#d4a000; font-weight:700; }
 .gold-cal-cell.today .gold-cal-day { color:#FFC107; }
-.gold-cal-cell.has-gold { background:linear-gradient(135deg,#FFF8E1,#FFECB3); border-color:rgba(255,193,7,.4); }
+.gold-cal-cell.has-gold { background:linear-gradient(135deg,#FFF8E1,#FFECB3); border-color:rgba(255,193,7,.4); cursor:pointer; }
+.gold-cal-cell.selected, .gold-cal-month-cell.selected, .gold-cal-year-cell.selected, .gold-cal-all-cell.selected { box-shadow:0 0 0 2px #FFC107; transform:scale(1.02); }
 .gold-cal-month-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
-.gold-cal-month-cell { background:#fff; border-radius:14px; padding:14px 6px; text-align:center; border:1.5px solid rgba(123,111,160,.1); }
+.gold-cal-month-cell { background:#fff; border-radius:14px; padding:14px 6px; text-align:center; border:1.5px solid rgba(123,111,160,.1); cursor:pointer; }
 .gold-cal-month-cell.has-gold { background:linear-gradient(135deg,#FFF8E1,#FFECB3); border-color:rgba(255,193,7,.4); }
 .gold-cal-month-cell .gold-cal-month { font-size:13px; font-weight:700; color:#4C4556; }
 .gold-cal-month-cell .gold-cal-grams { font-size:12px; color:#d4a000; font-weight:800; margin-top:4px; }
 .gold-cal-year-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
-.gold-cal-year-cell { background:#fff; border-radius:14px; padding:16px 6px; text-align:center; border:1.5px solid rgba(123,111,160,.1); }
+.gold-cal-year-cell { background:#fff; border-radius:14px; padding:16px 6px; text-align:center; border:1.5px solid rgba(123,111,160,.1); cursor:pointer; }
 .gold-cal-year-cell.has-gold { background:linear-gradient(135deg,#FFF8E1,#FFECB3); border-color:rgba(255,193,7,.4); }
 .gold-cal-year-cell .gold-cal-year { font-size:14px; font-weight:700; }
 .gold-cal-year-cell .gold-cal-grams { font-size:12px; color:#d4a000; font-weight:800; margin-top:4px; }
+.gold-cal-all-grid { margin-bottom:16px; }
+.gold-cal-all-cell { cursor:pointer; transition:.12s; }
+.gold-cal-all-cell:active { transform:scale(.98); }
 .gold-cal-summary { background:#fff; border-radius:18px; padding:16px; border:1.5px solid rgba(123,111,160,.1); }
+.gold-cal-detail { background:#fff; border-radius:18px; padding:16px; border:1.5px solid rgba(123,111,160,.1); margin-top:12px; }
+.gold-cal-detail-title { font-size:14px; font-weight:800; color:#4C4556; margin-bottom:10px; }
+.gold-cal-detail-empty { text-align:center; color:#9e8a9e; font-size:13px; padding:12px; }
 .gold-cal-summary-title { font-size:14px; font-weight:800; color:#4C4556; margin-bottom:12px; }
 .gold-cal-summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; text-align:center; }
 .gold-cal-summary-item .gold-cal-summary-label { font-size:11px; color:#9e8a9e; }
 .gold-cal-summary-item .gold-cal-summary-value { font-size:16px; font-weight:800; color:#4C4556; margin-top:4px; }
-#goldFab { display:none; }
-#panel-expense.gold-active #expenseFab { display:none; }
-#panel-expense.gold-active #goldFab { display:flex; }
+#goldFab { position:fixed; bottom:24px; right:24px; z-index:10; }
 @media (max-width: 767px) {
   .gold-summary-card { grid-template-columns:repeat(2,1fr); }
   .gold-header { flex-direction:column; }
@@ -2012,7 +2018,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 }
 
 /* 弹窗 */
-#panel-expense .kitty-modal-overlay {
+.kitty-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -2023,8 +2029,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   justify-content: center;
   padding: 16px;
 }
-#panel-expense .kitty-modal-overlay.show { display: flex; }
-#panel-expense .kitty-modal {
+.kitty-modal-overlay.show { display: flex; }
+.kitty-modal {
   background: #fff;
   border: 3px solid var(--kitty-pink-light);
   border-radius: 32px 26px 36px 28px / 28px 36px 26px 32px;
@@ -2040,7 +2046,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   from { opacity: 0; transform: scale(0.92); }
   to { opacity: 1; transform: scale(1); }
 }
-#panel-expense .kitty-modal h4 {
+.kitty-modal h4 {
   margin: 0 0 16px;
   text-align: center;
   font-size: 20px;
@@ -2113,10 +2119,10 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   color: var(--kitty-pink-dark);
   font-weight: 700;
 }
-#panel-expense .kitty-modal-actions {
+.kitty-modal-actions {
   display: flex; gap: 10px; margin-top: 18px;
 }
-#panel-expense .kitty-modal-actions button {
+.kitty-modal-actions button {
   flex: 1; border: none; padding: 13px; font-family: inherit; font-size: 15px;
   border-radius: 999px; cursor: pointer;
 }
@@ -2627,7 +2633,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260848</div>
+    <div class="splash-ver">v2.0.20260849</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -2681,6 +2687,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
       <div class="menu-item" data-panel="liveScript"><div class="menu-icon">🎙️</div><span>我的直播话术</span></div>
       <div class="menu-item" data-panel="contentReview"><div class="menu-icon">📝</div><span>内容复盘</span></div>
       <div class="menu-item" data-panel="expense"><div class="menu-icon">💰</div><span>岁岁花销记</span></div>
+      <div class="menu-item" data-panel="gold"><div class="menu-icon">🥇</div><span>金攒攒</span></div>
       <div class="menu-item" data-panel="travel"><div class="menu-icon">🧳</div><span>逃离计划</span></div>
       <div class="menu-item" data-panel="settings"><div class="menu-icon">⚙️</div><span>设置</span></div>
     </div>
@@ -2919,12 +2926,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
               <img class="module-bird" src="./assets/birds/b8_grid6_top.png?v=4" alt="">
               <input type="text" id="hotSearchInput" placeholder="🔍 搜索名称、标签、内容..." oninput="filterHotItems()" style="flex:1;min-width:160px;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;">
-              <select id="hotTagFilter" onchange="filterHotItems()" style="padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--text);min-width:140px;">
-                <option value="">🏷️ 全部标签</option>
-                <option value="起号视频">起号视频</option>
-                <option value="鹦鹉带货">鹦鹉带货</option>
-                <option value="百货带货">百货带货</option>
-              </select>
+              <select id="hotTagFilter" onchange="filterHotItems()" style="padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--text);min-width:140px;"></select>
             </div>
           </div>
 
@@ -3601,87 +3603,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           </div>
 
           <!-- 金攒攒 -->
-          <div class="kitty-tab-panel" id="expenseGold">
-            <div class="gold-header">
-              <div>
-                <div class="gold-title">🥇 金攒攒</div>
-                <div class="gold-subtitle">攒下每一笔金光闪闪</div>
-              </div>
-              <div class="gold-tabs">
-                <button class="active" data-goldtab="record" onclick="switchGoldTab('record')">攒金记录</button>
-                <button data-goldtab="jar" onclick="switchGoldTab('jar')">金罐罐</button>
-                <button data-goldtab="calendar" onclick="switchGoldTab('calendar')">攒金日历</button>
-              </div>
-            </div>
-
-            <!-- 攒金记录 -->
-            <div class="gold-tab-panel active" id="goldTabRecord">
-              <div class="gold-price-card">
-                <div class="gold-price-label">✨ 今日大盘金价</div>
-                <div class="gold-price-row">
-                  <span class="gold-price-num" id="goldMarketPrice">--</span>
-                  <span class="gold-price-unit">元/克</span>
-                  <button class="gold-price-refresh" onclick="fetchGoldPrice(true)" title="刷新金价">↻</button>
-                </div>
-                <div class="gold-price-tip" id="goldPriceTip">实时金价仅供参考，以购买渠道实际价格为准</div>
-              </div>
-              <div class="gold-summary-card">
-                <div class="gold-summary-item">
-                  <div class="gold-summary-label">总重量(克)</div>
-                  <div class="gold-summary-value" id="goldTotalGrams">0.00</div>
-                </div>
-                <div class="gold-summary-item">
-                  <div class="gold-summary-label">购入总价(元)</div>
-                  <div class="gold-summary-value" id="goldTotalCost">0.00</div>
-                </div>
-                <div class="gold-summary-item">
-                  <div class="gold-summary-label">均价(元/克)</div>
-                  <div class="gold-summary-value" id="goldAvgPrice">0.00</div>
-                </div>
-                <div class="gold-summary-item">
-                  <div class="gold-summary-label">预估收益(元)</div>
-                  <div class="gold-summary-value" id="goldProfit">+0.00</div>
-                </div>
-              </div>
-              <div class="gold-list" id="goldRecordList"></div>
-              <button class="k2-big-add-btn" onclick="openGoldModal()">+ 添加黄金</button>
-            </div>
-
-            <!-- 金罐罐 -->
-            <div class="gold-tab-panel" id="goldTabJar">
-              <div class="gold-jar-wrap">
-                <div class="gold-jar-glass" id="goldJarGlass">
-                  <div class="gold-jar-liquid" id="goldJarLiquid"></div>
-                  <div class="gold-jar-shine"></div>
-                  <div class="gold-jar-bubbles" id="goldJarBubbles"></div>
-                  <div class="gold-jar-label">
-                    <div class="gold-jar-grams" id="goldJarGrams">0.00 克</div>
-                    <div class="gold-jar-hint">每 1g 都是小确幸</div>
-                  </div>
-                </div>
-              </div>
-              <button class="k2-big-add-btn" onclick="openGoldModal()">+ 往罐子里丢一克</button>
-            </div>
-
-            <!-- 攒金日历 -->
-            <div class="gold-tab-panel" id="goldTabCalendar">
-              <div class="gold-cal-tabs">
-                <button class="active" onclick="switchGoldCalMode('day')">日</button>
-                <button onclick="switchGoldCalMode('month')">月</button>
-                <button onclick="switchGoldCalMode('year')">年</button>
-                <button onclick="switchGoldCalMode('all')">全部</button>
-              </div>
-              <div class="gold-cal-nav" id="goldCalNav">
-                <button onclick="changeGoldCalPage(-1)">‹</button>
-                <span id="goldCalTitle">2026年08月</span>
-                <button onclick="changeGoldCalPage(1)">›</button>
-              </div>
-              <div class="gold-cal-grid" id="goldCalGrid"></div>
-              <div class="gold-cal-summary" id="goldCalSummary"></div>
-            </div>
-
-            <button class="kitty-fab" id="goldFab" onclick="openGoldModal()">+ 攒金</button>
-          </div>
+          >
         </div>
         <button class="kitty-fab" id="expenseFab" onclick="openExpenseModal()">+ 记一笔</button>
 
@@ -3768,44 +3690,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
         </div>
 
         <!-- 添加/编辑黄金弹窗 -->
-        <div class="kitty-modal-overlay" id="goldModal" onclick="if(event.target===this)closeGoldModal()">
-          <div class="kitty-modal" style="max-width:420px;">
-            <h4 id="goldModalTitle">添加黄金</h4>
-            <div class="kitty-field">
-              <label>购买日期</label>
-              <input type="date" id="goldModalDate">
-            </div>
-            <div class="kitty-field">
-              <label>购买渠道</label>
-              <input type="text" id="goldModalChannel" list="goldChannelList" placeholder="如：周大福 / 京东 / 银行">
-              <datalist id="goldChannelList">
-                <option value="周大福"><option value="周生生"><option value="老凤祥"><option value="中国黄金"><option value="京东"><option value="天猫"><option value="银行"><option value="水贝">
-              </datalist>
-            </div>
-            <div class="kitty-field-row">
-              <div class="kitty-field half">
-                <label>克数（克）</label>
-                <input type="number" id="goldModalGrams" placeholder="0.00" step="0.01" min="0" oninput="calcGoldTotal()">
-              </div>
-              <div class="kitty-field half">
-                <label>克价（元/克）</label>
-                <input type="number" id="goldModalPrice" placeholder="0.00" step="0.01" min="0" oninput="calcGoldTotal()">
-              </div>
-            </div>
-            <div class="kitty-field">
-              <label>总价（元）</label>
-              <input type="number" id="goldModalTotal" placeholder="0.00" step="0.01" min="0" oninput="calcGoldPrice()">
-            </div>
-            <div class="kitty-field">
-              <label>备注</label>
-              <input type="text" id="goldModalNote" placeholder="可选：金条 / 金豆 / 首饰">
-            </div>
-            <div class="kitty-modal-actions">
-              <button class="kitty-btn-outline" onclick="closeGoldModal()">取消</button>
-              <button class="kitty-btn-primary" onclick="saveGoldRecord()">保存</button>
-            </div>
-          </div>
-        </div>
+        >
 
         <!-- 分类管理弹窗 -->
         <div class="kitty-modal-overlay" id="categoryManageModal" onclick="if(event.target===this)cancelCategoryManage()">
@@ -4003,6 +3888,98 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           </div>
         </div>
       </div>
+
+      
+      <!-- 金攒攒 -->
+<div class="panel" id="panel-gold">
+            <div class="gold-header">
+              <div>
+                <div class="gold-title">🥇 金攒攒</div>
+                <div class="gold-subtitle">攒下每一笔金光闪闪</div>
+              </div>
+              <div class="gold-tabs">
+                <button class="active" data-goldtab="record" onclick="switchGoldTab('record')">攒金记录</button>
+                <button data-goldtab="jar" onclick="switchGoldTab('jar')">金罐罐</button>
+                <button data-goldtab="calendar" onclick="switchGoldTab('calendar')">攒金日历</button>
+              </div>
+            </div>
+
+            <!-- 攒金记录 -->
+            <div class="gold-tab-panel active" id="goldTabRecord">
+              <div class="gold-price-card">
+                <div class="gold-price-label">✨ 今日大盘金价 <span id="goldPriceTime" style="font-weight:400;opacity:.7"></span></div>
+                <div class="gold-price-row">
+                  <span class="gold-price-num" id="goldMarketPrice" onclick="editGoldMarketPrice()" style="cursor:pointer;" title="点击手动校准金价">--</span>
+                  <span class="gold-price-unit">元/克</span>
+                  <button class="gold-price-refresh" onclick="fetchGoldPrice(true)" title="刷新金价">↻</button>
+                </div>
+                <div class="gold-price-tip" id="goldPriceTip">实时金价仅供参考 · 点击数字可手动校准</div>
+              </div>
+              <div class="gold-summary-card">
+                <div class="gold-summary-item">
+                  <div class="gold-summary-label">总重量(克)</div>
+                  <div class="gold-summary-value" id="goldTotalGrams">0.00</div>
+                </div>
+                <div class="gold-summary-item">
+                  <div class="gold-summary-label">购入总价(元)</div>
+                  <div class="gold-summary-value" id="goldTotalCost">0.00</div>
+                </div>
+                <div class="gold-summary-item">
+                  <div class="gold-summary-label">均价(元/克)</div>
+                  <div class="gold-summary-value" id="goldAvgPrice">0.00</div>
+                </div>
+                <div class="gold-summary-item">
+                  <div class="gold-summary-label">预估收益(元)</div>
+                  <div class="gold-summary-value" id="goldProfit">+0.00</div>
+                </div>
+              </div>
+              <div class="gold-list" id="goldRecordList"></div>
+              <button class="k2-big-add-btn" onclick="openGoldModal()">+ 添加黄金</button>
+            </div>
+
+            <!-- 金罐罐 -->
+            <div class="gold-tab-panel" id="goldTabJar">
+              <div class="gold-jar-topbar">
+                <span></span>
+                <button class="gold-jar-set-target" onclick="editGoldTarget()">⚙️ 设置目标</button>
+              </div>
+              <div class="gold-jar-wrap">
+                <canvas class="gold-jar-canvas" id="goldJarCanvas" width="320" height="380"></canvas>
+                <div class="gold-jar-shake-hint">📱 摇一摇手机，让金币动起来</div>
+              </div>
+              <div class="gold-jar-progress-card">
+                <div class="gold-jar-progress-head">
+                  <span>储蓄进度</span>
+                  <span class="gold-jar-progress-value" id="goldJarValue">≈0.00元</span>
+                </div>
+                <div class="gold-jar-progress-main">
+                  <span id="goldJarProgressGrams">0.00g</span><span class="gold-jar-progress-target" id="goldJarProgressTarget">/500g</span>
+                </div>
+                <div class="gold-jar-progress-bar"><div class="gold-jar-progress-fill" id="goldJarProgressFill"></div></div>
+              </div>
+              <button class="k2-big-add-btn" onclick="openGoldModal()">+ 往罐子里丢一克</button>
+            </div>
+
+            <!-- 攒金日历 -->
+            <div class="gold-tab-panel" id="goldTabCalendar">
+              <div class="gold-cal-tabs">
+                <button class="active" onclick="switchGoldCalMode('day')">日</button>
+                <button onclick="switchGoldCalMode('month')">月</button>
+                <button onclick="switchGoldCalMode('year')">年</button>
+                <button onclick="switchGoldCalMode('all')">全部</button>
+              </div>
+              <div class="gold-cal-nav" id="goldCalNav">
+                <button onclick="changeGoldCalPage(-1)">‹</button>
+                <span id="goldCalTitle">2026年08月</span>
+                <button onclick="changeGoldCalPage(1)">›</button>
+              </div>
+              <div class="gold-cal-grid" id="goldCalGrid"></div>
+              <div class="gold-cal-summary" id="goldCalSummary"></div>
+              <div class="gold-cal-detail" id="goldCalDetail"></div>
+            </div>
+
+            <button class="kitty-fab" id="goldFab" onclick="openGoldModal()">+ 攒金</button>
+          </div
 
       <!-- 逃离计划 -->
       <div class="panel" id="panel-travel">
@@ -4720,7 +4697,7 @@ document.getElementById('dateDisplay').textContent = todayStr;
 document.getElementById('sidebarDate').textContent = todayStr;
 
 // ===================== 菜单切换 =====================
-const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
+const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
 
 document.querySelectorAll('.menu-item').forEach(item => {
   item.addEventListener('click', () => {
@@ -4732,6 +4709,7 @@ document.querySelectorAll('.menu-item').forEach(item => {
     document.getElementById('topbarText').textContent=menuLabels[pid].text;
     document.getElementById('topbarIcon').textContent=menuLabels[pid].icon;
     if(pid==='home') renderHome();
+    if(pid==='gold') { renderGoldAll(); fetchGoldPrice(); }
     if(pid==='travel') ensureTravelReady();
     if(window.innerWidth<=767) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
   });
@@ -6847,6 +6825,48 @@ function toggleHotTextarea(el) {
 let hotFormDraftTimer = null;
 let hotModalFields = [];
 let hotModalEditing = -1;
+const DEFAULT_HOT_TAGS = ['起号视频','鹦鹉带货','百货带货'];
+let hotTagOptions = JSON.parse(localStorage.getItem('parrot_hot_tags') || JSON.stringify(DEFAULT_HOT_TAGS));
+function getHotTagOptions() {
+  // 合并默认标签、用户自定义标签、现有记录中用过的标签
+  const used = new Set();
+  hotUserData.forEach(it => { if(it.tag) used.add(it.tag); });
+  hotAdoptData.forEach(it => { if(it.tag) used.add(it.tag); });
+  hotAdoptedData.forEach(it => { if(it.tag) used.add(it.tag); });
+  const all = [...new Set([...DEFAULT_HOT_TAGS, ...hotTagOptions, ...used])];
+  return all;
+}
+function saveHotTagOptions() {
+  // 只保存非默认标签作为用户自定义
+  const custom = hotTagOptions.filter(t => !DEFAULT_HOT_TAGS.includes(t));
+  localStorage.setItem('parrot_hot_tags', JSON.stringify(custom));
+}
+function renderHotTagSelects(selectedModalValue, selectedFilterValue) {
+  const options = getHotTagOptions();
+  // 列表筛选下拉
+  const filterSel = document.getElementById('hotTagFilter');
+  if(filterSel) {
+    const cur = selectedFilterValue !== undefined ? selectedFilterValue : filterSel.value;
+    filterSel.innerHTML = '<option value="">🏷️ 全部标签</option>' + options.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+    filterSel.value = options.includes(cur) ? cur : '';
+  }
+  // 添加弹窗下拉
+  const modalSel = document.getElementById('hotModalTag');
+  if(modalSel) {
+    const cur = selectedModalValue !== undefined ? selectedModalValue : modalSel.value;
+    modalSel.innerHTML = '<option value="">不设置标签</option>' + options.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('') + '<option value="__custom__">➕ 自定义…</option>';
+    if(options.includes(cur)) modalSel.value = cur;
+    else if(cur === '__custom__') modalSel.value = '__custom__';
+    else modalSel.value = '';
+  }
+}
+function addHotCustomTag(tag) {
+  const t = (tag || '').trim();
+  if(!t || DEFAULT_HOT_TAGS.includes(t) || hotTagOptions.includes(t)) return;
+  hotTagOptions.push(t);
+  saveHotTagOptions();
+  renderHotTagSelects();
+}
 let hotSelectedIdx = -1;   // 选中的热数据项索引（仅用于面板编辑定位）
 let hotSelectedNode = null; // {type:'l1'|'l2'|'item', l1, l2?, idx?} 文档树选中节点
 let hotExpandedL1 = null;   // 当前展开的一级标题
@@ -6881,6 +6901,7 @@ function openHotAddModal() {
   if(tagSel) tagSel.value = '';
   const tagCustom = document.getElementById('hotModalTagCustom');
   if(tagCustom) { tagCustom.value = ''; tagCustom.style.display = 'none'; }
+  renderHotTagSelects('', undefined); // 渲染弹窗标签下拉，保留筛选下拉当前值
   // 默认仅带「文案 / 内容分析」两个字段，其余字段用户可点「添加字段」自行补充
   ['文案', '内容分析'].forEach(l => hotModalFields.push({label: l, value: ''}));
   renderHotModalFields();
@@ -6931,6 +6952,9 @@ function saveHotModal() {
   if(hotModalEditing >= 0) { item.createdAt = hotUserData[hotModalEditing].createdAt || ts; hotUserData[hotModalEditing] = item; }
   else hotUserData.push(item);
   saveHotUserData();
+  // 自定义标签加入选项并实时联动两个下拉框
+  addHotCustomTag(tagValue);
+  renderHotTagSelects(undefined, tagFilter);
   localStorage.removeItem('parrot_hot_form_draft');
   document.getElementById('hotAddModal').classList.remove('open');
   // 选中新建项并展开其一级标题
@@ -6947,6 +6971,7 @@ function renderHotItems() { renderHotList(); renderHotPanel(); }
 function renderHotList() {
   const list = document.getElementById('hotDocList');
   if(!list) return;
+  renderHotTagSelects(undefined, undefined); // 保证标签下拉与所有记录同步
   const search = (document.getElementById('hotSearchInput')?.value || '').toLowerCase();
   const tagFilter = (document.getElementById('hotTagFilter')?.value || '').trim();
   let items = [...hotUserData];
@@ -12144,31 +12169,25 @@ function switchExpenseTab(tab) {
   document.querySelectorAll('#panel-expense .kitty-tab').forEach(b=>b.classList.remove('active'));
   document.querySelector('#panel-expense .kitty-tab[data-tab="'+tab+'"]').classList.add('active');
   document.querySelectorAll('#panel-expense .kitty-tab-panel').forEach(p=>p.classList.remove('active'));
-  let panelId;
-  if(tab==='overview') panelId='Overview';
-  else if(tab==='list') panelId='List';
-  else if(tab==='charts') panelId='Charts';
-  else if(tab==='savings') panelId='Savings';
-  else if(tab==='social') panelId='Social';
-  else if(tab==='gold') panelId='Gold';
+  const panelId = tab==='overview'?'Overview':tab==='list'?'List':tab==='charts'?'Charts':tab==='savings'?'Savings':'Social';
   document.getElementById('expense'+panelId).classList.add('active');
-  document.getElementById('panel-expense').classList.toggle('gold-active', tab==='gold');
   const fab = document.getElementById('expenseFab');
-  if(fab) fab.style.display = (tab==='savings' || tab==='social' || tab==='gold') ? 'none' : 'flex';
+  if(fab) fab.style.display = (tab==='savings' || tab==='social') ? 'none' : 'flex';
   if(tab==='overview') renderExpenseOverview();
   if(tab==='list') renderExpenseList();
   if(tab==='charts') setTimeout(()=>switchChartSubTab(currentChartSubTab), 120);
   if(tab==='savings') { buildSavingsPeriodOptions(); renderSavingsGoals(); }
   if(tab==='social') { buildSocialPeriodOptions(); switchSocialSubTab(currentSocialSubTab); }
-  if(tab==='gold') { renderGoldAll(); fetchGoldPrice(); }
 }
 // ===================== 金攒攒 =====================
 let goldRecords = JSON.parse(localStorage.getItem('parrot_gold_records') || '[]');
-let goldMarketPrice = parseFloat(localStorage.getItem('parrot_gold_price') || '0') || 0;
+let goldMarketPrice = parseFloat(localStorage.getItem('parrot_gold_price') || '996') || 996;
+let goldTargetGrams = parseFloat(localStorage.getItem('parrot_gold_target') || '500') || 500;
 let goldPriceFetchedAt = parseInt(localStorage.getItem('parrot_gold_price_at') || '0') || 0;
 let currentGoldTab = 'record';
 let currentGoldCalMode = 'day';
 let currentGoldCalDate = new Date();
+let goldSelectedCalKey = null; // 日历中点击选中的具体项 key
 let goldEditingId = null;
 
 function saveGoldRecords() {
@@ -12181,6 +12200,29 @@ function saveGoldPriceCache(price) {
   localStorage.setItem('parrot_gold_price', String(price));
   localStorage.setItem('parrot_gold_price_at', String(goldPriceFetchedAt));
 }
+function saveGoldTarget(grams) {
+  const g = parseFloat(grams);
+  if(g > 0) {
+    goldTargetGrams = g;
+    localStorage.setItem('parrot_gold_target', String(g));
+    renderGoldJar();
+  }
+}
+function editGoldTarget() {
+  const g = prompt('设置金罐罐目标克重（克）：', goldTargetGrams);
+  if(g !== null && !isNaN(parseFloat(g)) && parseFloat(g) > 0) saveGoldTarget(parseFloat(g));
+}
+
+function setGoldMarketPrice(price) {
+  const p = parseFloat(price);
+  if(p > 0) { saveGoldPriceCache(p); renderGoldAll(); }
+}
+function editGoldMarketPrice() {
+  const p = prompt('请输入当前大盘金价（元/克）：', (goldMarketPrice || 996).toFixed(2));
+  if(p !== null && !isNaN(parseFloat(p)) && parseFloat(p) > 0) {
+    setGoldMarketPrice(parseFloat(p));
+  }
+}
 
 async function fetchGoldPrice(force=false) {
   const el = document.getElementById('goldMarketPrice');
@@ -12189,34 +12231,34 @@ async function fetchGoldPrice(force=false) {
     return;
   }
   if(el) el.textContent = '⏳';
-  // 备用：SGE 上海金交所 AU9999（通过汇率换算/公开接口）
-  const tryApis = [
-    'https://api.it120.cc/free/open/commodity/price?code=AU9999',
-    'https://api.exchangerate-api.com/v4/latest/XAU',
-    'https://goldprice.org/wp-json/custom-api/v1/gold-price'
-  ];
+  // 尝试国内金价接口：新浪财经黄金T+D(SHFE AU) 与 汇率换算国际金价
   let price = 0;
-  for(const url of tryApis) {
+  const tryFetch = async (url, parser) => {
     try {
-      const r = await fetch(url, { mode:'cors', cache:'no-store' });
-      if(!r.ok) continue;
+      const r = await fetch(url, { mode:'cors', cache:'no-store', referrerPolicy:'no-referrer' });
+      if(!r.ok) return 0;
       const d = await r.json();
-      if(url.includes('it120') && d.data && d.data.price) { price = parseFloat(d.data.price); }
-      else if(url.includes('exchangerate') && d.rates && d.rates.CNY) {
-        // XAU/CNY 是每盎司人民币，换算为克（1盎司=31.1035克）
-        price = parseFloat(d.rates.CNY) / 31.1035;
-      }
-      if(price > 0) break;
-    } catch(e) {}
+      return parser(d) || 0;
+    } catch(e) { return 0; }
+  };
+  // 新浪黄金T+D (AU0) 接口（元/克）
+  price = await tryFetch('https://hq.sinajs.cn/list=AU0', d => {
+    try { const arr=(d||'').split(','); return arr.length>2 ? parseFloat(arr[2]) : 0; } catch(e){ return 0; }
+  });
+  if(!price) {
+    // 国际金价 XAU/USD (美元/盎司) × 美元兑人民币 ÷ 31.1035
+    const usdCny = await tryFetch('https://api.exchangerate-api.com/v4/latest/USD', d => d?.rates?.CNY);
+    const xauUsd = await tryFetch('https://api.exchangerate-api.com/v4/latest/XAU', d => d?.rates?.USD);
+    if(usdCny && xauUsd) price = xauUsd * usdCny / 31.1035;
   }
   if(price > 0) {
     saveGoldPriceCache(price);
     if(el) el.textContent = price.toFixed(2);
-    document.getElementById('goldPriceTip').textContent = '实时金价已更新 · 仅供参考';
+    document.getElementById('goldPriceTip').textContent = '实时金价已更新 · 仅供参考 · 点击数字可手动校准';
   } else {
-    const fallback = goldMarketPrice || 560;
+    const fallback = goldMarketPrice || 996;
     if(el) el.textContent = fallback.toFixed(2);
-    document.getElementById('goldPriceTip').textContent = '实时金价获取失败，显示缓存/默认值，请手动修改';
+    document.getElementById('goldPriceTip').textContent = '实时金价获取失败，显示缓存价 · 点击数字可手动修改';
   }
   renderGoldAll();
 }
@@ -12232,15 +12274,15 @@ function getGoldStats(records) {
 
 function switchGoldTab(tab) {
   currentGoldTab = tab;
-  document.querySelectorAll('#expenseGold .gold-tabs button').forEach(b=>b.classList.remove('active'));
-  document.querySelector('#expenseGold .gold-tabs button[data-goldtab="'+tab+'"]').classList.add('active');
-  document.querySelectorAll('#expenseGold .gold-tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#panel-gold .gold-tabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#panel-gold .gold-tabs button[data-goldtab="'+tab+'"]').classList.add('active');
+  document.querySelectorAll('#panel-gold .gold-tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('goldTab'+(tab==='record'?'Record':tab==='jar'?'Jar':'Calendar')).classList.add('active');
   renderGoldAll();
 }
 
 function renderGoldAll() {
-  if(currentExpenseTab !== 'gold') return;
+  if(!document.getElementById('panel-gold')?.classList.contains('active')) return;
   renderGoldRecord();
   renderGoldJar();
   renderGoldCalendar();
@@ -12249,6 +12291,13 @@ function renderGoldAll() {
 function renderGoldRecord() {
   const list = document.getElementById('goldRecordList');
   if(!list) return;
+  const priceEl = document.getElementById('goldMarketPrice');
+  if(priceEl) priceEl.textContent = goldMarketPrice.toFixed(2);
+  const timeEl = document.getElementById('goldPriceTime');
+  if(timeEl && goldPriceFetchedAt) {
+    const d = new Date(goldPriceFetchedAt);
+    timeEl.textContent = `· ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}更新`;
+  }
   const stats = getGoldStats(goldRecords);
   document.getElementById('goldTotalGrams').textContent = stats.totalGrams.toFixed(2);
   document.getElementById('goldTotalCost').textContent = stats.totalCost.toFixed(2);
@@ -12281,39 +12330,189 @@ function renderGoldRecord() {
   }).join('');
 }
 
-function renderGoldJar() {
+let goldJarBodies = [];
+function renderGoldJar(shakeIntensity=0) {
   const stats = getGoldStats(goldRecords);
   const grams = stats.totalGrams;
-  document.getElementById('goldJarGrams').textContent = grams.toFixed(2) + ' 克';
-  const maxGrams = Math.max(50, Math.ceil(grams * 1.2));
-  const pct = Math.min(100, grams / maxGrams * 100);
-  document.getElementById('goldJarLiquid').style.height = pct + '%';
-  // 气泡
-  const bubbles = document.getElementById('goldJarBubbles');
-  if(bubbles && bubbles.children.length === 0) {
-    for(let i=0;i<8;i++) {
-      const b = document.createElement('div');
-      b.className = 'gold-bubble';
-      b.style.left = (10 + Math.random()*80) + '%';
-      b.style.bottom = (5 + Math.random()*20) + '%';
-      b.style.width = (4 + Math.random()*6) + 'px';
-      b.style.height = b.style.width;
-      b.style.animationDelay = (Math.random()*2) + 's';
-      bubbles.appendChild(b);
+  const marketValue = grams * (goldMarketPrice || stats.avgPrice || 0);
+  // 进度条
+  const progress = Math.min(100, grams / goldTargetGrams * 100);
+  document.getElementById('goldJarProgressGrams').textContent = grams.toFixed(2)+'g';
+  document.getElementById('goldJarProgressTarget').textContent = '/'+goldTargetGrams+'g';
+  document.getElementById('goldJarProgressFill').style.width = progress+'%';
+  document.getElementById('goldJarValue').textContent = '≈'+marketValue.toFixed(2)+'元';
+  // Canvas
+  const canvas = document.getElementById('goldJarCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  // 罐子参数
+  const jarX = 60, jarY = 40, jarW = 200, jarH = 280, neckW = 90, neckH = 35;
+  const floorY = jarY + jarH - 12, leftX = jarX + 14, rightX = jarX + jarW - 14;
+  // 绘制罐子背景
+  drawGoldJar(ctx, jarX, jarY, jarW, jarH, neckW, neckH);
+  // 生成金币/金条
+  const bars = Math.min(3, Math.floor(grams / 50));
+  const coinCount = Math.min(70, Math.max(4, Math.floor(grams)));
+  const coinsPerCoin = grams / Math.max(1, coinCount);
+  if(goldJarBodies.length === 0 || goldJarBodies.some(b=>b.shapedForGrams !== grams)) {
+    goldJarBodies = [];
+    // 金币
+    for(let i=0;i<coinCount;i++) {
+      const r = 10 + Math.random()*5;
+      goldJarBodies.push({ type:'coin', x: leftX + 20 + Math.random()*(rightX-leftX-40), y: jarY + 40 + Math.random()*(jarH-100), r, grams: coinsPerCoin, vx:0, vy:0, angle:Math.random()*Math.PI*2, shapedForGrams:grams });
+    }
+    // 金条
+    for(let i=0;i<bars;i++) {
+      goldJarBodies.push({ type:'bar', x: leftX + 30 + Math.random()*(rightX-leftX-80), y: jarY + 50 + i*30, w:70, h:22, grams:50, vx:0, vy:0, angle:(Math.random()-.5)*.4, shapedForGrams:grams });
     }
   }
+  // 物理模拟
+  const g = 0.5;
+  for(let step=0; step<120; step++) {
+    goldJarBodies.forEach(b => {
+      if(shakeIntensity > 0) { b.vx += (Math.random()-.5)*shakeIntensity; b.vy -= Math.random()*shakeIntensity; }
+      b.vy += g;
+      b.x += b.vx; b.y += b.vy;
+      b.vx *= 0.96; b.vy *= 0.96;
+      // 罐子边界
+      if(b.type === 'coin') {
+        if(b.x - b.r < leftX) { b.x = leftX + b.r; b.vx *= -.5; }
+        if(b.x + b.r > rightX) { b.x = rightX - b.r; b.vx *= -.5; }
+        if(b.y + b.r > floorY) { b.y = floorY - b.r; b.vy *= -.4; b.vx *= .9; }
+        if(b.y - b.r < jarY + neckH) { b.y = jarY + neckH + b.r; b.vy *= -.4; }
+      } else {
+        const hw = b.w/2, hh = b.h/2;
+        if(b.x - hw < leftX) { b.x = leftX + hw; b.vx *= -.5; }
+        if(b.x + hw > rightX) { b.x = rightX - hw; b.vx *= -.5; }
+        if(b.y + hh > floorY) { b.y = floorY - hh; b.vy *= -.4; b.vx *= .9; }
+        if(b.y - hh < jarY + neckH) { b.y = jarY + neckH + hh; b.vy *= -.4; }
+      }
+    });
+    // 简单碰撞（圆-圆）
+    for(let i=0;i<goldJarBodies.length;i++) {
+      for(let j=i+1;j<goldJarBodies.length;j++) {
+        const a = goldJarBodies[i], bb = goldJarBodies[j];
+        if(a.type==='coin' && bb.type==='coin') {
+          const dx = bb.x-a.x, dy = bb.y-a.y, dist = Math.sqrt(dx*dx+dy*dy);
+          const min = a.r+bb.r;
+          if(dist < min && dist > 0) {
+            const nx = dx/dist, ny = dy/dist, overlap = (min-dist)/2;
+            a.x -= nx*overlap; a.y -= ny*overlap; bb.x += nx*overlap; bb.y += ny*overlap;
+            a.vx -= nx*.3; a.vy -= ny*.3; bb.vx += nx*.3; bb.vy += ny*.3;
+          }
+        }
+      }
+    }
+  }
+  // 按 Y 排序绘制（先画后面的）
+  const sorted = [...goldJarBodies].sort((a,b)=>a.y-b.y);
+  sorted.forEach(b => {
+    if(b.type === 'coin') drawGoldCoin(ctx, b.x, b.y, b.r);
+    else drawGoldBar(ctx, b.x, b.y, b.w, b.h, b.angle);
+  });
+  // 绘制罐口木塞
+  ctx.fillStyle = '#D4A574';
+  ctx.beginPath();
+  ctx.roundRect(jarX + (jarW-neckW)/2 - 4, jarY - 8, neckW + 8, 22, 8);
+  ctx.fill();
+  ctx.fillStyle = '#E8C8A0';
+  ctx.beginPath();
+  ctx.roundRect(jarX + (jarW-neckW)/2, jarY - 4, neckW, 16, 6);
+  ctx.fill();
+}
+function drawGoldJar(ctx, x, y, w, h, neckW, neckH) {
+  // 玻璃瓶身渐变
+  const grad = ctx.createLinearGradient(x, y, x+w, y+h);
+  grad.addColorStop(0, 'rgba(255,255,255,0.28)');
+  grad.addColorStop(.5, 'rgba(255,255,255,0.10)');
+  grad.addColorStop(1, 'rgba(255,255,255,0.22)');
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x + (w-neckW)/2, y + neckH);
+  ctx.quadraticCurveTo(x, y + neckH, x, y + neckH + 30);
+  ctx.lineTo(x, y + h - 20);
+  ctx.quadraticCurveTo(x, y + h, x + 20, y + h);
+  ctx.lineTo(x + w - 20, y + h);
+  ctx.quadraticCurveTo(x + w, y + h, x + w, y + h - 20);
+  ctx.lineTo(x + w, y + neckH + 30);
+  ctx.quadraticCurveTo(x + w, y + neckH, x + (w+neckW)/2, y + neckH);
+  ctx.lineTo(x + (w+neckW)/2, y);
+  ctx.lineTo(x + (w-neckW)/2, y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  // 高光
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x + 24, y + neckH + 40);
+  ctx.quadraticCurveTo(x + 18, y + neckH + 80, x + 22, y + neckH + 130);
+  ctx.stroke();
+}
+function drawGoldCoin(ctx, x, y, r) {
+  const grad = ctx.createRadialGradient(x-r/3, y-r/3, r/5, x, y, r);
+  grad.addColorStop(0, '#FFF8E1');
+  grad.addColorStop(.4, '#FFD700');
+  grad.addColorStop(1, '#FFA000');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#B8860B'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.beginPath(); ctx.arc(x-r/3, y-r/3, r/4, 0, Math.PI*2); ctx.fill();
+}
+function drawGoldBar(ctx, x, y, w, h, angle) {
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(angle);
+  const grad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  grad.addColorStop(0, '#FFF8E1'); grad.addColorStop(.4, '#FFD700'); grad.addColorStop(1, '#F57F17');
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = '#B8860B'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(-w/2, -h/2, w, h, 4);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#B8860B';
+  ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('GOLD', 0, -3);
+  ctx.font = '9px sans-serif';
+  ctx.fillText('999', 0, 7);
+  ctx.restore();
+}
+// 手机摇晃让金币动起来
+let goldShakeEnabled = true;
+if(window.DeviceMotionEvent) {
+  let lastShake = 0;
+  window.addEventListener('devicemotion', (e) => {
+    if(!goldShakeEnabled) return;
+    const acc = Math.sqrt((e.accelerationIncludingGravity?.x||0)**2 + (e.accelerationIncludingGravity?.y||0)**2 + (e.accelerationIncludingGravity?.z||0)**2);
+    if(acc > 18 && Date.now() - lastShake > 800) {
+      lastShake = Date.now();
+      renderGoldJar(8);
+      setTimeout(()=>renderGoldJar(0), 300);
+    }
+  });
 }
 
 function switchGoldCalMode(mode) {
   currentGoldCalMode = mode;
+  goldSelectedCalKey = null;
   document.querySelectorAll('#goldTabCalendar .gold-cal-tabs button').forEach((b,i)=>b.classList.toggle('active', (mode==='day'&&i===0)||(mode==='month'&&i===1)||(mode==='year'&&i===2)||(mode==='all'&&i===3)));
   if(mode !== 'all') currentGoldCalDate = new Date();
   renderGoldCalendar();
 }
 function changeGoldCalPage(delta) {
+  goldSelectedCalKey = null;
   if(currentGoldCalMode === 'day') currentGoldCalDate.setMonth(currentGoldCalDate.getMonth() + delta);
   else if(currentGoldCalMode === 'month') currentGoldCalDate.setFullYear(currentGoldCalDate.getFullYear() + delta);
   else if(currentGoldCalMode === 'year') currentGoldCalDate.setFullYear(currentGoldCalDate.getFullYear() + delta * 10);
+  renderGoldCalendar();
+}
+function selectGoldCalCell(key) {
+  goldSelectedCalKey = key;
   renderGoldCalendar();
 }
 
@@ -12321,15 +12520,16 @@ function renderGoldCalendar() {
   const grid = document.getElementById('goldCalGrid');
   const title = document.getElementById('goldCalTitle');
   const summary = document.getElementById('goldCalSummary');
-  if(!grid || !title || !summary) return;
+  const detail = document.getElementById('goldCalDetail');
+  if(!grid || !title || !summary || !detail) return;
   const mode = currentGoldCalMode;
   let filtered = goldRecords;
   let titleText = '';
+  let selectedTitle = '';
   if(mode === 'day') {
     const y = currentGoldCalDate.getFullYear(), m = currentGoldCalDate.getMonth();
     titleText = `${y}年${String(m+1).padStart(2,'0')}月`;
     filtered = goldRecords.filter(r => { const d = new Date(r.date); return d.getFullYear()===y && d.getMonth()===m; });
-    // 画日历
     const firstDay = new Date(y, m, 1).getDay();
     const daysInMonth = new Date(y, m+1, 0).getDate();
     let html = '';
@@ -12341,7 +12541,8 @@ function renderGoldCalendar() {
       const dayRecs = goldRecords.filter(r => r.date === dateStr);
       const grams = dayRecs.reduce((s,r)=>s+parseFloat(r.grams),0);
       const isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===day;
-      html += `<div class="gold-cal-cell ${grams>0?'has-gold':''} ${isToday?'today':''}">
+      const selected = goldSelectedCalKey === dateStr;
+      html += `<div class="gold-cal-cell ${grams>0?'has-gold':''} ${isToday?'today':''} ${selected?'selected':''}" onclick="selectGoldCalCell('${dateStr}')">
         <span class="gold-cal-day">${day}</span>
         ${grams>0?`<span class="gold-cal-grams">${grams.toFixed(1)}g</span>`:''}
       </div>`;
@@ -12356,7 +12557,9 @@ function renderGoldCalendar() {
     for(let m=0;m<12;m++) {
       const monthRecs = goldRecords.filter(r => { const d=new Date(r.date); return d.getFullYear()===y && d.getMonth()===m; });
       const grams = monthRecs.reduce((s,r)=>s+parseFloat(r.grams),0);
-      html += `<div class="gold-cal-month-cell ${grams>0?'has-gold':''}">
+      const key = `${y}-${String(m+1).padStart(2,'0')}`;
+      const selected = goldSelectedCalKey === key;
+      html += `<div class="gold-cal-month-cell ${grams>0?'has-gold':''} ${selected?'selected':''}" onclick="selectGoldCalCell('${key}')">
         <div class="gold-cal-month">${m+1}月</div>
         ${grams>0?`<div class="gold-cal-grams">${grams.toFixed(1)}g</div>`:''}
       </div>`;
@@ -12371,7 +12574,8 @@ function renderGoldCalendar() {
     for(let y=startYear; y<startYear+10; y++) {
       const yearRecs = goldRecords.filter(r => new Date(r.date).getFullYear() === y);
       const grams = yearRecs.reduce((s,r)=>s+parseFloat(r.grams),0);
-      html += `<div class="gold-cal-year-cell ${grams>0?'has-gold':''}">
+      const selected = goldSelectedCalKey === String(y);
+      html += `<div class="gold-cal-year-cell ${grams>0?'has-gold':''} ${selected?'selected':''}" onclick="selectGoldCalCell('${y}')">
         <div class="gold-cal-year">${y}</div>
         ${grams>0?`<div class="gold-cal-grams">${grams.toFixed(1)}g</div>`:''}
       </div>`;
@@ -12380,13 +12584,33 @@ function renderGoldCalendar() {
     grid.innerHTML = html;
   } else if(mode === 'all') {
     titleText = '全部';
-    grid.innerHTML = '';
+    const selected = goldSelectedCalKey === 'all';
+    grid.innerHTML = `<div class="gold-cal-all-cell ${selected?'selected':''}" onclick="selectGoldCalCell('all')" style="background:#fff;border-radius:18px;padding:20px;text-align:center;border:1.5px solid rgba(123,111,160,.1);cursor:pointer;">📦 查看全部攒金记录</div>`;
+    grid.className = 'gold-cal-all-grid';
   }
   title.textContent = titleText;
-  const stats = getGoldStats(filtered);
-  const period = mode==='day'?`${currentGoldCalDate.getFullYear()}年${currentGoldCalDate.getMonth()+1}月`:titleText;
+
+  // 选中项过滤与标题
+  let detailRecords = [];
+  if(goldSelectedCalKey) {
+    if(mode === 'day') {
+      detailRecords = goldRecords.filter(r => r.date === goldSelectedCalKey);
+      selectedTitle = goldSelectedCalKey + ' 攒金数据';
+    } else if(mode === 'month') {
+      detailRecords = goldRecords.filter(r => r.date.startsWith(goldSelectedCalKey));
+      selectedTitle = goldSelectedCalKey.replace('-','年') + '月 攒金数据';
+    } else if(mode === 'year') {
+      detailRecords = goldRecords.filter(r => r.date.startsWith(goldSelectedCalKey));
+      selectedTitle = goldSelectedCalKey + '年 攒金数据';
+    } else if(mode === 'all') {
+      detailRecords = goldRecords;
+      selectedTitle = '全部攒金数据';
+    }
+  }
+  const stats = getGoldStats(goldSelectedCalKey ? detailRecords : filtered);
+  const periodTitle = goldSelectedCalKey ? selectedTitle : (mode==='day'?`${currentGoldCalDate.getFullYear()}年${currentGoldCalDate.getMonth()+1}月`:titleText);
   summary.innerHTML = `
-    <div class="gold-cal-summary-title">📊 攒金统计${mode!=='all'?' ('+period+')':''}</div>
+    <div class="gold-cal-summary-title">📊 攒金统计${mode!=='all' || goldSelectedCalKey ? ' ('+periodTitle+')':''}</div>
     <div class="gold-cal-summary-grid">
       <div class="gold-cal-summary-item"><div class="gold-cal-summary-label">总件数(件)</div><div class="gold-cal-summary-value">${stats.count}</div></div>
       <div class="gold-cal-summary-item"><div class="gold-cal-summary-label">总重量(克)</div><div class="gold-cal-summary-value">${stats.totalGrams.toFixed(2)}</div></div>
@@ -12395,6 +12619,29 @@ function renderGoldCalendar() {
       <div class="gold-cal-summary-item"><div class="gold-cal-summary-label">预估收益(元)</div><div class="gold-cal-summary-value" style="color:${stats.profit>=0?'#e8556f':'#52c982'}">${stats.profit>=0?'+':''}${stats.profit.toFixed(2)}</div></div>
       <div class="gold-cal-summary-item"><div class="gold-cal-summary-label">当前价值(元)</div><div class="gold-cal-summary-value">${stats.marketValue.toFixed(2)}</div></div>
     </div>`;
+  // 明细列表
+  if(goldSelectedCalKey) {
+    const listHtml = detailRecords.length === 0
+      ? '<div class="gold-cal-detail-empty">该时段暂无攒金记录</div>'
+      : detailRecords.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r => {
+          const profit = parseFloat(r.grams)*(goldMarketPrice || parseFloat(r.pricePerGram)) - parseFloat(r.totalPrice);
+          return `<div class="gold-item" style="margin-bottom:8px;">
+            <div class="gold-item-left">
+              <div class="gold-item-channel">${escapeHtml(r.channel || '未知')}</div>
+              <div class="gold-item-meta">${parseFloat(r.grams).toFixed(2)}克 · ${parseFloat(r.totalPrice).toFixed(2)}元 · ${parseFloat(r.pricePerGram).toFixed(2)}元/克</div>
+            </div>
+            <div class="gold-item-right">
+              <div class="gold-item-profit" style="color:${profit>=0?'#e8556f':'#52c982'}">${profit>=0?'+':''}${profit.toFixed(2)}</div>
+              <div class="gold-item-date">${r.date}</div>
+            </div>
+          </div>`;
+        }).join('');
+    detail.innerHTML = `<div class="gold-cal-detail-title">📝 ${periodTitle} 明细</div>${listHtml}`;
+    detail.style.display = 'block';
+  } else {
+    detail.innerHTML = '';
+    detail.style.display = 'none';
+  }
 }
 
 function openGoldModal(id) {
@@ -15267,13 +15514,7 @@ fillTravelDatalists();
       <div class="modal-row">
         <label class="modal-label">🏷️ 标签（按一级标题归类，便于在列表中按标签筛选）</label>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <select id="hotModalTag" onchange="onHotModalTagChange()" style="flex:1;min-width:160px;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--text);">
-            <option value="">不设置标签</option>
-            <option value="起号视频">起号视频</option>
-            <option value="鹦鹉带货">鹦鹉带货</option>
-            <option value="百货带货">百货带货</option>
-            <option value="__custom__">➕ 自定义…</option>
-          </select>
+          <select id="hotModalTag" onchange="onHotModalTagChange()" style="flex:1;min-width:160px;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--text);"></select>
           <input class="modal-input" id="hotModalTagCustom" placeholder="输入自定义标签" style="flex:1;min-width:140px;display:none;" oninput="autoSaveHotForm()">
         </div>
       </div>
@@ -15713,5 +15954,44 @@ fillTravelDatalists();
   </div>
 </div>
 
+
+<div class="kitty-modal-overlay" id="goldModal" onclick="if(event.target===this)closeGoldModal()">
+          <div class="kitty-modal" style="max-width:420px;">
+            <h4 id="goldModalTitle">添加黄金</h4>
+            <div class="kitty-field">
+              <label>购买日期</label>
+              <input type="date" id="goldModalDate">
+            </div>
+            <div class="kitty-field">
+              <label>购买渠道</label>
+              <input type="text" id="goldModalChannel" list="goldChannelList" placeholder="如：周大福 / 京东 / 银行">
+              <datalist id="goldChannelList">
+                <option value="周大福"><option value="周生生"><option value="老凤祥"><option value="中国黄金"><option value="京东"><option value="天猫"><option value="银行"><option value="水贝">
+              </datalist>
+            </div>
+            <div class="kitty-field-row">
+              <div class="kitty-field half">
+                <label>克数（克）</label>
+                <input type="number" id="goldModalGrams" placeholder="0.00" step="0.01" min="0" oninput="calcGoldTotal()">
+              </div>
+              <div class="kitty-field half">
+                <label>克价（元/克）</label>
+                <input type="number" id="goldModalPrice" placeholder="0.00" step="0.01" min="0" oninput="calcGoldTotal()">
+              </div>
+            </div>
+            <div class="kitty-field">
+              <label>总价（元）</label>
+              <input type="number" id="goldModalTotal" placeholder="0.00" step="0.01" min="0" oninput="calcGoldPrice()">
+            </div>
+            <div class="kitty-field">
+              <label>备注</label>
+              <input type="text" id="goldModalNote" placeholder="可选：金条 / 金豆 / 首饰">
+            </div>
+            <div class="kitty-modal-actions">
+              <button class="kitty-btn-outline" onclick="closeGoldModal()">取消</button>
+              <button class="kitty-btn-primary" onclick="saveGoldRecord()">保存</button>
+            </div>
+          </div>
+        </div
 </body>
 </html>
