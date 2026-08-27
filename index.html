@@ -677,6 +677,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .doc-add-btn { border:none; background:transparent; cursor:pointer; font-size:14px; line-height:1; padding:3px 6px; border-radius:6px; color:var(--primary); opacity:0; transition:opacity .12s, background .12s; margin-left:4px; flex:none; }
 .doc-tree-l1-head:hover .doc-add-btn, .doc-tree-l2-head:hover .doc-add-btn, .doc-tree-l3-head:hover .doc-add-btn { opacity:0.9; }
 .doc-add-btn:hover { background:rgba(129,199,132,0.16); opacity:1; }
+/* 我的拆解列表：一级标题标签角标 */
+.doc-tree-tag { display:inline-block; font-size:11px; font-weight:700; line-height:1; padding:3px 8px; border-radius:999px; background:linear-gradient(135deg,#fff0f3 0%,#ffe3ea 100%); color:#e8556f; border:1px solid rgba(232,85,111,0.25); margin-left:6px; white-space:nowrap; flex:none; }
 /* 我的拆解列表拖拽 */
 #hotDocList .doc-tree-l1-head[draggable="true"], #hotDocList .doc-tree-l2-head[draggable="true"], #hotDocList .doc-tree-l3-head[draggable="true"] { cursor: grab; }
 #hotDocList .doc-tree-l1-head[draggable="true"]:active, #hotDocList .doc-tree-l2-head[draggable="true"]:active, #hotDocList .doc-tree-l3-head[draggable="true"]:active { cursor: grabbing; }
@@ -2540,7 +2542,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260845</div>
+    <div class="splash-ver">v2.0.20260846</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -2831,7 +2833,13 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           <div class="card" style="padding:14px 18px;position:relative;overflow:visible;">
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
               <img class="module-bird" src="./assets/birds/b8_grid6_top.png?v=4" alt="">
-              <input type="text" id="hotSearchInput" placeholder="🔍 搜索名称、标签、内容..." oninput="filterHotItems()" style="flex:1;min-width:200px;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;">
+              <input type="text" id="hotSearchInput" placeholder="🔍 搜索名称、标签、内容..." oninput="filterHotItems()" style="flex:1;min-width:160px;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;">
+              <select id="hotTagFilter" onchange="filterHotItems()" style="padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--text);min-width:140px;">
+                <option value="">🏷️ 全部标签</option>
+                <option value="起号视频">起号视频</option>
+                <option value="鹦鹉带货">鹦鹉带货</option>
+                <option value="百货带货">百货带货</option>
+              </select>
             </div>
           </div>
 
@@ -6646,6 +6654,10 @@ function openHotAddModal() {
   document.getElementById('hotModalL1').value = '';
   document.getElementById('hotModalL2').value = '';
   document.getElementById('hotModalSub').value = '';
+  const tagSel = document.getElementById('hotModalTag');
+  if(tagSel) tagSel.value = '';
+  const tagCustom = document.getElementById('hotModalTagCustom');
+  if(tagCustom) { tagCustom.value = ''; tagCustom.style.display = 'none'; }
   // 默认仅带「文案 / 内容分析」两个字段，其余字段用户可点「添加字段」自行补充
   ['文案', '内容分析'].forEach(l => hotModalFields.push({label: l, value: ''}));
   renderHotModalFields();
@@ -6654,6 +6666,14 @@ function openHotAddModal() {
 function closeHotAddModal() {
   autoSaveHotForm();
   document.getElementById('hotAddModal').classList.remove('open');
+}
+function onHotModalTagChange() {
+  const sel = document.getElementById('hotModalTag');
+  const custom = document.getElementById('hotModalTagCustom');
+  if(!sel || !custom) return;
+  if(sel.value === '__custom__') { custom.style.display = 'flex'; custom.focus(); }
+  else { custom.style.display = 'none'; custom.value = ''; }
+  autoSaveHotForm();
 }
 function addHotModalField() { hotModalFields.push({label: '', value: ''}); renderHotModalFields(); }
 function renderHotModalFields() {
@@ -6675,8 +6695,14 @@ function saveHotModal() {
   const ts = now.getFullYear()+'年'+String(now.getMonth()+1).padStart(2,'0')+'月'+String(now.getDate()).padStart(2,'0')+'日 '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   // 一级标题作为 name，便于搜索/导出；level1/level2/小标题(subtitle) 保留以兼容旧数据
   const title = l1 + (l2 ? (' / ' + l2) : '');
+  // 标签：下拉预设或自定义输入
+  const tagSel = document.getElementById('hotModalTag');
+  let tagValue = tagSel ? tagSel.value : '';
+  if(tagValue === '__custom__') {
+    tagValue = (document.getElementById('hotModalTagCustom')?.value || '').trim();
+  }
   const item = {
-    name: title, tag: '', level1: l1, level2: l2, subtitle: sub, fans: '',
+    name: title, tag: tagValue || '', level1: l1, level2: l2, subtitle: sub, fans: '',
     fields, builtin: false, createdAt: ts, updatedAt: ts
   };
   if(hotModalEditing >= 0) { item.createdAt = hotUserData[hotModalEditing].createdAt || ts; hotUserData[hotModalEditing] = item; }
@@ -6699,8 +6725,15 @@ function renderHotList() {
   const list = document.getElementById('hotDocList');
   if(!list) return;
   const search = (document.getElementById('hotSearchInput')?.value || '').toLowerCase();
+  const tagFilter = (document.getElementById('hotTagFilter')?.value || '').trim();
   let items = [...hotUserData];
-  if(search) items = items.filter(it => (it.name + ' ' + (it.subtitle||'') + ' ' + (it.level1||'') + ' ' + (it.level2||'') + ' ' + JSON.stringify(it.fields||[])).toLowerCase().includes(search));
+  // 标签筛选：命中标签的一级标题，连带带出其下所有分支（与需求一致）
+  if(tagFilter) {
+    const hitL1 = new Set();
+    hotUserData.forEach(it => { if((it.tag || '') === tagFilter) hitL1.add(it.level1 || '未分类'); });
+    items = items.filter(it => hitL1.has(it.level1 || '未分类'));
+  }
+  if(search) items = items.filter(it => (it.name + ' ' + (it.subtitle||'') + ' ' + (it.level1||'') + ' ' + (it.level2||'') + ' ' + (it.tag||'') + ' ' + JSON.stringify(it.fields||[])).toLowerCase().includes(search));
   if(items.length === 0) {
     list.innerHTML = '<div class="empty-state"><img class="bird-illu" data-bird="b7_rings" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt=""><p>暂无拆解</p><p class="small">点击「添加拆解」新建，或右键空白处新建一级标题</p></div>';
     return;
@@ -6729,11 +6762,15 @@ function renderHotList() {
     const l1Active = (hotSelectedNode && hotSelectedNode.l1 === l1 && (!hotSelectedNode.l2)) ? ' active' : '';
     const expanded = (hotExpandedL1 === l1) ? ' expanded' : '';
     const l1Renaming = !!(hotRenameNode && hotRenameNode.type === 'l1' && hotRenameNode.l1 === l1);
+    // 该一级标题下的标签（取第一个有标签的条目）
+    const l1Tag = (groups[l1].__none__ || []).concat(...Object.keys(groups[l1]).filter(k=>k!=='__none__').map(k=>groups[l1][k])).map(it=>it.tag).find(t=>t);
+    const l1TagHtml = l1Tag ? `<span class="doc-tree-tag">${escapeHtml(l1Tag)}</span>` : '';
     html += `<div class="doc-tree-l1${expanded}">`;
     html += `<div class="doc-tree-l1-head${l1Active}" draggable="true" data-drag-type="l1" data-l1="${l1q}" onclick="selectHotL1(${l1q})" oncontextmenu="hotTreeContext(event,'l1',${l1q})" ondragstart="hotDragStart(event)" ondragover="hotDragOver(event)" ondrop="hotDrop(event)" ondragend="hotDragEnd(event)">
       <span class="doc-tree-arrow">${expanded?'▾':'▸'}</span>
       <span class="doc-tree-icon">📁</span>
       ${hotTitleCell(l1, l1Renaming, "hotStartRename('l1', "+l1q+")")}
+      ${l1TagHtml}
       <button class="doc-add-btn" title="在该一级标题下添加子标题" onclick="event.stopPropagation();addHotChild(${l1q})">➕</button>
       <button class="doc-del-btn" title="删除该一级标题及全部内容" onclick="event.stopPropagation();delHotL1(${l1q})">🗑️</button>
     </div>`;
@@ -14707,6 +14744,19 @@ fillTravelDatalists();
       <div class="modal-row">
         <label class="modal-label">小标题（本条目的名称，建议区别于一级/子标题，避免与一级标题同名）</label>
         <input class="modal-input" id="hotModalSub" placeholder="如：7天起号计划（留空则按内容生成）" oninput="autoSaveHotForm()">
+      </div>
+      <div class="modal-row">
+        <label class="modal-label">🏷️ 标签（按一级标题归类，便于在列表中按标签筛选）</label>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <select id="hotModalTag" onchange="onHotModalTagChange()" style="flex:1;min-width:160px;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--text);">
+            <option value="">不设置标签</option>
+            <option value="起号视频">起号视频</option>
+            <option value="鹦鹉带货">鹦鹉带货</option>
+            <option value="百货带货">百货带货</option>
+            <option value="__custom__">➕ 自定义…</option>
+          </select>
+          <input class="modal-input" id="hotModalTagCustom" placeholder="输入自定义标签" style="flex:1;min-width:140px;display:none;" oninput="autoSaveHotForm()">
+        </div>
       </div>
       <div class="modal-row">
         <label class="modal-label">📝 拆解字段（默认账号/内容/选品，可添加任意字段）</label>
