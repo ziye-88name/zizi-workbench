@@ -2540,7 +2540,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260844</div>
+    <div class="splash-ver">v2.0.20260845</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -4712,7 +4712,11 @@ function homeShortcutClick(id) {
   if (!item) return;
   // 按 id 硬编码跳转，避免旧配置缺字段 / eval 失败导致无反应
   switch (id) {
-    case 'expense': openExpenseModal(); return;       // 记一笔 → 直接弹记一笔弹窗
+    case 'expense':                                 // 记一笔 → 跳到岁岁花销记·收支明细，再弹记一笔
+      openHomePanel('expense');
+      switchExpenseTab('list');
+      openExpenseModal();
+      return;
     case 'task': openHomeAddTask(); return;           // 建任务 → 今日任务输入
     case 'review':  openHomePanel('contentReview'); return;
     case 'hot':     openHomePanel('hotVideos'); return;
