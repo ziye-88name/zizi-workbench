@@ -2128,8 +2128,13 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .home-stat.accent .hs-num { color:#5BB98E; }
 .home-stats-grid .home-stat.full { grid-column:auto; }
 .home-streak-wrap { margin-bottom:16px; }
-.home-streak-item { display:flex; align-items:flex-start; gap:10px; background:#fff; border-radius:18px; padding:14px 16px; margin-bottom:10px;
+.home-streak-item { position:relative; display:flex; align-items:flex-start; gap:10px; background:#fff; border-radius:18px; padding:14px 16px; margin-bottom:10px;
   border:1.5px solid rgba(123,111,160,.12); box-shadow:0 4px 12px rgba(123,111,160,.06); }
+.home-streak-item .si-del { position:absolute; top:8px; right:8px; width:22px; height:22px; border:none; border-radius:50%; background:rgba(123,111,160,.08);
+  color:#9b8fb5; font-size:13px; line-height:1; cursor:pointer; opacity:0; transition:opacity .15s, background .15s; display:flex; align-items:center; justify-content:center; }
+.home-streak-item:hover .si-del { opacity:.85; }
+.home-streak-item .si-del:hover { background:rgba(232,85,111,.16); color:#e8556f; opacity:1; }
+.home-streak-item .si-text { padding-right:24px; }
 .home-streak-item.praise { background:linear-gradient(120deg,#E8F5E9,#F1FBEF); border-color:rgba(91,185,142,.25); animation:streakPop .5s cubic-bezier(.34,1.56,.64,1); }
 .home-streak-item.cheer { background:linear-gradient(120deg,#FFF6EC,#FDF0F3); border-color:rgba(232,169,178,.25); }
 .home-streak-item.idle { background:linear-gradient(120deg,#F3E8FB,#E8F5F9); border-color:rgba(123,111,160,.16); }
@@ -2542,7 +2547,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260846</div>
+    <div class="splash-ver">v2.0.20260847</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -4585,6 +4590,17 @@ function getHomeTodayExpense() {
 }
 
 // 重复任务连续打卡/断卡消息
+// 打卡小播报：被用户手动删除的消息 key（按"习惯文本|类型"粒度，状态变化后类型/内容变了会自动重新出现）
+let homeStreakDismissed = JSON.parse(localStorage.getItem('parrot_home_streak_dismissed') || '[]');
+function dismissStreakMsg(key) {
+  if(!homeStreakDismissed.includes(key)) {
+    homeStreakDismissed.push(key);
+    localStorage.setItem('parrot_home_streak_dismissed', JSON.stringify(homeStreakDismissed));
+  }
+  renderHome();
+}
+function isStreakDismissed(key) { return homeStreakDismissed.includes(key); }
+
 function getHomeStreakMessages() {
   // 收集所有日期键里带有 repeat 的 checklist 项（含本日原生项与历史项）
   const repeatItems = [];
@@ -4648,14 +4664,17 @@ function getHomeStreakMessages() {
     const todayDone = doneOn(it, tKey);
     if (chain >= 2) {
       // 今天已打卡：连续天数含今天，更新为最新天数
-      msgs.push({ type:'praise', text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${chain}</b> 天，太棒了！继续保持这份坚持 🌟` });
+      const key = it.text + '|praise';
+      if(!isStreakDismissed(key)) msgs.push({ type:'praise', key, text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${chain}</b> 天，太棒了！继续保持这份坚持 🌟` });
     } else if (chainUntilYesterday >= 1 && !todayDone) {
       // 今天还没打卡，但截至昨天已连续 N 天：明确提示"今天是第 N+1 天还没打卡"
       // （一天一周期，到当天24点截止；过了24点今天这天的打卡未完成，连击停在 N 天）
-      msgs.push({ type:'praise', text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${chainUntilYesterday}</b> 天，今天（第 ${chainUntilYesterday+1} 天）还没打卡哦，记得来续上 🔥` });
-    } else if (preStreak >= 2 && yesterdayShould && !yesterdayDone) {
-      // 连续≥2天后昨天断卡：鼓励
-      msgs.push({ type:'cheer', text:`💪 <b>${escapeHtml(it.text)}</b> 昨天没打卡，别气馁～ 之前已经连续坚持了 <b>${preStreak}</b> 天，今天重新开始就好！` });
+      const key = it.text + '|praise';
+      if(!isStreakDismissed(key)) msgs.push({ type:'praise', key, text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${chainUntilYesterday}</b> 天，今天（第 ${chainUntilYesterday+1} 天）还没打卡哦，记得来续上 🔥` });
+    } else if (preStreak >= 2 && yesterdayShould && !yesterdayDone && !todayDone) {
+      // 连续≥2天后昨天断卡、且今天还没重新打卡：鼓励今天重新开始（今天已重新打卡则断卡消息自动清除）
+      const key = it.text + '|cheer';
+      if(!isStreakDismissed(key)) msgs.push({ type:'cheer', key, text:`💪 <b>${escapeHtml(it.text)}</b> 昨天没打卡，别气馁～ 之前已经连续坚持了 <b>${preStreak}</b> 天，今天重新开始就好！` });
     }
   });
   return msgs;
@@ -4694,7 +4713,7 @@ function renderHome() {
         '<div class="home-streak-item idle"><div class="si-emo">🌱</div><div class="si-text">今天还没打卡动态哦～ 挑一个重复小习惯完成它，明天就能收获第一句夸夸啦！✨</div></div>';
     } else {
       streakWrap.innerHTML = '<div class="k2-section-title">🔔 打卡小播报</div>' +
-        msgs.map(m => `<div class="home-streak-item ${m.type}"><div class="si-emo">${m.type === 'praise' ? '🎉' : '💪'}</div><div class="si-text">${m.text}</div></div>`).join('');
+        msgs.map(m => `<div class="home-streak-item ${m.type}"><div class="si-emo">${m.type === 'praise' ? '🎉' : '💪'}</div><div class="si-text">${m.text}</div><button class="si-del" title="删除这条播报" onclick="dismissStreakMsg(${JSON.stringify(m.key).replace(/"/g,'&quot;')})">✕</button></div>`).join('');
     }
   }
 
