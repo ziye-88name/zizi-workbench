@@ -2540,7 +2540,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260843</div>
+    <div class="splash-ver">v2.0.20260844</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -4602,29 +4602,29 @@ function getHomeStreakMessages() {
 
   const msgs = [];
   repeatItems.forEach(it => {
-    // 从今天往前数连续完成天数（只数应出现的日子）；今天未完成则 todayStreak=0
-    let todayStreak = 0;
+    // chain：截至今天（含）已连续完成的天数（今天未完成则今天这天的打卡还没完成，不计入）
+    let chain = 0;
     let cur = new Date(today);
     while (true) {
       const ck = dailyDateKey(cur);
       if (!shouldAppear(it, ck)) break;
       if (!doneOn(it, ck)) break;
-      todayStreak++;
+      chain++;
       cur = new Date(cur.getTime() - 86400000);
-      if (todayStreak > 4000) break;
+      if (chain > 4000) break;
     }
-    // 截至昨天为止的连续完成天数（今天还没做也能算上昨天的连续）
-    let yesterdayStreak = 0;
+    // chainUntilYesterday：截至昨天（含）已连续完成的天数（一天一周期，到当天24点截止）
+    let chainUntilYesterday = 0;
     cur = new Date(yesterday);
     while (true) {
       const ck = dailyDateKey(cur);
       if (!shouldAppear(it, ck)) break;
       if (!doneOn(it, ck)) break;
-      yesterdayStreak++;
+      chainUntilYesterday++;
       cur = new Date(cur.getTime() - 86400000);
-      if (yesterdayStreak > 4000) break;
+      if (chainUntilYesterday > 4000) break;
     }
-    // 从前天往前数（断卡判断基准，避免与 yesterdayStreak 重叠时重复）
+    // preStreak：从前天往前（断卡判断基准）
     let preStreak = 0;
     cur = new Date(dayBefore);
     while (true) {
@@ -4637,12 +4637,14 @@ function getHomeStreakMessages() {
     }
     const yesterdayShould = shouldAppear(it, yKey);
     const yesterdayDone = doneOn(it, yKey);
-    if (todayStreak >= 2) {
-      // 今天也完成了，且连续≥2天：正常夸奖
-      msgs.push({ type:'praise', text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${todayStreak}</b> 天，太棒了！继续保持这份坚持 🌟` });
-    } else if (yesterdayStreak >= 2 && !doneOn(it, tKey)) {
-      // 今天还没做，但截至昨天已连续≥2天：仍夸奖连续成果，并鼓励今天继续
-      msgs.push({ type:'praise', text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${yesterdayStreak}</b> 天啦，超棒！今天也来打卡，把连击续上吧 🔥` });
+    const todayDone = doneOn(it, tKey);
+    if (chain >= 2) {
+      // 今天已打卡：连续天数含今天，更新为最新天数
+      msgs.push({ type:'praise', text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${chain}</b> 天，太棒了！继续保持这份坚持 🌟` });
+    } else if (chainUntilYesterday >= 1 && !todayDone) {
+      // 今天还没打卡，但截至昨天已连续 N 天：明确提示"今天是第 N+1 天还没打卡"
+      // （一天一周期，到当天24点截止；过了24点今天这天的打卡未完成，连击停在 N 天）
+      msgs.push({ type:'praise', text:`<b>${escapeHtml(it.text)}</b> 已连续打卡 <b>${chainUntilYesterday}</b> 天，今天（第 ${chainUntilYesterday+1} 天）还没打卡哦，记得来续上 🔥` });
     } else if (preStreak >= 2 && yesterdayShould && !yesterdayDone) {
       // 连续≥2天后昨天断卡：鼓励
       msgs.push({ type:'cheer', text:`💪 <b>${escapeHtml(it.text)}</b> 昨天没打卡，别气馁～ 之前已经连续坚持了 <b>${preStreak}</b> 天，今天重新开始就好！` });
