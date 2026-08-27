@@ -2633,7 +2633,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260849</div>
+    <div class="splash-ver">v2.0.20260850</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -12352,21 +12352,13 @@ function renderGoldJar(shakeIntensity=0) {
   const floorY = jarY + jarH - 12, leftX = jarX + 14, rightX = jarX + jarW - 14;
   // 绘制罐子背景
   drawGoldJar(ctx, jarX, jarY, jarW, jarH, neckW, neckH);
-  // 生成金币/金条
-  const bars = Math.min(3, Math.floor(grams / 50));
-  const coinCount = Math.min(70, Math.max(4, Math.floor(grams)));
-  const coinsPerCoin = grams / Math.max(1, coinCount);
-  if(goldJarBodies.length === 0 || goldJarBodies.some(b=>b.shapedForGrams !== grams)) {
-    goldJarBodies = [];
-    // 金币
-    for(let i=0;i<coinCount;i++) {
-      const r = 10 + Math.random()*5;
-      goldJarBodies.push({ type:'coin', x: leftX + 20 + Math.random()*(rightX-leftX-40), y: jarY + 40 + Math.random()*(jarH-100), r, grams: coinsPerCoin, vx:0, vy:0, angle:Math.random()*Math.PI*2, shapedForGrams:grams });
-    }
-    // 金条
-    for(let i=0;i<bars;i++) {
-      goldJarBodies.push({ type:'bar', x: leftX + 30 + Math.random()*(rightX-leftX-80), y: jarY + 50 + i*30, w:70, h:22, grams:50, vx:0, vy:0, angle:(Math.random()-.5)*.4, shapedForGrams:grams });
-    }
+  // 按每笔记录生成一个实物，大小随克重变化
+  const MAX_BODIES = 18;
+  const sortedRecs = goldRecords.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0, MAX_BODIES);
+  const currentIds = sortedRecs.map(r=>r.id).sort().join(',');
+  const bodyIds = goldJarBodies.map(b=>b.id).sort().join(',');
+  if(goldJarBodies.length === 0 || currentIds !== bodyIds) {
+    goldJarBodies = sortedRecs.map((r, i) => buildGoldBody(r, i, leftX, rightX, jarY, neckH));
   }
   // 物理模拟
   const g = 0.5;
@@ -12376,32 +12368,22 @@ function renderGoldJar(shakeIntensity=0) {
       b.vy += g;
       b.x += b.vx; b.y += b.vy;
       b.vx *= 0.96; b.vy *= 0.96;
-      // 罐子边界
-      if(b.type === 'coin') {
-        if(b.x - b.r < leftX) { b.x = leftX + b.r; b.vx *= -.5; }
-        if(b.x + b.r > rightX) { b.x = rightX - b.r; b.vx *= -.5; }
-        if(b.y + b.r > floorY) { b.y = floorY - b.r; b.vy *= -.4; b.vx *= .9; }
-        if(b.y - b.r < jarY + neckH) { b.y = jarY + neckH + b.r; b.vy *= -.4; }
-      } else {
-        const hw = b.w/2, hh = b.h/2;
-        if(b.x - hw < leftX) { b.x = leftX + hw; b.vx *= -.5; }
-        if(b.x + hw > rightX) { b.x = rightX - hw; b.vx *= -.5; }
-        if(b.y + hh > floorY) { b.y = floorY - hh; b.vy *= -.4; b.vx *= .9; }
-        if(b.y - hh < jarY + neckH) { b.y = jarY + neckH + hh; b.vy *= -.4; }
-      }
+      // 罐子边界（用等效半径 r）
+      if(b.x - b.r < leftX) { b.x = leftX + b.r; b.vx *= -.5; }
+      if(b.x + b.r > rightX) { b.x = rightX - b.r; b.vx *= -.5; }
+      if(b.y + b.r > floorY) { b.y = floorY - b.r; b.vy *= -.4; b.vx *= .9; }
+      if(b.y - b.r < jarY + neckH) { b.y = jarY + neckH + b.r; b.vy *= -.4; }
     });
-    // 简单碰撞（圆-圆）
+    // 简单碰撞（圆-圆，等效半径）
     for(let i=0;i<goldJarBodies.length;i++) {
       for(let j=i+1;j<goldJarBodies.length;j++) {
         const a = goldJarBodies[i], bb = goldJarBodies[j];
-        if(a.type==='coin' && bb.type==='coin') {
-          const dx = bb.x-a.x, dy = bb.y-a.y, dist = Math.sqrt(dx*dx+dy*dy);
-          const min = a.r+bb.r;
-          if(dist < min && dist > 0) {
-            const nx = dx/dist, ny = dy/dist, overlap = (min-dist)/2;
-            a.x -= nx*overlap; a.y -= ny*overlap; bb.x += nx*overlap; bb.y += ny*overlap;
-            a.vx -= nx*.3; a.vy -= ny*.3; bb.vx += nx*.3; bb.vy += ny*.3;
-          }
+        const dx = bb.x-a.x, dy = bb.y-a.y, dist = Math.sqrt(dx*dx+dy*dy);
+        const min = a.r+bb.r;
+        if(dist < min && dist > 0) {
+          const nx = dx/dist, ny = dy/dist, overlap = (min-dist)/2;
+          a.x -= nx*overlap; a.y -= ny*overlap; bb.x += nx*overlap; bb.y += ny*overlap;
+          a.vx -= nx*.3; a.vy -= ny*.3; bb.vx += nx*.3; bb.vy += ny*.3;
         }
       }
     }
@@ -12409,7 +12391,8 @@ function renderGoldJar(shakeIntensity=0) {
   // 按 Y 排序绘制（先画后面的）
   const sorted = [...goldJarBodies].sort((a,b)=>a.y-b.y);
   sorted.forEach(b => {
-    if(b.type === 'coin') drawGoldCoin(ctx, b.x, b.y, b.r);
+    if(b.type === 'bean') drawGoldBean(ctx, b.x, b.y, b.r);
+    else if(b.type === 'sycee') drawGoldSycee(ctx, b.x, b.y, b.size, b.angle);
     else drawGoldBar(ctx, b.x, b.y, b.w, b.h, b.angle);
   });
   // 绘制罐口木塞
@@ -12421,6 +12404,34 @@ function renderGoldJar(shakeIntensity=0) {
   ctx.beginPath();
   ctx.roundRect(jarX + (jarW-neckW)/2, jarY - 4, neckW, 16, 6);
   ctx.fill();
+}
+function buildGoldBody(record, index, leftX, rightX, jarY, neckH) {
+  const grams = parseFloat(record.grams) || 0;
+  const jarW = rightX - leftX;
+  const x = leftX + 20 + (Math.random()*(jarW-40));
+  const y = jarY + neckH + 20 + Math.random()*60;
+  const angle = (Math.random()-.5)*.6;
+  if(grams >= 50) {
+    // 大克重：金条，尺寸随克重增加
+    const w = Math.min(110, 42 + grams * 0.55);
+    const h = Math.min(36, 18 + grams * 0.16);
+    const r = Math.max(w,h)/2 + 2;
+    return { id:record.id, type:'bar', x, y, w, h, r, grams, vx:0, vy:0, angle };
+  } else if(grams >= 15) {
+    // 中克重：大金元宝
+    const size = Math.min(52, 22 + grams * 0.75);
+    const r = size/2 + 3;
+    return { id:record.id, type:'sycee', x, y, size, r, grams, vx:0, vy:0, angle };
+  } else if(grams >= 5) {
+    // 中小克重：小金元宝
+    const size = Math.min(34, 16 + grams * 1.2);
+    const r = size/2 + 2;
+    return { id:record.id, type:'sycee', x, y, size, r, grams, vx:0, vy:0, angle };
+  } else {
+    // 小克重：金豆豆
+    const r = Math.min(16, 6 + grams * 1.8);
+    return { id:record.id, type:'bean', x, y, r, grams, vx:0, vy:0, angle };
+  }
 }
 function drawGoldJar(ctx, x, y, w, h, neckW, neckH) {
   // 玻璃瓶身渐变
@@ -12454,16 +12465,40 @@ function drawGoldJar(ctx, x, y, w, h, neckW, neckH) {
   ctx.quadraticCurveTo(x + 18, y + neckH + 80, x + 22, y + neckH + 130);
   ctx.stroke();
 }
-function drawGoldCoin(ctx, x, y, r) {
+function drawGoldBean(ctx, x, y, r) {
   const grad = ctx.createRadialGradient(x-r/3, y-r/3, r/5, x, y, r);
-  grad.addColorStop(0, '#FFF8E1');
-  grad.addColorStop(.4, '#FFD700');
-  grad.addColorStop(1, '#FFA000');
+  grad.addColorStop(0, '#FFFDE7');
+  grad.addColorStop(.45, '#FFD700');
+  grad.addColorStop(1, '#FF8F00');
   ctx.fillStyle = grad;
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = '#B8860B'; ctx.lineWidth = 1.5; ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.beginPath(); ctx.arc(x-r/3, y-r/3, r/4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x, y, r, r*0.92, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#B8860B'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.beginPath(); ctx.ellipse(x-r/3, y-r/3, r/3.5, r/4, -0.3, 0, Math.PI*2); ctx.fill();
+}
+function drawGoldSycee(ctx, x, y, size, angle) {
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(angle);
+  const w = size, h = size * 0.62;
+  const grad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  grad.addColorStop(0, '#FFFDE7');
+  grad.addColorStop(.4, '#FFD700');
+  grad.addColorStop(1, '#FF8F00');
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = '#B8860B'; ctx.lineWidth = 1.5;
+  // 元宝主体：上下椭圆中间收腰
+  ctx.beginPath();
+  ctx.ellipse(0, -h*0.12, w*0.52, h*0.35, 0, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(0, h*0.12, w*0.35, h*0.25, 0, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  // 中间腰身高光
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.beginPath();
+  ctx.ellipse(-w*0.12, -h*0.18, w*0.18, h*0.1, -0.3, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
 }
 function drawGoldBar(ctx, x, y, w, h, angle) {
   ctx.save();
