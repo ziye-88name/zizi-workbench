@@ -2699,7 +2699,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 /* ===== 搞钱概览 / 我的支线流 ===== */
 .sub-tab-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
 .sub-tab-btn { padding:10px 16px; border:2px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); font-size:14px; cursor:pointer; font-weight:600; transition:.2s; }
-.sub-tab-btn.active { background:linear-gradient(120deg,#7B6FA0,#9C7BC0); color:#fff; border-color:transparent; }
+.sub-tab-btn.active { background:linear-gradient(120deg,var(--primary),var(--primary-dark)); color:#fff; border-color:transparent; }
 .mo-board { display:flex; gap:14px; overflow-x:auto; padding-bottom:10px; }
 .mo-col { flex:1; min-width:200px; background:#fff; border-radius:16px; padding:12px; border:1px solid var(--border); }
 .mo-col-head { display:flex; align-items:center; gap:8px; font-weight:700; padding-bottom:10px; margin-bottom:10px; border-bottom:2px solid var(--border); }
@@ -2767,7 +2767,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260857</div>
+    <div class="splash-ver">v2.0.20260858</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3123,11 +3123,11 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 
           <!-- 选题 -->
           <div id="planTopic" class="plan-sub-panel">
-            <div class="btn-group" style="margin-bottom:14px;">
-              <button class="btn btn-primary" onclick="openIdeaAddModal()">➕ 添加灵感</button>
-            </div>
             <div class="card">
-              <div class="card-title">💡 灵感收集箱</div>
+              <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>💡 灵感收集箱</span>
+                <button class="btn btn-primary btn-sm" onclick="openIdeaAddModal()">➕ 添加灵感</button>
+              </div>
               <div id="ideaListBox" class="idea-list"></div>
             </div>
             <div class="card" style="margin-top:16px;">
@@ -3255,27 +3255,19 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 
         <!-- 脚本创作 -->
         <div id="sideFlowScript" class="side-flow-panel" style="display:none;">
-          <div class="sub-tab-bar" id="scriptSubTabBar">
-            <button class="sub-tab-btn active" onclick="switchScriptSub('lib')">📚 脚本库</button>
-            <button class="sub-tab-btn" onclick="switchScriptSub('copy')">📝 文案库</button>
-          </div>
-          <div id="scriptLib" class="script-sub-panel">
-            <div class="card">
-              <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>📚 脚本库</span>
-                <button class="btn btn-outline btn-sm" onclick="openScriptCatModal()">➕ 新分类</button>
-              </div>
-              <div id="scriptBoard" class="mo-board"></div>
+          <div class="card">
+            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>📚 脚本库</span>
+              <button class="btn btn-outline btn-sm" onclick="openScriptCatModal()">➕ 新分类</button>
             </div>
+            <div id="scriptBoard" class="mo-board"></div>
           </div>
-          <div id="scriptCopy" class="script-sub-panel" style="display:none;">
-            <div class="card">
-              <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>📝 文案库</span>
-                <button class="btn btn-outline btn-sm" onclick="openCopyCatModal()">➕ 新分类</button>
-              </div>
-              <div id="copyBoard" class="mo-board"></div>
+          <div class="card" style="margin-top:16px;">
+            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>📝 文案库</span>
+              <button class="btn btn-outline btn-sm" onclick="openCopyCatModal()">➕ 新分类</button>
             </div>
+            <div id="copyBoard" class="mo-board"></div>
           </div>
         </div>
 
@@ -8456,38 +8448,80 @@ function closeConfirm() { document.getElementById('confirmModal').classList.remo
 function doConfirm() { const cb = _confirmCb; closeConfirm(); if(cb) cb(); }
 
 // 通用输入弹窗（替代浏览器原生 prompt，与 kitty-modal 样式统一）
+// 支持两种调用方式：
+// 1) 单字段：showAppPrompt({title, label, placeholder, defaultValue, inputType}, callback(value))
+// 2) 多字段：showAppPrompt({title, fields:[{key,label,type,placeholder,options,value}]}, callback({key:value,...}))
 let _appPromptCb = null;
+let _appPromptMulti = false;
+let _appPromptFieldKeys = [];
 function showAppPrompt(opts, callback) {
   opts = opts || {};
   document.getElementById('appPromptTitle').textContent = opts.title || '提示';
-  document.getElementById('appPromptLabel').textContent = opts.label || '';
-  const isArea = opts.inputType === 'textarea';
-  const input = document.getElementById('appPromptInput');
-  const area = document.getElementById('appPromptArea');
-  input.style.display = isArea ? 'none' : 'block';
-  area.style.display = isArea ? 'block' : 'none';
-  if(isArea) {
-    area.value = opts.defaultValue !== undefined ? opts.defaultValue : '';
-    area.placeholder = opts.placeholder || '';
-  } else {
-    input.type = 'text';
-    input.value = opts.defaultValue !== undefined ? opts.defaultValue : '';
-    input.placeholder = opts.placeholder || '';
-  }
+  const form = document.getElementById('appPromptForm');
   _appPromptCb = callback;
-  _appPromptIsArea = isArea;
+  _appPromptMulti = Array.isArray(opts.fields) && opts.fields.length;
+  _appPromptFieldKeys = _appPromptMulti ? opts.fields.map(f=>f.key) : [];
+  if(!_appPromptMulti){
+    const isArea = opts.inputType === 'textarea';
+    form.innerHTML = `<div class="kitty-field">
+      <label>${escapeHtml(opts.label||'')}</label>
+      <input type="${opts.inputType||'text'}" id="appPromptSingleInput" placeholder="${escapeHtml(opts.placeholder||'')}" value="${escapeHtml(opts.defaultValue!==undefined?opts.defaultValue:'')}" onkeydown="if(event.key==='Enter'){event.preventDefault();closeAppPrompt(true)}">
+      <textarea id="appPromptSingleArea" class="lc-edit-input" rows="4" style="display:${isArea?'block':'none'};margin-top:8px;" placeholder="${escapeHtml(opts.placeholder||'')}">${escapeHtml(opts.defaultValue!==undefined?opts.defaultValue:'')}</textarea>
+    </div>`;
+    if(isArea){ document.getElementById('appPromptSingleInput').style.display='none'; }
+    else { document.getElementById('appPromptSingleArea').style.display='none'; }
+  } else {
+    let html = '';
+    opts.fields.forEach((f, idx)=>{
+      html += `<div class="kitty-field" style="margin-bottom:10px;">`;
+      html += `<label>${escapeHtml(f.label||f.key||'')}</label>`;
+      if(f.type === 'textarea'){
+        html += `<textarea id="apppf_${idx}" class="lc-edit-input" rows="3" placeholder="${escapeHtml(f.placeholder||'')}">${escapeHtml(f.value!==undefined?f.value:'')}</textarea>`;
+      } else if(f.type === 'select'){
+        html += `<select id="apppf_${idx}" class="kitty-select">`;
+        (f.options||[]).forEach(o=> html += `<option value="${escapeHtml(o.value||'')}" ${(f.value!==undefined && String(f.value)===String(o.value))?'selected':''}>${escapeHtml(o.text||o.value||'')}</option>`);
+        html += `</select>`;
+      } else if(f.type === 'date'){
+        html += `<input type="date" id="apppf_${idx}" value="${escapeHtml(f.value!==undefined?f.value:'')}">`;
+      } else {
+        html += `<input type="${f.type||'text'}" id="apppf_${idx}" placeholder="${escapeHtml(f.placeholder||'')}" value="${escapeHtml(f.value!==undefined?f.value:'')}" onkeydown="if(event.key==='Enter'){event.preventDefault();closeAppPrompt(true)}">`;
+      }
+      html += `</div>`;
+    });
+    form.innerHTML = html;
+  }
   document.getElementById('appPromptModal').classList.add('show');
-  setTimeout(() => { try { (isArea ? area : input).focus(); (isArea ? area : input).select(); } catch(e) {} }, 60);
+  setTimeout(() => {
+    try {
+      const firstInput = document.querySelector('#appPromptForm input, #appPromptForm textarea, #appPromptForm select');
+      if(firstInput){ firstInput.focus(); if(firstInput.select) firstInput.select(); }
+    } catch(e) {}
+  }, 60);
 }
-let _appPromptIsArea = false;
 function closeAppPrompt(ok) {
   const modal = document.getElementById('appPromptModal');
   modal.classList.remove('show');
-  const value = _appPromptIsArea ? document.getElementById('appPromptArea').value : document.getElementById('appPromptInput').value;
   const cb = _appPromptCb;
+  const multi = _appPromptMulti;
+  const keys = _appPromptFieldKeys;
   _appPromptCb = null;
-  _appPromptIsArea = false;
-  if(cb) cb(ok ? value : null);
+  _appPromptMulti = false;
+  _appPromptFieldKeys = [];
+  if(!cb) return;
+  if(!ok){ cb(null); return; }
+  if(!multi){
+    const area = document.getElementById('appPromptSingleArea');
+    if(area && area.style.display !== 'none'){ cb(area.value); }
+    else { cb(document.getElementById('appPromptSingleInput').value); }
+  } else {
+    const vals = {};
+    document.querySelectorAll('#appPromptForm .kitty-field').forEach((fld, idx)=>{
+      const el = fld.querySelector('input, textarea, select');
+      const key = keys[idx];
+      if(key) vals[key] = el ? el.value : '';
+    });
+    cb(vals);
+  }
 }
 
 // ===================== 头脑风暴（飞书式脑图） =====================
@@ -16074,12 +16108,6 @@ function switchPlanSub(t){
   if(t==='bird') renderKnowledge();
   if(t==='hot') renderHotItems();
 }
-function switchScriptSub(t){
-  document.querySelectorAll('#scriptSubTabBar .sub-tab-btn').forEach(b=>b.classList.toggle('active', b.textContent.includes(t==='lib'?'脚本库':'文案库')));
-  document.getElementById('scriptLib').style.display = t==='lib'?'block':'none';
-  document.getElementById('scriptCopy').style.display = t==='copy'?'block':'none';
-  if(t==='lib') renderScriptBoard(); else renderCopyBoard();
-}
 function renderSideFlowActive(){
   const planVisible = document.getElementById('sideFlowPlan').style.display !== 'none';
   if(planVisible){ renderIdeaList(); renderTopicBoard(); }
@@ -16963,13 +16991,9 @@ function downloadText(filename, text){ const blob=new Blob([text],{type:"text/pl
 
 <!-- 通用输入弹窗（替代浏览器原生 prompt） -->
 <div class="kitty-modal-overlay" id="appPromptModal" onclick="if(event.target===this)closeAppPrompt(false)">
-  <div class="kitty-modal" style="max-width:360px;">
+  <div class="kitty-modal" style="max-width:420px;" id="appPromptInner">
     <h4 id="appPromptTitle">提示</h4>
-    <div class="kitty-field">
-      <label id="appPromptLabel"></label>
-      <input type="text" id="appPromptInput" onkeydown="if(event.key==='Enter'){event.preventDefault();closeAppPrompt(true)}">
-      <textarea id="appPromptArea" class="lc-edit-input" rows="4" style="display:none;margin-top:8px;"></textarea>
-    </div>
+    <div id="appPromptForm"></div>
     <div class="kitty-modal-actions">
       <button class="kitty-btn-outline" onclick="closeAppPrompt(false)">取消</button>
       <button class="kitty-btn-primary" onclick="closeAppPrompt(true)">确定</button>
