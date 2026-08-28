@@ -2640,7 +2640,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260851</div>
+    <div class="splash-ver">v2.0.20260852</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -4196,6 +4196,9 @@ let localPendingPush = false;
 // 本地最后改动时间戳（ms）：用于 pull 时判断云端快照是否比本地新，避免旧快照覆盖新改动
 let localLastChange = parseInt(localStorage.getItem('parrot_sync_lastchange') || '0', 10) || 0;
 function markLocalChange() { localLastChange = Date.now(); localStorage.setItem('parrot_sync_lastchange', String(localLastChange)); }
+// 最近一次从云端拉取到的快照时刻（updated_at 对应的毫秒）。用于 pull 时做 last-writer-wins 判断，
+// 避免被“更早的云端快照”覆盖，也不会因为本机某次本地操作（localLastChange 被刷新）就误拒更新的云端数据。
+let cloudLastPullTs = parseInt(localStorage.getItem('parrot_sync_lastpull_ts') || '0', 10) || 0;
 
 // 同步API地址（相对路径，与页面同域）
 const SYNC_API = '/api/sync';
@@ -4370,7 +4373,8 @@ async function pushToCloud(showMsg) {
       const v = localStorage.getItem(k);
       if(v) allData[k] = v;
     });
-    allData._local_ts = localLastChange; // 标记本次快照的最后改动时刻，供 pull 判断新旧
+    allData._local_ts = localLastChange; // 标记本次快照的最后改动时刻
+    allData._updated_at_ms = Date.now(); // 云端快照版本号，供 pull 做 last-writer-wins
     const resp = await cloudPush(SYNC_ID, allData);
     if(!resp.ok) throw new Error('上传失败: ' + resp.status);
     localPendingPush = false;   // 推送成功，本地改动已上云，后续拉取可正常合并
@@ -4398,6 +4402,11 @@ async function pullFromCloud(showMsg) {
     const data = await resp.json();
     if(!data || typeof data !== 'object') throw new Error('数据格式错误');
     applyCloudData(data);
+    // 记录本次拉取到的云端版本时刻，供下次 pull 做 last-writer-wins
+    if(typeof data._updated_at_ms === 'number') {
+      cloudLastPullTs = data._updated_at_ms;
+      localStorage.setItem('parrot_sync_lastpull_ts', String(cloudLastPullTs));
+    }
     SYNC_LAST_PULL = Date.now();
     if(showMsg) showToast('☁️ 数据已同步到本地');
   } catch(e) {
@@ -4410,10 +4419,12 @@ async function pullFromCloud(showMsg) {
 function applyCloudData(data) {
   let changed = false;
   let skippedCorrupt = 0;
-  // 云端快照的最后改动时刻；若云端不比本地新，则整体跳过覆盖，避免旧快照冲掉刚改的本地数据
-  const cloudTs = (data && typeof data._local_ts === 'number') ? data._local_ts : 0;
-  if(cloudTs && localLastChange && cloudTs < localLastChange) {
-    console.warn('云端快照较旧(云端' + cloudTs + ' < 本地' + localLastChange + ')，跳过覆盖，保留本地新数据');
+  // last-writer-wins：用云端快照的 updated_at（毫秒）与“上次拉取到的云端时刻”比较。
+  // 只有当云端快照比我们已拥有的更新时才覆盖，避免被更旧的云端快照回退；
+  // 同时不拿 cloudTs 与本机 localLastChange 比较，否则任一设备只要本地动过一次就会被误判为“云端更旧”而拒绝同步。
+  const cloudUpdatedAt = (data && typeof data._updated_at_ms === 'number') ? data._updated_at_ms : 0;
+  if(cloudUpdatedAt && cloudLastPullTs && cloudUpdatedAt <= cloudLastPullTs) {
+    console.warn('云端快照不比上次拉取的新(云端' + cloudUpdatedAt + ' <= 上次' + cloudLastPullTs + ')，跳过覆盖');
     return;
   }
   Object.keys(data || {}).forEach(k => {
@@ -12251,6 +12262,15 @@ function switchExpenseTab(tab) {
 }
 // ===================== 金攒攒 =====================
 let goldRecords = JSON.parse(localStorage.getItem('parrot_gold_records') || '[]');
+// 云端同步回填后，reloadAllData 会重写 localStorage；注册一个 reloader 把 goldRecords 重新读回内存并刷新 UI
+if (typeof registerDataReloader === 'function') {
+  registerDataReloader(() => {
+    goldRecords = JSON.parse(localStorage.getItem('parrot_gold_records') || '[]');
+    if (typeof renderGoldAll === 'function' && document.getElementById('panel-gold')) {
+      renderGoldAll();
+    }
+  });
+}
 let goldMarketPrice = parseFloat(localStorage.getItem('parrot_gold_price') || '996') || 996;
 let goldTargetGrams = parseFloat(localStorage.getItem('parrot_gold_target') || '500') || 500;
 let goldPriceFetchedAt = parseInt(localStorage.getItem('parrot_gold_price_at') || '0') || 0;

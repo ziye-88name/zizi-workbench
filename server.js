@@ -19,9 +19,16 @@ function loadEnvFile() {
 }
 loadEnvFile();
 
-// Supabase 凭据：优先环境变量/.env，缺省回退到公网 publishable(anon) 密钥（与前端 Pages 模式一致，已属公开范畴）
+// Supabase 凭据：优先环境变量/.env。跨设备同步必须走云端共享表，
+// 因此缺省也回退到公网 publishable(anon) 密钥（与前端 Pages 模式一致，已属公开范畴），
+// 保证即使部署平台未配置 SERVICE_ROLE_KEY，也能写入同一张云表，跨设备同步可用。
 const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://wkhfgvwonuhvksaahwpd.supabase.co').replace(/\/+$/,'');
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_publishable_re2fqWcuGrGMmRczmlSTCg_N-gwQUCR';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'sb_publishable_re2fqWcuGrGMmRczmlSTCg_N-gwQUCR';
+// 始终优先使用云端 Supabase（共享表），仅当完全没有 Supabase 配置时才回退本地文件。
+const useSupabase = !!(SUPABASE_URL && SUPABASE_KEY);
+if(!useSupabase) {
+  console.warn('[sync] 未检测到 Supabase 配置，回退到本地文件存储（跨设备同步将不可用）');
+}
 
 const DATA_DIR = path.join(__dirname, '.sync_data');
 if(!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -549,8 +556,13 @@ const server = http.createServer(async (req, res) => {
             res.end(JSON.stringify({ error: 'No data for this sync code' }));
             return;
           }
+          // 取 updated_at 最新的一行，避免 merge-duplicates 产生多行时误读旧快照
+          let newest = arr[0];
+          for(const row of arr) {
+            if(new Date(row.updated_at) > new Date(newest.updated_at)) newest = row;
+          }
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify(arr[0].data));
+          res.end(JSON.stringify(newest.data));
         } else {
           if(fs.existsSync(filePath)) {
             const data = fs.readFileSync(filePath, 'utf-8');
