@@ -2696,6 +2696,66 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 /* ===== 养鸟知识：富文本编辑区 ===== */
 .modal-rich { min-height: 180px; }
 
+/* ===== 搞钱概览 / 我的支线流 ===== */
+.sub-tab-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.sub-tab-btn { padding:10px 16px; border:2px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); font-size:14px; cursor:pointer; font-weight:600; transition:.2s; }
+.sub-tab-btn.active { background:linear-gradient(120deg,#7B6FA0,#9C7BC0); color:#fff; border-color:transparent; }
+.mo-board { display:flex; gap:14px; overflow-x:auto; padding-bottom:10px; }
+.mo-col { flex:1; min-width:200px; background:#fff; border-radius:16px; padding:12px; border:1px solid var(--border); }
+.mo-col-head { display:flex; align-items:center; gap:8px; font-weight:700; padding-bottom:10px; margin-bottom:10px; border-bottom:2px solid var(--border); }
+.mo-col-dot { width:10px; height:10px; border-radius:50%; }
+.mo-col-count { margin-left:auto; background:var(--bg); border-radius:10px; padding:1px 9px; font-size:12px; }
+.mo-col-body { display:flex; flex-direction:column; gap:10px; }
+.mo-card { background:var(--bg); border-radius:12px; padding:10px 12px; border:1px solid var(--border); }
+.mo-card-title { font-weight:600; font-size:13.5px; color:var(--text); line-height:1.4; }
+.mo-card-time { font-size:11px; color:var(--text-secondary); margin-top:4px; }
+.mo-card-sub { font-size:12px; color:var(--text-secondary); margin-top:4px; line-height:1.4; }
+.mo-card-prio { display:inline-block; font-size:11px; font-weight:700; border-radius:6px; padding:1px 7px; margin-bottom:4px; }
+.prio-p0 { background:#FFEBEE; color:#E53935; } .prio-p1 { background:#FFF3E0; color:#FB8C00; } .prio-p2 { background:#E3F2FD; color:#1E88E5; } .prio-p3 { background:#F5F5F5; color:#757575; }
+.mo-card-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.mo-empty, .eb-empty, .sw-empty { color:var(--text-secondary); font-size:12px; text-align:center; padding:14px 0; }
+.mo-cat { flex:1; min-width:240px; background:#fff; border-radius:16px; padding:12px; border:1px solid var(--border); }
+.mo-cat-head { display:flex; align-items:center; gap:8px; font-weight:700; padding-bottom:10px; margin-bottom:10px; border-bottom:2px solid var(--border); }
+.mo-cat-count { background:var(--bg); border-radius:10px; padding:1px 9px; font-size:12px; }
+.mo-cat-body { display:flex; flex-direction:column; gap:10px; }
+.mo-status-pill { padding:2px 10px; border-radius:10px; font-size:12px; font-weight:600; }
+.idea-list { display:flex; flex-direction:column; gap:10px; }
+.idea-item { display:flex; gap:12px; align-items:flex-start; background:var(--bg); border-radius:14px; padding:12px 14px; border:1px solid var(--border); }
+.idea-main { flex:1; }
+.idea-title { font-weight:600; font-size:14px; }
+.idea-note { font-size:13px; color:var(--text-secondary); margin-top:4px; line-height:1.5; }
+.idea-meta { font-size:11px; color:var(--text-secondary); margin-top:6px; }
+.idea-actions { display:flex; flex-direction:column; gap:6px; }
+.shoot-week-board { display:flex; gap:10px; overflow-x:auto; padding-bottom:10px; }
+.sw-col { flex:1; min-width:130px; background:#fff; border-radius:14px; border:1px solid var(--border); padding:8px; }
+.sw-col-head { text-align:center; font-weight:700; font-size:13px; padding-bottom:8px; border-bottom:1px dashed var(--border); }
+.sw-date { font-size:11px; color:var(--text-secondary); font-weight:400; }
+.sw-col-body { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.sw-card { background:var(--bg); border-radius:10px; padding:8px 10px; border:1px solid var(--border); }
+.sw-card-title { font-weight:600; font-size:12.5px; line-height:1.3; }
+.sw-card-sub { font-size:11px; color:var(--text-secondary); margin-top:3px; }
+.sw-card-actions { margin-top:6px; }
+.shoot-calendar { display:flex; flex-direction:column; gap:6px; }
+.cal-item { display:flex; gap:10px; align-items:center; background:var(--bg); border-radius:10px; padding:8px 12px; font-size:13px; }
+.cal-date { font-weight:700; color:var(--purple); }
+.cal-time { font-size:12px; color:var(--text-secondary); }
+.edit-board { display:flex; gap:14px; overflow-x:auto; padding-bottom:10px; }
+.eb-col { flex:1; min-width:200px; background:#fff; border-radius:16px; padding:12px; border:1px solid var(--border); }
+.eb-col-head { font-weight:700; padding-bottom:10px; margin-bottom:10px; border-bottom:2px solid var(--border); display:flex; align-items:center; }
+.eb-count { margin-left:auto; background:var(--bg); border-radius:10px; padding:1px 9px; font-size:12px; }
+.eb-col-body { display:flex; flex-direction:column; gap:10px; }
+.eb-card { background:var(--bg); border-radius:12px; padding:10px 12px; border:1px solid var(--border); }
+.eb-card-title { font-weight:600; font-size:13px; }
+.eb-card-sub { font-size:12px; color:var(--text-secondary); margin-top:4px; }
+.eb-card-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.publish-list { display:flex; flex-direction:column; gap:10px; }
+.pub-item { display:flex; gap:12px; align-items:center; justify-content:space-between; background:#fff; border-radius:14px; padding:12px 16px; border:1px solid var(--border); }
+.pub-done { background:linear-gradient(120deg,#E8F5E9,#F1FBEF); border-color:rgba(91,185,142,.25); }
+.pub-title { font-weight:600; }
+.pub-meta { font-size:12px; color:var(--text-secondary); margin-top:4px; }
+.pub-golden { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:8px; }
+.golden-item { font-size:12.5px; color:var(--text); display:flex; align-items:center; gap:5px; }
+
 </style>
 </head>
 <body>
@@ -2707,7 +2767,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260856</div>
+    <div class="splash-ver">v2.0.20260857</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -2762,8 +2822,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
         </div>
         <div class="menu-group-body">
           <div class="menu-item" data-panel="dailyTask"><div class="menu-icon">📋</div><span>今日任务</span></div>
-          <div class="menu-item" data-panel="hotVideos"><div class="menu-icon">🔥</div><span>学习爆款视频</span></div>
-          <div class="menu-item" data-panel="birdCare"><div class="menu-icon">🦜</div><span>养鸟知识</span></div>
+          <div class="menu-item" data-panel="moneyOverview"><div class="menu-icon">💡</div><span>搞钱概览</span></div>
+          <div class="menu-item" data-panel="sideFlow"><div class="menu-icon">🌊</div><span>我的支线流</span></div>
           <div class="menu-item" data-panel="products"><div class="menu-icon">🛒</div><span>我的选品</span></div>
           <div class="menu-item" data-panel="liveScript"><div class="menu-icon">🎙️</div><span>我的直播话术</span></div>
         </div>
@@ -3022,8 +3082,121 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
       </div>
 
       <!-- 学习爆款视频 -->
-      <div class="panel" id="panel-hotVideos">
-        <div class="tab-bar" id="hotTabBar">
+
+      <!-- 搞钱概览 -->
+      <div class="panel" id="panel-moneyOverview">
+        <div class="tab-bar" id="moneyOverviewTabBar">
+          <button class="tab-btn active" onclick="switchMoneyOverviewTab('list')">📋 列表</button>
+          <button class="tab-btn" onclick="switchMoneyOverviewTab('board')">📊 看板</button>
+        </div>
+        <div id="moneyOverviewList" class="money-overview-panel">
+          <div class="btn-group" style="margin-bottom:14px;">
+            <button class="btn btn-outline btn-sm" onclick="exportMoneyOverview()">📋 导出</button>
+          </div>
+          <div class="table-container">
+            <table class="daily-task-table" id="moneyOverviewTable">
+              <thead><tr><th style="width:160px;">时间</th><th>标题</th><th style="width:120px;">来源</th><th style="width:120px;">状态</th></tr></thead>
+              <tbody id="moneyOverviewBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="moneyOverviewBoard" class="money-overview-panel" style="display:none;">
+          <div class="mo-board" id="moBoard"></div>
+        </div>
+      </div>
+
+      <!-- 我的支线流 -->
+      <div class="panel" id="panel-sideFlow">
+        <div class="tab-bar" id="sideFlowTabBar">
+          <button class="tab-btn active" onclick="switchSideFlowTab('plan')">📝 选题策划</button>
+          <button class="tab-btn" onclick="switchSideFlowTab('script')">✍️ 脚本创作</button>
+          <button class="tab-btn" onclick="switchSideFlowTab('shoot')">🎬 拍摄执行</button>
+        </div>
+
+        <!-- 选题策划 -->
+        <div id="sideFlowPlan" class="side-flow-panel">
+          <div class="sub-tab-bar" id="planSubTabBar">
+            <button class="sub-tab-btn active" onclick="switchPlanSub('topic')">🎯 选题</button>
+            <button class="sub-tab-btn" onclick="switchPlanSub('bird')">🦜 养鸟知识库</button>
+            <button class="sub-tab-btn" onclick="switchPlanSub('hot')">🔥 学习爆款视频</button>
+          </div>
+
+          <!-- 选题 -->
+          <div id="planTopic" class="plan-sub-panel">
+            <div class="btn-group" style="margin-bottom:14px;">
+              <button class="btn btn-primary" onclick="openIdeaAddModal()">➕ 添加灵感</button>
+            </div>
+            <div class="card">
+              <div class="card-title">💡 灵感收集箱</div>
+              <div id="ideaListBox" class="idea-list"></div>
+            </div>
+            <div class="card" style="margin-top:16px;">
+              <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>🎯 选题库</span>
+                <button class="btn btn-outline btn-sm" onclick="openTopicCatModal()">➕ 新分类</button>
+              </div>
+              <div id="topicBoard" class="mo-board"></div>
+            </div>
+          </div>
+
+          <!-- 养鸟知识库（嵌入原养鸟知识模块） -->
+          <div id="planBird" class="plan-sub-panel" style="display:none;">
+<div class="tab-bar" id="knTabBar">
+          <button class="tab-btn active" onclick="switchKnowledgeTab('mine')">📚 我的知识</button>
+        </div>
+
+        <!-- 我的知识 -->
+        <div id="knTabMine">
+          <div class="btn-group">
+            <button class="btn btn-accent" onclick="openKnAddModal({ l1: knSelectedL1 })">➕ 增加知识</button>
+            <button class="btn btn-outline" onclick="exportKnowledge()">📋 导出科普素材</button>
+          </div>
+
+          <!-- 关键字搜索 -->
+          <div class="kn-search-box">
+            <span class="kn-search-icon">🔍</span>
+            <input type="text" id="knSearchInput" placeholder="按关键字搜索知识库…" oninput="knOnSearchInput()">
+            <button class="kn-search-clear" id="knSearchClear" style="display:none;" onclick="knClearSearch()" title="清空">×</button>
+          </div>
+
+          <div class="card" style="position:relative;overflow:visible;">
+            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+              <span><img class="module-bird" data-bird="b6_couple_v3" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">🦜 养鸟知识库</span>
+              <button class="btn btn-outline btn-sm" onclick="bindIdeaFromPrompt('养鸟知识库')">💡 绑定灵感</button>
+              <button class="btn btn-outline btn-sm" onclick="toggleAllKnowledge(this)">📂 收起全部</button>
+            </div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">点击分类标题自动在右侧展示内容（非编辑态，点「编辑」才可改）；一级 / 二级分类可拖拽排序、增删</p>
+            <div class="doc-layout kn-doc-layout">
+              <div id="birdCareContent"></div>
+              <div id="knDocPanel" class="kn-panel-empty"><div class="empty-state" style="background:transparent;box-shadow:none;border:none;padding:40px 20px;"><img class="bird-illu bird-illu-doc" src="./assets/birds/b12_phone_bird.png?v=4" alt=""><p>👈 点击左侧分类查看内容</p><p class="small">或点击「增加知识」新建第一条养鸟知识</p></div></div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- 存入知识库弹窗（选择一/二级分类 + 确认/取消） -->
+        <div class="kn-save-mask" id="knSaveModal" style="display:none;" onclick="if(event.target===this)knSaveCancel()">
+          <div class="kn-save-modal">
+            <div class="kn-save-title">📥 存入知识库</div>
+            <div class="kn-save-preview" id="knSavePreview"></div>
+            <label class="kn-save-label">一级分类 *</label>
+            <select id="knSaveL1" class="kn-save-select" onchange="knSaveL1Change()"></select>
+            <input type="text" id="knSaveL1New" class="kn-save-input" placeholder="输入新的一级分类名称" style="display:none;">
+            <label class="kn-save-label">二级分类（可选）</label>
+            <select id="knSaveL2" class="kn-save-select" onchange="knSaveL2Change()"></select>
+            <input type="text" id="knSaveL2New" class="kn-save-input" placeholder="输入新的二级分类名称" style="display:none;">
+            <div class="kn-save-btns">
+              <button class="btn btn-primary btn-sm" onclick="knSaveConfirm()">✅ 确认</button>
+              <button class="btn btn-outline btn-sm" onclick="knSaveCancel()">✕ 取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+          </div>
+
+          <!-- 学习爆款视频（嵌入原爆款模块） -->
+          <div id="planHot" class="plan-sub-panel" style="display:none;">
+<div class="tab-bar" id="hotTabBar">
           <button class="tab-btn active" onclick="switchHotTab('break')">📁 我的拆解</button>
           <button class="tab-btn" onclick="switchHotTab('mind')">🧠 头脑风暴</button>
         </div>
@@ -3033,6 +3206,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           <div class="btn-group">
             <button class="btn btn-primary" onclick="openHotAddModal()">➕ 添加拆解</button>
             <button class="btn btn-accent" onclick="openAutoBreakModal()">🤖 自动拆解</button>
+            <button class="btn btn-outline" onclick="bindIdeaFromPrompt('学习爆款视频')">💡 绑定灵感</button>
           </div>
 
           <!-- 搜索栏 -->
@@ -3076,56 +3250,58 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           </div>
         </div>
       </div>
-
-      <!-- 养鸟知识 -->
-      <div class="panel" id="panel-birdCare">
-        <div class="tab-bar" id="knTabBar">
-          <button class="tab-btn active" onclick="switchKnowledgeTab('mine')">📚 我的知识</button>
+          </div>
         </div>
 
-        <!-- 我的知识 -->
-        <div id="knTabMine">
-          <div class="btn-group">
-            <button class="btn btn-accent" onclick="openKnAddModal({ l1: knSelectedL1 })">➕ 增加知识</button>
-            <button class="btn btn-outline" onclick="exportKnowledge()">📋 导出科普素材</button>
+        <!-- 脚本创作 -->
+        <div id="sideFlowScript" class="side-flow-panel" style="display:none;">
+          <div class="sub-tab-bar" id="scriptSubTabBar">
+            <button class="sub-tab-btn active" onclick="switchScriptSub('lib')">📚 脚本库</button>
+            <button class="sub-tab-btn" onclick="switchScriptSub('copy')">📝 文案库</button>
           </div>
-
-          <!-- 关键字搜索 -->
-          <div class="kn-search-box">
-            <span class="kn-search-icon">🔍</span>
-            <input type="text" id="knSearchInput" placeholder="按关键字搜索知识库…" oninput="knOnSearchInput()">
-            <button class="kn-search-clear" id="knSearchClear" style="display:none;" onclick="knClearSearch()" title="清空">×</button>
-          </div>
-
-          <div class="card" style="position:relative;overflow:visible;">
-            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-              <span><img class="module-bird" data-bird="b6_couple_v3" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">🦜 养鸟知识库</span>
-              <button class="btn btn-outline btn-sm" onclick="toggleAllKnowledge(this)">📂 收起全部</button>
+          <div id="scriptLib" class="script-sub-panel">
+            <div class="card">
+              <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>📚 脚本库</span>
+                <button class="btn btn-outline btn-sm" onclick="openScriptCatModal()">➕ 新分类</button>
+              </div>
+              <div id="scriptBoard" class="mo-board"></div>
             </div>
-            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">点击分类标题自动在右侧展示内容（非编辑态，点「编辑」才可改）；一级 / 二级分类可拖拽排序、增删</p>
-            <div class="doc-layout kn-doc-layout">
-              <div id="birdCareContent"></div>
-              <div id="knDocPanel" class="kn-panel-empty"><div class="empty-state" style="background:transparent;box-shadow:none;border:none;padding:40px 20px;"><img class="bird-illu bird-illu-doc" src="./assets/birds/b12_phone_bird.png?v=4" alt=""><p>👈 点击左侧分类查看内容</p><p class="small">或点击「增加知识」新建第一条养鸟知识</p></div></div>
+          </div>
+          <div id="scriptCopy" class="script-sub-panel" style="display:none;">
+            <div class="card">
+              <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>📝 文案库</span>
+                <button class="btn btn-outline btn-sm" onclick="openCopyCatModal()">➕ 新分类</button>
+              </div>
+              <div id="copyBoard" class="mo-board"></div>
             </div>
           </div>
         </div>
 
-
-        <!-- 存入知识库弹窗（选择一/二级分类 + 确认/取消） -->
-        <div class="kn-save-mask" id="knSaveModal" style="display:none;" onclick="if(event.target===this)knSaveCancel()">
-          <div class="kn-save-modal">
-            <div class="kn-save-title">📥 存入知识库</div>
-            <div class="kn-save-preview" id="knSavePreview"></div>
-            <label class="kn-save-label">一级分类 *</label>
-            <select id="knSaveL1" class="kn-save-select" onchange="knSaveL1Change()"></select>
-            <input type="text" id="knSaveL1New" class="kn-save-input" placeholder="输入新的一级分类名称" style="display:none;">
-            <label class="kn-save-label">二级分类（可选）</label>
-            <select id="knSaveL2" class="kn-save-select" onchange="knSaveL2Change()"></select>
-            <input type="text" id="knSaveL2New" class="kn-save-input" placeholder="输入新的二级分类名称" style="display:none;">
-            <div class="kn-save-btns">
-              <button class="btn btn-primary btn-sm" onclick="knSaveConfirm()">✅ 确认</button>
-              <button class="btn btn-outline btn-sm" onclick="knSaveCancel()">✕ 取消</button>
+        <!-- 拍摄执行 -->
+        <div id="sideFlowShoot" class="side-flow-panel" style="display:none;">
+          <div class="card">
+            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>🎬 本周拍摄排期（<span id="shootWeekRange"></span>）</span>
+              <button class="btn btn-primary btn-sm" onclick="openShootScheduleModal()">➕ 添加排期</button>
             </div>
+            <div id="shootWeekBoard" class="shoot-week-board"></div>
+          </div>
+          <div class="card" style="margin-top:16px;">
+            <div class="card-title">📅 拍摄日历</div>
+            <div id="shootCalendar" class="shoot-calendar"></div>
+          </div>
+          <div class="card" style="margin-top:16px;">
+            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>✂️ 剪辑进度看板</span>
+              <button class="btn btn-outline btn-sm" onclick="openEditFromShootModal()">➕ 待剪辑</button>
+            </div>
+            <div id="editBoard" class="edit-board"></div>
+          </div>
+          <div class="card" style="margin-top:16px;">
+            <div class="card-title">🚀 发布列表</div>
+            <div id="publishList" class="publish-list"></div>
           </div>
         </div>
       </div>
@@ -4674,6 +4850,12 @@ function reloadAllData() {
   if(ais) { aiScriptData = JSON.parse(ais); renderAIScripts(); }
   const kn = localStorage.getItem('parrot_knowledge_v3');
   if(kn) { userKnowledge = JSON.parse(kn); renderKnowledge(); }
+  // 我的支线流 / 搞钱概览 数据
+  loadFlowData();
+  if(currentMoneyOverviewTab === 'list') renderMoneyOverviewList(); else renderMoneyOverviewBoard();
+  renderIdeaList(); renderTopicBoard();
+  renderScriptBoard(); renderCopyBoard();
+  renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList();
   // 统一刷新已注册模块（含新增模块，确保同步数据落到内存与UI）
   // 金币系统：重载后重新读入并补领（幂等）
   loadCoins();
@@ -4745,7 +4927,7 @@ document.getElementById('dateDisplay').textContent = todayStr;
 document.getElementById('sidebarDate').textContent = todayStr;
 
 // ===================== 菜单切换 =====================
-const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
+const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, moneyOverview:{text:'搞钱概览',icon:'💡'}, sideFlow:{text:'我的支线流',icon:'🌊'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
 
 // 菜单分组展开/收起（持久化）
 const MENU_GROUP_KEY = 'parrot_menu_groups_collapsed';
@@ -4784,6 +4966,8 @@ document.querySelectorAll('.menu-item').forEach(item => {
     if(pid==='home') renderHome();
     if(pid==='gold') { renderGoldAll(); fetchGoldPrice(); }
     if(pid==='travel') ensureTravelReady();
+    if(pid==='moneyOverview') { renderMoneyOverviewList(); renderMoneyOverviewBoard(); }
+    if(pid==='sideFlow') { renderSideFlowActive(); }
     if(window.innerWidth<=767) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
   });
 });
@@ -15772,6 +15956,542 @@ registerDataReloader(() => {
 // 初始化
 loadTravelData();
 fillTravelDatalists();
+
+
+// ===================== 我的支线流 / 搞钱概览 · 内容创作工作流 =====================
+// 状态枚举：已选题 selected / 待写脚本 script_todo / 完成脚本 script_done / 待拍摄 shoot / 待剪辑 edit_pending / 剪辑中 editing / 已发布 published
+const FLOW_STATUS = [
+  { key:'selected', label:'已选题', color:'#7B6FA0' },
+  { key:'script_todo', label:'待写脚本', color:'#FFA726' },
+  { key:'script_done', label:'完成脚本', color:'#42A5F5' },
+  { key:'shoot', label:'待拍摄', color:'#EF5350' },
+  { key:'edit_pending', label:'待剪辑', color:'#AB47BC' },
+  { key:'editing', label:'剪辑中', color:'#26C6DA' },
+  { key:'published', label:'已发布', color:'#66BB6A' }
+];
+function flowStatusLabel(k){ const o=FLOW_STATUS.find(x=>x.key===k); return o?o.label:k; }
+function flowStatusColor(k){ const o=FLOW_STATUS.find(x=>x.key===k); return o?o.color:'#9E9E9E'; }
+function genFlowId(){ return 'fl_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function nowStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+
+// 主线数据：每条内容一个对象，跟随操作更新 status / title / source
+let flowItems = [];
+let ideas = [];           // 灵感收集箱
+let topicCats = [];       // 选题库分类 [{id,name,items:[{flowId,title,audience,pain,prio}]}]
+let scriptCats = [];      // 脚本库分类 [{id,name,items:[{flowId,title,script,note}]}]
+let copyCats = [];        // 文案库分类 [{id,name,items:[{flowId,title,text}]}]
+let shootSchedules = [];  // 拍摄排期 [{flowId,date,time,note,title}]
+let editBoard = [];       // 剪辑进度 [{flowId,status:'pending'|'editing'|'done',note,title}]
+let published = [];       // 已发布 [{flowId,platform,publishTime,note,title,golden:[{text,done}]}]
+
+function loadFlowData(){
+  flowItems = JSON.parse(localStorage.getItem('parrot_flow_items_v1') || '[]');
+  ideas = JSON.parse(localStorage.getItem('parrot_ideas_v1') || '[]');
+  topicCats = JSON.parse(localStorage.getItem('parrot_topic_cats_v1') || '[]');
+  scriptCats = JSON.parse(localStorage.getItem('parrot_script_cats_v1') || '[]');
+  copyCats = JSON.parse(localStorage.getItem('parrot_copy_cats_v1') || '[]');
+  shootSchedules = JSON.parse(localStorage.getItem('parrot_shoot_sched_v1') || '[]');
+  editBoard = JSON.parse(localStorage.getItem('parrot_edit_board_v1') || '[]');
+  published = JSON.parse(localStorage.getItem('parrot_published_v1') || '[]');
+}
+function saveFlow(){ localStorage.setItem('parrot_flow_items_v1', JSON.stringify(flowItems)); onLocalDataChange(); }
+function saveIdeas(){ localStorage.setItem('parrot_ideas_v1', JSON.stringify(ideas)); onLocalDataChange(); }
+function saveTopicCats(){ localStorage.setItem('parrot_topic_cats_v1', JSON.stringify(topicCats)); onLocalDataChange(); }
+function saveScriptCats(){ localStorage.setItem('parrot_script_cats_v1', JSON.stringify(scriptCats)); onLocalDataChange(); }
+function saveCopyCats(){ localStorage.setItem('parrot_copy_cats_v1', JSON.stringify(copyCats)); onLocalDataChange(); }
+function saveShoot(){ localStorage.setItem('parrot_shoot_sched_v1', JSON.stringify(shootSchedules)); onLocalDataChange(); }
+function saveEditBoard(){ localStorage.setItem('parrot_edit_board_v1', JSON.stringify(editBoard)); onLocalDataChange(); }
+function savePublished(){ localStorage.setItem('parrot_published_v1', JSON.stringify(published)); onLocalDataChange(); }
+
+// 主线更新：保证一条数据只有最新状态；title 取非空最新
+function touchFlow(flowId, patch){
+  let it = flowItems.find(x=>x.flowId===flowId);
+  if(!it){ it = { flowId, createdAt: nowStr(), title:'', source:'手动', status:'selected' }; flowItems.push(it); }
+  Object.assign(it, patch);
+  saveFlow();
+  return it;
+}
+function getFlow(flowId){ return flowItems.find(x=>x.flowId===flowId); }
+function flowTitle(flowId, fallback){
+  const it = getFlow(flowId);
+  return (it && it.title) ? it.title : (fallback || '未命名');
+}
+
+// ============ 搞钱概览 ============
+let currentMoneyOverviewTab = 'list';
+function switchMoneyOverviewTab(t){
+  currentMoneyOverviewTab = t;
+  document.querySelectorAll('#moneyOverviewTabBar .tab-btn').forEach(b=>b.classList.toggle('active', b.textContent.includes(t==='list'?'列表':'看板')));
+  document.getElementById('moneyOverviewList').style.display = t==='list'?'block':'none';
+  document.getElementById('moneyOverviewBoard').style.display = t==='board'?'block':'none';
+  if(t==='list') renderMoneyOverviewList(); else renderMoneyOverviewBoard();
+}
+function renderMoneyOverviewList(){
+  const box = document.getElementById('moneyOverviewBody'); if(!box) return;
+  if(!flowItems.length){ box.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-secondary);">暂无内容数据，去「我的支线流」开始创作吧～</td></tr>'; return; }
+  const sorted = flowItems.slice().sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
+  box.innerHTML = sorted.map(it=>`<tr>
+    <td>${it.createdAt||''}</td>
+    <td>${escapeHtml(it.title||'未命名')}</td>
+    <td>${escapeHtml(it.source||'手动')}</td>
+    <td><span class="mo-status-pill" style="background:${flowStatusColor(it.status)}22;color:${flowStatusColor(it.status)};">${flowStatusLabel(it.status)}</span></td>
+  </tr>`).join('');
+}
+function renderMoneyOverviewBoard(){
+  const box = document.getElementById('moBoard'); if(!box) return;
+  box.innerHTML = FLOW_STATUS.map(s=>{
+    const items = flowItems.filter(x=>x.status===s.key);
+    return `<div class="mo-col">
+      <div class="mo-col-head" style="border-color:${s.color};"><span class="mo-col-dot" style="background:${s.color}"></span>${s.label}<span class="mo-col-count">${items.length}</span></div>
+      <div class="mo-col-body">${items.map(it=>`<div class="mo-card"><div class="mo-card-title">${escapeHtml(it.title||'未命名')}</div><div class="mo-card-time">${it.createdAt||''}</div></div>`).join('') || '<div class="mo-empty">空</div>'}</div>
+    </div>`;
+  }).join('');
+}
+function exportMoneyOverview(){
+  let text = '时间\t标题\t来源\t状态\n';
+  flowItems.slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).forEach(it=>{
+    text += `${it.createdAt||''}\t${(it.title||'未命名').replace(/\n/g,' ')}\t${it.source||'手动'}\t${flowStatusLabel(it.status)}\n`;
+  });
+  downloadText('搞钱概览.csv', text);
+}
+
+// ============ 我的支线流 切换 ============
+function switchSideFlowTab(t){
+  document.querySelectorAll('#sideFlowTabBar .tab-btn').forEach(b=>b.classList.toggle('active', b.textContent.includes(t==='plan'?'选题策划':t==='script'?'脚本创作':'拍摄执行')));
+  document.getElementById('sideFlowPlan').style.display = t==='plan'?'block':'none';
+  document.getElementById('sideFlowScript').style.display = t==='script'?'block':'none';
+  document.getElementById('sideFlowShoot').style.display = t==='shoot'?'block':'none';
+  if(t==='plan'){ renderIdeaList(); renderTopicBoard(); }
+  if(t==='script'){ renderScriptBoard(); renderCopyBoard(); }
+  if(t==='shoot'){ renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList(); }
+}
+function switchPlanSub(t){
+  document.querySelectorAll('#planSubTabBar .sub-tab-btn').forEach(b=>b.classList.toggle('active', b.textContent.includes(t==='topic'?'选题':t==='bird'?'养鸟':'爆款')));
+  document.getElementById('planTopic').style.display = t==='topic'?'block':'none';
+  document.getElementById('planBird').style.display = t==='bird'?'block':'none';
+  document.getElementById('planHot').style.display = t==='hot'?'block':'none';
+  if(t==='bird'){ const mi=document.querySelector('.menu-item[data-panel="birdCare"]'); }
+  if(t==='bird') renderKnowledge();
+  if(t==='hot') renderHotItems();
+}
+function switchScriptSub(t){
+  document.querySelectorAll('#scriptSubTabBar .sub-tab-btn').forEach(b=>b.classList.toggle('active', b.textContent.includes(t==='lib'?'脚本库':'文案库')));
+  document.getElementById('scriptLib').style.display = t==='lib'?'block':'none';
+  document.getElementById('scriptCopy').style.display = t==='copy'?'block':'none';
+  if(t==='lib') renderScriptBoard(); else renderCopyBoard();
+}
+function renderSideFlowActive(){
+  const planVisible = document.getElementById('sideFlowPlan').style.display !== 'none';
+  if(planVisible){ renderIdeaList(); renderTopicBoard(); }
+}
+
+// ============ 灵感收集箱 ============
+function renderIdeaList(){
+  const box = document.getElementById('ideaListBox'); if(!box) return;
+  if(!ideas.length){ box.innerHTML = '<div class="empty-state"><p>还没有灵感，点「添加灵感」记录第一个想法吧</p></div>'; return; }
+  box.innerHTML = ideas.map((it,i)=>`<div class="idea-item" data-flow="${it.flowId}">
+    <div class="idea-main">
+      <div class="idea-title">${escapeHtml(it.title)}</div>
+      ${it.note?`<div class="idea-note">${escapeHtml(it.note)}</div>`:''}
+      <div class="idea-meta">来源：${escapeHtml(it.source||'手动')} · ${it.createdAt||''}</div>
+    </div>
+    <div class="idea-actions">
+      <button class="btn btn-outline btn-sm" onclick="addIdeaToTopic('${it.flowId}')">加入选题库</button>
+      <button class="btn btn-outline btn-sm" onclick="editIdea('${it.flowId}')">编辑</button>
+      <button class="btn btn-outline btn-sm" onclick="deleteIdea('${it.flowId}')">删除</button>
+    </div>
+  </div>`).join('');
+}
+function openIdeaAddModal(){
+  showAppPrompt({ title:'添加灵感', fields:[
+    { key:'title', label:'灵感标题', placeholder:'例如：玄凤鹦鹉炸毛怎么办' },
+    { key:'note', label:'备注', type:'textarea', placeholder:'可选' }
+  ]}, (vals)=>{
+    if(!vals || !vals.title) return;
+    const flowId = genFlowId();
+    ideas.push({ flowId, title:vals.title, note:vals.note||'', source:'手动', createdAt:nowStr() });
+    saveIdeas();
+    touchFlow(flowId, { title:vals.title, source:'手动', status:'selected' });
+    renderIdeaList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    showToast('💡 灵感已记录');
+  });
+}
+function editIdea(flowId){
+  const it = ideas.find(x=>x.flowId===flowId); if(!it) return;
+  showAppPrompt({ title:'编辑灵感', fields:[
+    { key:'title', label:'灵感标题', value:it.title },
+    { key:'note', label:'备注', type:'textarea', value:it.note||'' }
+  ]}, (vals)=>{
+    if(!vals || !vals.title) return;
+    it.title=vals.title; it.note=vals.note||''; saveIdeas();
+    touchFlow(flowId, { title:vals.title });
+    renderIdeaList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+  });
+}
+function deleteIdea(flowId){
+  showConfirm('确认删除这条灵感？', ()=>{
+    ideas = ideas.filter(x=>x.flowId!==flowId);
+    saveIdeas(); renderIdeaList();
+  });
+}
+// 养鸟知识库 / 爆款视频 绑定灵感（供那两个模块调用）
+function bindIdeaFromExternal(title, source){
+  const flowId = genFlowId();
+  ideas.push({ flowId, title, note:'', source, createdAt:nowStr() });
+  saveIdeas();
+  touchFlow(flowId, { title, source, status:'selected' });
+  renderIdeaList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+}
+function bindIdeaFromPrompt(source){
+  const cur = document.querySelector('#knDocPanel .kn-doc-title, #hotDocPanel .doc-title, #knDocPanel h2, #hotDocPanel h2');
+  const prefill = cur ? cur.textContent.trim() : '';
+  showAppPrompt({ title:'绑定灵感到灵感收集箱', fields:[
+    { key:'title', label:'灵感标题', value:prefill },
+    { key:'note', label:'备注', type:'textarea' }
+  ]}, (vals)=>{
+    if(!vals || !vals.title) return;
+    bindIdeaFromExternal(vals.title, source);
+    showToast('💡 已绑定到灵感收集箱');
+  });
+}
+function addIdeaToTopic(flowId){
+  if(!topicCats.length) openTopicCatModal(flowId); else pickTopicCat(flowId);
+}
+
+// ============ 选题库 ============
+function openTopicCatModal(pendingFlowId){
+  showAppPrompt({ title:'新建选题分类', fields:[ { key:'name', label:'分类名称', placeholder:'例如：新手养鸟科普' } ] }, (vals)=>{
+    if(!vals || !vals.name) return;
+    const cat = { id:genFlowId(), name:vals.name, items:[] };
+    topicCats.push(cat); saveTopicCats();
+    renderTopicBoard();
+    if(pendingFlowId) pickTopicCat(pendingFlowId);
+  });
+}
+function pickTopicCat(flowId){
+  const it = ideas.find(x=>x.flowId===flowId);
+  const title = it?it.title:'';
+  showAppPrompt({ title:'加入选题库', fields:[
+    { key:'catId', label:'选择分类', type:'select', options:topicCats.map(c=>({value:c.id,text:c.name})) },
+    { key:'title', label:'标题', value:title },
+    { key:'audience', label:'人群', placeholder:'例如：养鸟新手' },
+    { key:'pain', label:'痛点', placeholder:'例如：不知道怎么选笼子' },
+    { key:'prio', label:'优先级', type:'select', options:[{value:'P0',text:'P0'},{value:'P1',text:'P1'},{value:'P2',text:'P2'},{value:'P3',text:'P3'}] }
+  ]}, (vals)=>{
+    if(!vals || !vals.catId) return;
+    const cat = topicCats.find(c=>c.id===vals.catId); if(!cat) return;
+    cat.items.push({ flowId, title:vals.title||title, audience:vals.audience||'', pain:vals.pain||'', prio:vals.prio||'P2' });
+    saveTopicCats();
+    touchFlow(flowId, { title:vals.title||title, status:'script_todo' });
+    ideas = ideas.filter(x=>x.flowId!==flowId); saveIdeas();
+    renderTopicBoard(); renderIdeaList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    showToast('🎯 已加入选题库');
+  });
+}
+function openTopicAddDirect(catId){
+  showAppPrompt({ title:'添加选题', fields:[
+    { key:'title', label:'标题' },
+    { key:'audience', label:'人群' },
+    { key:'pain', label:'痛点' },
+    { key:'prio', label:'优先级', type:'select', options:[{value:'P0',text:'P0'},{value:'P1',text:'P1'},{value:'P2',text:'P2'},{value:'P3',text:'P3'}] }
+  ]}, (vals)=>{
+    if(!vals || !vals.title) return;
+    const flowId = genFlowId();
+    const cat = topicCats.find(c=>c.id===catId); if(!cat) return;
+    cat.items.push({ flowId, title:vals.title, audience:vals.audience||'', pain:vals.pain||'', prio:vals.prio||'P2' });
+    saveTopicCats();
+    touchFlow(flowId, { title:vals.title, source:'手动', status:'script_todo' });
+    renderTopicBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+  });
+}
+function deleteTopicItem(catId, flowId){
+  const cat = topicCats.find(c=>c.id===catId); if(!cat) return;
+  cat.items = cat.items.filter(x=>x.flowId!==flowId);
+  saveTopicCats(); renderTopicBoard();
+}
+function renderTopicBoard(){
+  const box = document.getElementById('topicBoard'); if(!box) return;
+  if(!topicCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
+  box.innerHTML = topicCats.map(cat=>`
+    <div class="mo-cat">
+      <div class="mo-cat-head"><span>${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
+        <button class="btn btn-outline btn-sm" onclick="openTopicAddDirect('${cat.id}')">➕ 加选题</button>
+      </div>
+      <div class="mo-cat-body">${cat.items.map(it=>`<div class="mo-card">
+        <div class="mo-card-prio prio-${(it.prio||'P2').toLowerCase()}">${it.prio||'P2'}</div>
+        <div class="mo-card-title">${escapeHtml(it.title)}</div>
+        ${it.audience?`<div class="mo-card-sub">👤 ${escapeHtml(it.audience)}</div>`:''}
+        ${it.pain?`<div class="mo-card-sub">💢 ${escapeHtml(it.pain)}</div>`:''}
+        <div class="mo-card-actions">
+          <button class="btn btn-outline btn-sm" onclick="topicToScript('${it.flowId}')">写脚本</button>
+          <button class="btn btn-outline btn-sm" onclick="deleteTopicItem('${cat.id}','${it.flowId}')">✕</button>
+        </div>
+      </div>`).join('') || '<div class="mo-empty">暂无选题</div>'}</div>
+    </div>`).join('');
+}
+
+// ============ 脚本库 ============
+function openScriptCatModal(){
+  showAppPrompt({ title:'新建脚本分类', fields:[ { key:'name', label:'分类名称' } ] }, (vals)=>{
+    if(!vals || !vals.name) return;
+    scriptCats.push({ id:genFlowId(), name:vals.name, items:[] });
+    saveScriptCats(); renderScriptBoard();
+  });
+}
+function openScriptAddDirect(catId){
+  // 选择选题库数据复用标题
+  const allTopics = topicCats.flatMap(c=>c.items.map(it=>({catId:c.id, ...it})));
+  const fields = [
+    { key:'topicFlowId', label:'复用选题（可选）', type:'select', options:[{value:'',text:'不复用，自己写'}].concat(allTopics.map(t=>({value:t.flowId,text:t.title}))) },
+    { key:'title', label:'标题' },
+    { key:'script', label:'脚本', type:'textarea' },
+    { key:'note', label:'备注', type:'textarea' }
+  ];
+  showAppPrompt({ title:'添加脚本', fields }, (vals)=>{
+    if(!vals || !vals.title) return;
+    const flowId = vals.topicFlowId || genFlowId();
+    const cat = scriptCats.find(c=>c.id===catId); if(!cat) return;
+    cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'' });
+    saveScriptCats();
+    touchFlow(flowId, { title:vals.title, status:'script_done' });
+    // 同步：选题库对应项也算完成（不删除，仅状态更新）
+    renderScriptBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    showToast('✍️ 脚本已保存');
+  });
+}
+function topicToScript(flowId){
+  // 从选题库点击「写脚本」：自动复用标题，切到脚本创作 tab
+  const it = topicCats.flatMap(c=>c.items).find(x=>x.flowId===flowId);
+  const title = it?it.title:'';
+  switchSideFlowTab('script'); switchScriptSub('lib');
+  if(!scriptCats.length){ openScriptCatModal(); }
+  setTimeout(()=>{
+    showAppPrompt({ title:'添加脚本', fields:[
+      { key:'topicFlowId', label:'复用选题', type:'select', options:[{value:flowId,text:title}] },
+      { key:'title', label:'标题', value:title },
+      { key:'script', label:'脚本', type:'textarea' },
+      { key:'note', label:'备注', type:'textarea' }
+    ]}, (vals)=>{
+      if(!vals || !vals.title) return;
+      const cat = scriptCats[0];
+      cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'' });
+      saveScriptCats();
+      touchFlow(flowId, { title:vals.title, status:'script_done' });
+      renderScriptBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    });
+  }, 50);
+}
+function deleteScriptItem(catId, flowId){
+  const cat = scriptCats.find(c=>c.id===catId); if(!cat) return;
+  cat.items = cat.items.filter(x=>x.flowId!==flowId);
+  saveScriptCats(); renderScriptBoard();
+}
+function renderScriptBoard(){
+  const box = document.getElementById('scriptBoard'); if(!box) return;
+  if(!scriptCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
+  box.innerHTML = scriptCats.map(cat=>`
+    <div class="mo-cat">
+      <div class="mo-cat-head"><span>${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
+        <button class="btn btn-outline btn-sm" onclick="openScriptAddDirect('${cat.id}')">➕ 加脚本</button>
+      </div>
+      <div class="mo-cat-body">${cat.items.map(it=>`<div class="mo-card">
+        <div class="mo-card-title">${escapeHtml(it.title)}</div>
+        ${it.script?`<div class="mo-card-sub" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">📄 ${escapeHtml(it.script)}</div>`:''}
+        ${it.note?`<div class="mo-card-sub">📝 ${escapeHtml(it.note)}</div>`:''}
+        <div class="mo-card-actions">
+          <button class="btn btn-outline btn-sm" onclick="scriptToShoot('${it.flowId}')">排期</button>
+          <button class="btn btn-outline btn-sm" onclick="deleteScriptItem('${cat.id}','${it.flowId}')">✕</button>
+        </div>
+      </div>`).join('') || '<div class="mo-empty">暂无脚本</div>'}</div>
+    </div>`).join('');
+}
+
+// ============ 文案库 ============
+function openCopyCatModal(){
+  showAppPrompt({ title:'新建文案分类', fields:[ { key:'name', label:'分类名称' } ] }, (vals)=>{
+    if(!vals || !vals.name) return;
+    copyCats.push({ id:genFlowId(), name:vals.name, items:[] });
+    saveCopyCats(); renderCopyBoard();
+  });
+}
+function openCopyAddDirect(catId){
+  showAppPrompt({ title:'添加文案', fields:[
+    { key:'title', label:'标题' },
+    { key:'text', label:'文案内容', type:'textarea' }
+  ]}, (vals)=>{
+    if(!vals || !vals.title) return;
+    const cat = copyCats.find(c=>c.id===catId); if(!cat) return;
+    cat.items.push({ id:genFlowId(), title:vals.title, text:vals.text||'' });
+    saveCopyCats(); renderCopyBoard();
+  });
+}
+function deleteCopyItem(catId, itemId){
+  const cat = copyCats.find(c=>c.id===catId); if(!cat) return;
+  cat.items = cat.items.filter(x=>x.id!==itemId);
+  saveCopyCats(); renderCopyBoard();
+}
+function renderCopyBoard(){
+  const box = document.getElementById('copyBoard'); if(!box) return;
+  if(!copyCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
+  box.innerHTML = copyCats.map(cat=>`
+    <div class="mo-cat">
+      <div class="mo-cat-head"><span>${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
+        <button class="btn btn-outline btn-sm" onclick="openCopyAddDirect('${cat.id}')">➕ 加文案</button>
+      </div>
+      <div class="mo-cat-body">${cat.items.map(it=>`<div class="mo-card">
+        <div class="mo-card-title">${escapeHtml(it.title)}</div>
+        ${it.text?`<div class="mo-card-sub" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(it.text)}</div>`:''}
+        <div class="mo-card-actions"><button class="btn btn-outline btn-sm" onclick="deleteCopyItem('${cat.id}','${it.id}')">✕</button></div>
+      </div>`).join('') || '<div class="mo-empty">暂无文案</div>'}</div>
+    </div>`).join('');
+}
+
+// ============ 拍摄执行 ============
+function weekRange(){
+  const now = new Date();
+  const day = (now.getDay()+6)%7; // 周一=0
+  const mon = new Date(now); mon.setDate(now.getDate()-day);
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  const fmt = d => d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
+  return { mon, sun, label: fmt(mon)+'-'+fmt(sun) };
+}
+function renderShootWeek(){
+  const board = document.getElementById('shootWeekBoard'); if(!board) return;
+  const range = weekRange();
+  const rg = document.getElementById('shootWeekRange'); if(rg) rg.textContent = range.label;
+  const days = [];
+  for(let i=0;i<7;i++){ const d=new Date(range.mon); d.setDate(range.mon.getDate()+i); days.push(d); }
+  const wd = ['周一','周二','周三','周四','周五','周六','周日'];
+  board.innerHTML = days.map((d,i)=>{
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const items = shootSchedules.filter(s=>s.date===key);
+    return `<div class="sw-col">
+      <div class="sw-col-head">${wd[i]}<div class="sw-date">${d.getMonth()+1}/${d.getDate()}</div></div>
+      <div class="sw-col-body">${items.map(s=>`<div class="sw-card">
+        <div class="sw-card-title">${escapeHtml(flowTitle(s.flowId,s.title))}</div>
+        ${s.time?`<div class="sw-card-sub">🕐 ${escapeHtml(s.time)}</div>`:''}
+        ${s.note?`<div class="sw-card-sub">📝 ${escapeHtml(s.note)}</div>`:''}
+        <div class="sw-card-actions"><button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button></div>
+      </div>`).join('') || '<div class="sw-empty">—</div>'}</div>
+    </div>`;
+  }).join('');
+}
+function openShootScheduleModal(){
+  // 选择脚本库数据
+  const allScripts = scriptCats.flatMap(c=>c.items.map(it=>({catId:c.id, ...it})));
+  if(!allScripts.length){ showToast('请先在脚本库添加脚本'); return; }
+  showAppPrompt({ title:'添加拍摄排期', fields:[
+    { key:'flowId', label:'选择脚本', type:'select', options:allScripts.map(s=>({value:s.flowId,text:s.title})) },
+    { key:'date', label:'拍摄日期', type:'date' },
+    { key:'time', label:'时间（可选）' },
+    { key:'note', label:'备注', type:'textarea' }
+  ]}, (vals)=>{
+    if(!vals || !vals.flowId || !vals.date) return;
+    shootSchedules.push({ flowId:vals.flowId, date:vals.date, time:vals.time||'', note:vals.note||'', title:flowTitle(vals.flowId) });
+    saveShoot();
+    touchFlow(vals.flowId, { status:'shoot' });
+    renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    showToast('🎬 已加入拍摄排期');
+  });
+}
+function renderShootCalendar(){
+  const box = document.getElementById('shootCalendar'); if(!box) return;
+  if(!shootSchedules.length){ box.innerHTML = '<div class="empty-state"><p>暂无拍摄排期</p></div>'; return; }
+  box.innerHTML = shootSchedules.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(s=>`<div class="cal-item">
+    <span class="cal-date">${s.date}</span>
+    <span class="cal-title">${escapeHtml(flowTitle(s.flowId,s.title))}</span>
+    ${s.time?`<span class="cal-time">🕐${escapeHtml(s.time)}</span>`:''}
+  </div>`).join('');
+}
+function shootToEdit(flowId){
+  if(editBoard.find(x=>x.flowId===flowId)){ showToast('已在剪辑看板'); return; }
+  const s = shootSchedules.find(x=>x.flowId===flowId);
+  editBoard.push({ flowId, status:'pending', note:s?s.note:'', title:flowTitle(flowId) });
+  saveEditBoard();
+  touchFlow(flowId, { status:'edit_pending' });
+  renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+  showToast('✂️ 已加入待剪辑');
+}
+function openEditFromShootModal(){
+  const avail = shootSchedules.filter(s=>!editBoard.find(e=>e.flowId===s.flowId));
+  if(!avail.length){ showToast('没有可加入的拍摄排期'); return; }
+  showAppPrompt({ title:'加入待剪辑', fields:[
+    { key:'flowId', label:'选择拍摄排期', type:'select', options:avail.map(s=>({value:s.flowId,text:flowTitle(s.flowId,s.title)})) },
+    { key:'note', label:'备注', type:'textarea' }
+  ]}, (vals)=>{
+    if(!vals || !vals.flowId) return;
+    editBoard.push({ flowId:vals.flowId, status:'pending', note:vals.note||'', title:flowTitle(vals.flowId) });
+    saveEditBoard();
+    touchFlow(vals.flowId, { status:'edit_pending' });
+    renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+  });
+}
+function renderEditBoard(){
+  const box = document.getElementById('editBoard'); if(!box) return;
+  const pending = editBoard.filter(e=>e.status==='pending');
+  const editing = editBoard.filter(e=>e.status==='editing');
+  const done = editBoard.filter(e=>e.status==='done');
+  const col = (title, arr, allowMove)=>`<div class="eb-col">
+    <div class="eb-col-head">${title}<span class="eb-count">${arr.length}</span></div>
+    <div class="eb-col-body">${arr.map(e=>`<div class="eb-card">
+      <div class="eb-card-title">${escapeHtml(flowTitle(e.flowId,e.title))}</div>
+      ${e.note?`<div class="eb-card-sub">📝 ${escapeHtml(e.note)}</div>`:''}
+      <div class="eb-card-actions">${allowMove==='pending'?`<button class="btn btn-outline btn-sm" onclick="editMove('${e.flowId}','editing')">→剪辑中</button>`:''}${allowMove==='editing'?`<button class="btn btn-outline btn-sm" onclick="editMove('${e.flowId}','done')">→已完成</button>`:''}${allowMove==='pending'?`<button class="btn btn-outline btn-sm" onclick="editRemove('${e.flowId}')">✕</button>`:''}</div>
+    </div>`).join('') || '<div class="eb-empty">空</div>'}</div>
+  </div>`;
+  box.innerHTML = col('待剪辑', pending, 'pending') + col('剪辑中', editing, 'editing') + col('已完成', done, '');
+}
+function editMove(flowId, status){
+  const e = editBoard.find(x=>x.flowId===flowId); if(!e) return;
+  e.status = status; saveEditBoard();
+  const flowStatus = status==='editing'?'editing':(status==='done'?'editing':'edit_pending');
+  touchFlow(flowId, { status: flowStatus });
+  renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+  if(status==='done'){ showToast('✅ 剪辑完成，去发布列表发布吧'); }
+}
+function editRemove(flowId){
+  editBoard = editBoard.filter(x=>x.flowId!==flowId); saveEditBoard();
+  touchFlow(flowId, { status:'shoot' });
+  renderEditBoard(); renderShootWeek(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+}
+function renderPublishList(){
+  const box = document.getElementById('publishList'); if(!box) return;
+  const done = editBoard.filter(e=>e.status==='done');
+  const pubMap = {}; published.forEach(p=>pubMap[p.flowId]=p);
+  const rows = done.map(e=> pubMap[e.flowId]).filter(Boolean).concat(done.filter(e=>!pubMap[e.flowId]).map(e=>({flowId:e.flowId, title:flowTitle(e.flowId,e.title), unpublished:true})));
+  if(!rows.length){ box.innerHTML = '<div class="empty-state"><p>剪辑完成的视频会出现在这里，点击「设为已发布」归档</p></div>'; return; }
+  box.innerHTML = rows.map(p=> p.unpublished ? `<div class="pub-item">
+    <div class="pub-title">${escapeHtml(flowTitle(p.flowId,p.title))}</div>
+    <button class="btn btn-primary btn-sm" onclick="publishIt('${p.flowId}')">设为已发布</button>
+  </div>` : `<div class="pub-item pub-done">
+    <div class="pub-title">${escapeHtml(flowTitle(p.flowId,p.title))}</div>
+    <div class="pub-meta">📱 ${escapeHtml(p.platform||'')} · 🕐 ${escapeHtml(p.publishTime||'')}</div>
+    <div class="pub-golden">${p.golden?p.golden.map((g,i)=>`<label class="golden-item"><input type="checkbox" ${g.done?'checked':''} onchange="toggleGolden('${p.flowId}',${i})"> ${escapeHtml(g.text)}</label>`).join(''):''}</div>
+  </div>`).join('');
+}
+function publishIt(flowId){
+  const e = editBoard.find(x=>x.flowId===flowId);
+  showAppPrompt({ title:'设为已发布', fields:[
+    { key:'platform', label:'发布平台', placeholder:'如 抖音/小红书' },
+    { key:'publishTime', label:'发布时间', type:'date' },
+    { key:'note', label:'备注', type:'textarea' },
+    { key:'golden', label:'黄金1小时动作（每行一条，自定义）', type:'textarea', placeholder:'回复前10条评论\n转发到粉丝群\n记录首小时播放数据' }
+  ]}, (vals)=>{
+    if(!vals) return;
+    const golden = (vals.golden||'').split('\n').map(t=>t.trim()).filter(Boolean).map(t=>({text:t,done:false}));
+    published.push({ flowId, platform:vals.platform||'', publishTime:vals.publishTime||'', note:vals.note||'', title:flowTitle(flowId), golden });
+    savePublished();
+    touchFlow(flowId, { status:'published' });
+    renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    showToast('🚀 已发布归档');
+  });
+}
+function toggleGolden(flowId, idx){
+  const p = published.find(x=>x.flowId===flowId); if(!p || !p.golden) return;
+  p.golden[idx].done = !p.golden[idx].done; savePublished();
+}
+
+function downloadText(filename, text){ const blob=new Blob([text],{type:"text/plain;charset=utf-8"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
 
 </script>
 
