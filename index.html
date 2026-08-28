@@ -181,6 +181,48 @@ body {
 }
 .menu-group .menu-item { padding: 10px 12px; font-size: 13.5px; }
 .menu-group .menu-icon { width: 32px; height: 32px; font-size: 16px; border-radius: 12px; }
+
+/* 我想过怎么的人生 · 信条模块 */
+.lc-header { margin-bottom: 16px; }
+.lc-title { font-size: 22px; font-weight: 700; color: #7B6FA0; }
+.lc-sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+.lc-add-card {
+  background: #fff; border-radius: var(--radius-sm); padding: 14px;
+  box-shadow: var(--shadow-soft); border: 2px solid rgba(129,199,132,0.15);
+  margin-bottom: 18px;
+}
+.lc-textarea {
+  width: 100%; border: 2px solid var(--kitty-pink-light); border-radius: 14px;
+  padding: 12px 14px; font-family: inherit; font-size: 15px; color: #6d5a6d;
+  background: #fff; outline: none; resize: vertical; box-sizing: border-box; line-height: 1.5;
+}
+.lc-textarea:focus { border-color: var(--kitty-pink); box-shadow: 0 0 0 3px rgba(255,183,197,0.2); }
+.lc-add-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+.lc-list { display: flex; flex-direction: column; gap: 12px; }
+.lc-item {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F1F8E9 100%);
+  border-radius: var(--radius-sm); padding: 16px 16px 14px; position: relative;
+  box-shadow: var(--shadow-soft); border: 2px solid rgba(129,199,132,0.15);
+  transition: all .2s ease;
+}
+.lc-item:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(129,199,132,0.18); }
+.lc-item-quote { font-size: 16px; color: #5a4a5a; line-height: 1.65; padding-right: 64px; white-space: pre-wrap; word-break: break-word; }
+.lc-item-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
+.lc-item-actions button {
+  border: none; background: rgba(129,199,132,0.14); color: #6a8f6a;
+  width: 30px; height: 30px; border-radius: 10px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; transition: all .15s;
+}
+.lc-item-actions button:hover { background: var(--primary); color: #fff; }
+.lc-item-actions .lc-del:hover { background: #ff6b81; color: #fff; }
+.lc-empty { text-align: center; padding: 40px 0; color: var(--text-secondary); }
+.lc-empty .lc-empty-bird { font-size: 40px; }
+.lc-edit-input {
+  width: 100%; border: 2px solid var(--kitty-pink); border-radius: 12px;
+  padding: 10px 12px; font-family: inherit; font-size: 15px; color: #6d5a6d;
+  outline: none; resize: vertical; box-sizing: border-box; line-height: 1.5; margin-bottom: 10px;
+}
+
 .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-secondary); text-align: center; line-height: 1.6; }
 
 /* ===== 云同步 ===== */
@@ -2664,7 +2706,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260853</div>
+    <div class="splash-ver">v2.0.20260854</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -2710,6 +2752,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <div class="sidebar-section">工作台菜单</div>
     <div class="menu-list" id="mainMenuList">
       <div class="menu-item active" data-panel="home"><div class="menu-icon">🏠</div><span>首页</span></div>
+      <div class="menu-item" data-panel="lifeCredo"><div class="menu-icon">🌟</div><span>我想过怎么的人生</span></div>
       <div class="menu-item" data-panel="myGoals"><div class="menu-icon">🎯</div><span>我的目标</span></div>
       <div class="menu-item" data-panel="dailyTask"><div class="menu-icon">📋</div><span>今日任务</span></div>
 
@@ -2793,6 +2836,22 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           </div>
           <div class="home-shortcut-grid" id="homeShortcutGrid"></div>
         </div>
+      </div>
+
+      <!-- 我想过怎么的人生 -->
+      <div class="panel" id="panel-lifeCredo">
+        <div class="lc-header">
+          <div class="lc-title">🌟 我想过怎么的人生</div>
+          <div class="lc-sub">写下一句句人生信条，随时回看，提醒自己真正想要的生活</div>
+        </div>
+        <div class="lc-add-card">
+          <textarea id="lifeCredoInput" class="lc-textarea" rows="2" placeholder="例如：我希望每天都能被自己热爱的事叫醒……"></textarea>
+          <div class="lc-add-actions">
+            <button class="kitty-btn-outline" onclick="clearLifeCredoInput()">清空</button>
+            <button class="kitty-btn-primary" onclick="addLifeCredo()">➕ 添加信条</button>
+          </div>
+        </div>
+        <div class="lc-list" id="lifeCredoList"></div>
       </div>
 
       <!-- 我的目标 -->
@@ -4767,7 +4826,7 @@ document.getElementById('dateDisplay').textContent = todayStr;
 document.getElementById('sidebarDate').textContent = todayStr;
 
 // ===================== 菜单切换 =====================
-const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
+const menuLabels = { home:{text:'首页',icon:'🏠'}, lifeCredo:{text:'我想过怎么的人生',icon:'🌟'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
 
 // 菜单分组展开/收起（持久化）
 const MENU_GROUP_KEY = 'parrot_menu_groups_collapsed';
@@ -4804,12 +4863,77 @@ document.querySelectorAll('.menu-item').forEach(item => {
     const parentGroup = item.closest('.menu-group');
     if(parentGroup && parentGroup.classList.contains('collapsed')) toggleMenuGroup(parentGroup.dataset.group);
     if(pid==='home') renderHome();
+    if(pid==='lifeCredo') renderLifeCredo();
     if(pid==='gold') { renderGoldAll(); fetchGoldPrice(); }
     if(pid==='travel') ensureTravelReady();
     if(window.innerWidth<=767) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
   });
 });
 initMenuGroups();
+
+// ===================== 我想过怎么的人生 · 信条模块 =====================
+let lifeCredoData = JSON.parse(localStorage.getItem('parrot_life_credo') || '[]');
+function saveLifeCredo() {
+  localStorage.setItem('parrot_life_credo', JSON.stringify(lifeCredoData));
+  onLocalDataChange();
+}
+function renderLifeCredo() {
+  const list = document.getElementById('lifeCredoList');
+  if(!list) return;
+  if(!lifeCredoData.length) {
+    list.innerHTML = '<div class="lc-empty"><div class="lc-empty-bird">🌱</div><p>还没有人生信条</p><p class="small">写下你真正想要的生活，一句句积攒起来</p></div>';
+    return;
+  }
+  list.innerHTML = lifeCredoData.map((item, idx) => `
+    <div class="lc-item" data-idx="${idx}">
+      <div class="lc-item-quote">${escapeHtml(item.text)}</div>
+      <div class="lc-item-actions">
+        <button class="lc-edit" onclick="editLifeCredo(${idx})" title="编辑">✏️</button>
+        <button class="lc-del" onclick="deleteLifeCredo(${idx})" title="删除">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+function addLifeCredo() {
+  const input = document.getElementById('lifeCredoInput');
+  const text = (input.value || '').trim();
+  if(!text) { showToast('请先写一句人生信条'); return; }
+  lifeCredoData.unshift({ text, createdAt: Date.now() });
+  saveLifeCredo();
+  input.value = '';
+  renderLifeCredo();
+  showToast('✨ 已添加信条');
+}
+function clearLifeCredoInput() {
+  const input = document.getElementById('lifeCredoInput');
+  if(input) input.value = '';
+}
+function editLifeCredo(idx) {
+  const item = lifeCredoData[idx];
+  if(!item) return;
+  showAppPrompt({
+    title: '编辑人生信条',
+    label: '信条内容',
+    defaultValue: item.text,
+    inputType: 'textarea'
+  }, (val) => {
+    if(val == null) return;
+    const text = (val || '').trim();
+    if(!text) { showToast('内容不能为空'); return; }
+    lifeCredoData[idx] = { text, createdAt: item.createdAt };
+    saveLifeCredo();
+    renderLifeCredo();
+    showToast('✅ 已更新');
+  });
+}
+function deleteLifeCredo(idx) {
+  showConfirm('确定删除这条人生信条吗？', () => {
+    lifeCredoData.splice(idx, 1);
+    saveLifeCredo();
+    renderLifeCredo();
+    showToast('🗑️ 已删除');
+  });
+}
 function switchSettingsTab(tab) {
   document.querySelectorAll('#panel-settings .set-tab').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === tab));
   document.querySelectorAll('#panel-settings .set-tab-panel').forEach(p => p.classList.toggle('active', p.id === (tab === 'data' ? 'settingsData' : 'settingsAi')));
@@ -8216,20 +8340,32 @@ function showAppPrompt(opts, callback) {
   opts = opts || {};
   document.getElementById('appPromptTitle').textContent = opts.title || '提示';
   document.getElementById('appPromptLabel').textContent = opts.label || '';
+  const isArea = opts.inputType === 'textarea';
   const input = document.getElementById('appPromptInput');
-  input.type = opts.inputType || 'text';
-  input.value = opts.defaultValue !== undefined ? opts.defaultValue : '';
-  input.placeholder = opts.placeholder || '';
+  const area = document.getElementById('appPromptArea');
+  input.style.display = isArea ? 'none' : 'block';
+  area.style.display = isArea ? 'block' : 'none';
+  if(isArea) {
+    area.value = opts.defaultValue !== undefined ? opts.defaultValue : '';
+    area.placeholder = opts.placeholder || '';
+  } else {
+    input.type = 'text';
+    input.value = opts.defaultValue !== undefined ? opts.defaultValue : '';
+    input.placeholder = opts.placeholder || '';
+  }
   _appPromptCb = callback;
+  _appPromptIsArea = isArea;
   document.getElementById('appPromptModal').classList.add('show');
-  setTimeout(() => { try { input.focus(); input.select(); } catch(e) {} }, 60);
+  setTimeout(() => { try { (isArea ? area : input).focus(); (isArea ? area : input).select(); } catch(e) {} }, 60);
 }
+let _appPromptIsArea = false;
 function closeAppPrompt(ok) {
   const modal = document.getElementById('appPromptModal');
   modal.classList.remove('show');
-  const value = document.getElementById('appPromptInput').value;
+  const value = _appPromptIsArea ? document.getElementById('appPromptArea').value : document.getElementById('appPromptInput').value;
   const cb = _appPromptCb;
   _appPromptCb = null;
+  _appPromptIsArea = false;
   if(cb) cb(ok ? value : null);
 }
 
@@ -16177,6 +16313,7 @@ fillTravelDatalists();
     <div class="kitty-field">
       <label id="appPromptLabel"></label>
       <input type="text" id="appPromptInput" onkeydown="if(event.key==='Enter'){event.preventDefault();closeAppPrompt(true)}">
+      <textarea id="appPromptArea" class="lc-edit-input" rows="4" style="display:none;margin-top:8px;"></textarea>
     </div>
     <div class="kitty-modal-actions">
       <button class="kitty-btn-outline" onclick="closeAppPrompt(false)">取消</button>
