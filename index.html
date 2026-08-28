@@ -2296,6 +2296,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .home-streak-item .si-text { padding-right:24px; }
 .home-streak-item.praise { background:linear-gradient(120deg,#E8F5E9,#F1FBEF); border-color:rgba(91,185,142,.25); animation:streakPop .5s cubic-bezier(.34,1.56,.64,1); }
 .home-streak-item.cheer { background:linear-gradient(120deg,#FFF6EC,#FDF0F3); border-color:rgba(232,169,178,.25); }
+.home-streak-item.warn { background:linear-gradient(120deg,#FFF4E5,#FDF3E7); border-color:rgba(232,169,120,.3); }
 .home-streak-item.idle { background:linear-gradient(120deg,#F3E8FB,#E8F5F9); border-color:rgba(123,111,160,.16); }
 .home-streak-item .si-emo { font-size:24px; line-height:1.2; }
 @keyframes streakPop { 0% { transform:scale(.9); opacity:.4; } 100% { transform:scale(1); opacity:1; } }
@@ -2706,7 +2707,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260855</div>
+    <div class="splash-ver">v2.0.20260856</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -2753,7 +2754,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <div class="menu-list" id="mainMenuList">
       <div class="menu-item active" data-panel="home"><div class="menu-icon">🏠</div><span>首页</span></div>
       <div class="menu-item" data-panel="myGoals"><div class="menu-icon">🎯</div><span>我的目标</span></div>
-      <div class="menu-item" data-panel="dailyTask"><div class="menu-icon">📋</div><span>今日任务</span></div>
 
       <div class="menu-group" data-group="side hustle" id="menuGroupSideHustle">
         <div class="menu-group-header" onclick="toggleMenuGroup('side hustle')">
@@ -2761,6 +2761,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           <span class="menu-group-arrow">▼</span>
         </div>
         <div class="menu-group-body">
+          <div class="menu-item" data-panel="dailyTask"><div class="menu-icon">📋</div><span>今日任务</span></div>
           <div class="menu-item" data-panel="hotVideos"><div class="menu-icon">🔥</div><span>学习爆款视频</span></div>
           <div class="menu-item" data-panel="birdCare"><div class="menu-icon">🦜</div><span>养鸟知识</span></div>
           <div class="menu-item" data-panel="products"><div class="menu-icon">🛒</div><span>我的选品</span></div>
@@ -3004,10 +3005,10 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           </div>
         </div>
 
-        <!-- 今日拍摄任务表（单独在日历与今日任务模块下方） -->
+        <!-- 我的排期表（单独在日历与今日任务模块下方） -->
         <div class="daily-task-table-card" id="dailyTaskTableCard">
           <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-            <span>🎬 今日拍摄任务表</span>
+            <span>🎬 我的排期表</span>
             <button class="btn btn-outline btn-sm" onclick="openAddDailyCol()">➕ 添加列</button>
           </div>
           <div class="table-container">
@@ -3025,7 +3026,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
         <div class="tab-bar" id="hotTabBar">
           <button class="tab-btn active" onclick="switchHotTab('break')">📁 我的拆解</button>
           <button class="tab-btn" onclick="switchHotTab('mind')">🧠 头脑风暴</button>
-          <button class="tab-btn" onclick="switchHotTab('adopt')">✅ 我的采纳</button>
         </div>
 
         <!-- 我的拆解 -->
@@ -3033,7 +3033,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           <div class="btn-group">
             <button class="btn btn-primary" onclick="openHotAddModal()">➕ 添加拆解</button>
             <button class="btn btn-accent" onclick="openAutoBreakModal()">🤖 自动拆解</button>
-            <button class="btn btn-outline" onclick="exportHotBreak()">📋 导出拆解</button>
           </div>
 
           <!-- 搜索栏 -->
@@ -3076,22 +3075,12 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
             </div>
           </div>
         </div>
-
-        <!-- 我的采纳 -->
-        <div id="hotTabAdopt" class="hot-tab-panel" style="display:none;">
-          <div class="btn-group">
-            <button class="btn btn-primary" id="hotSearchBtn" onclick="searchHotAccounts(this)">🔍 联网拆解起号账号</button>
-            <button class="btn btn-danger" onclick="clearAllHotAdopt()">🗑️ 删除全部内容</button>
-          </div>
-          <div id="hotAdoptContent"></div>
-        </div>
       </div>
 
       <!-- 养鸟知识 -->
       <div class="panel" id="panel-birdCare">
         <div class="tab-bar" id="knTabBar">
           <button class="tab-btn active" onclick="switchKnowledgeTab('mine')">📚 我的知识</button>
-          <button class="tab-btn" onclick="switchKnowledgeTab('baike')">🌐 百度百科 · 每日推送</button>
         </div>
 
         <!-- 我的知识 -->
@@ -3121,73 +3110,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           </div>
         </div>
 
-        <!-- 百度百科 · 每日推送 -->
-        <div id="knTabBaike" style="display:none;">
-          <div class="btn-group">
-            <button class="btn btn-primary" id="baikeGenBtn" onclick="genBaike(this)">🌐 生成今日鹦鹉百科（联网+DeepSeek）</button>
-            <button class="btn btn-danger" onclick="clearAllBaike()">🗑️ 删除全部内容</button>
-          </div>
-
-          <!-- AI 深度回答面板（已并入百度百科 tab） -->
-          <div class="card" style="padding:14px 18px;position:relative;overflow:visible;">
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-              <img class="module-bird" data-bird="b7_rings" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">
-              <div class="kn-ai-input-wrap">
-                <input type="text" id="knAISearchInput" placeholder="🤖 输入养鸟问题，如：小鸟到家要做什么？" oninput="knAIToggleClear()" onkeydown="if(event.key==='Enter')knDeepAnswer()">
-                <button type="button" class="kn-ai-clear" id="knAIClearBtn" style="display:none;" onclick="knAIClear()" title="清空">×</button>
-              </div>
-              <button class="btn btn-primary btn-sm" onclick="knDeepAnswer()">🤖 深度回答</button>
-              <button class="btn btn-outline btn-sm" type="button" onclick="toggleKnAISettings()" title="DeepSeek 设置">⚙️ 设置</button>
-            </div>
-            <div id="knAISettings" style="display:none;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:10px;">
-              <div style="padding-bottom:8px;margin-bottom:8px;border-bottom:1px dashed var(--border);">
-                <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">DeepSeek API Key（本地保存，仅发往你自己的服务端转发）</label>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                  <input type="password" id="knDSKey" placeholder="sk-..." style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
-                  <button class="btn btn-primary btn-sm" onclick="saveDSKey()">💾 保存</button>
-                </div>
-                <p id="knDSStatus" style="font-size:11px;color:var(--green);margin:6px 0 0;"></p>
-              </div>
-              <div style="padding-bottom:8px;margin-bottom:8px;border-bottom:1px dashed var(--border);">
-                <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">🔥 火山方舟 Ark Key（豆包 / DeepSeek，用于「爆款拆解」等 AI 分析，可选）</label>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                  <input type="password" id="knArkKey" placeholder="vsk-... / ark..." style="flex:1;min-width:150px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
-                  <input type="text" id="knArkModel" placeholder="模型ID，如 deepseek-v3-250324" style="flex:1;min-width:150px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
-                  <button class="btn btn-primary btn-sm" onclick="saveAIKeys()">💾 保存</button>
-                </div>
-                <p id="knArkStatus" style="font-size:11px;color:var(--green);margin:6px 0 0;"></p>
-                <p style="font-size:11px;color:var(--text-secondary);margin:4px 0 0;">填了 Ark Key 后，「自动拆解 / 深度回答 / 百科 / 话术」等 AI 功能会自动走火山方舟；模型 ID 在方舟控制台「接入点」处复制（如 <code>deepseek-v3-250324</code> / <code>doubao-seed-1.6-250615</code>）。</p>
-              </div>
-              <details style="font-size:12px;">
-                <summary style="cursor:pointer;color:var(--text-secondary);">☁️ 云端语音转写（火山「录音文件识别」，可选）</summary>
-                <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);">
-                  <p style="font-size:11px;color:var(--text-secondary);margin:0 0 6px;">把上传的视频/音频发到服务器，由火山「录音文件识别」转成文字。需<strong>单独的语音凭证</strong>（与上方 Ark LLM Key 不是同一套），且服务器需有<strong>公网地址</strong>供火山回拉音频。</p>
-                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <input id="knVolcAppid" placeholder="appid" style="flex:1;min-width:90px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:12px;">
-                    <input id="knVolcToken" placeholder="token" style="flex:1;min-width:90px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:12px;">
-                    <input id="knVolcCluster" placeholder="cluster" style="flex:1;min-width:90px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:12px;">
-                  </div>
-                  <input id="knAsrPublic" placeholder="公网地址（可选，如 https://你的域名，留空用本机 Host）" style="width:100%;margin-top:6px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:12px;">
-                  <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button class="btn btn-primary btn-sm" onclick="saveAIKeys()">💾 保存语音凭证</button>
-                  </div>
-                </div>
-              </details>
-            </div>
-            <p style="font-size:12px;color:var(--text-secondary);margin:8px 0 0;">AI 会联网检索最新资料并由 DeepSeek 生成深度回答，结果展示在下方并可直接「存入知识库」。</p>
-            <div id="knAISearchResults" style="margin-top:12px;"></div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">🤖 现有深度回答</div>
-            <div id="baikeDeepAnswer" class="kn-deep-answer-box">
-              <div class="empty-state"><img class="bird-illu" src="./assets/birds/b13_music_bird.png?v=4" alt=""><p>在上方用 🤖 深度回答 提问后，最新回答会显示在这里</p></div>
-            </div>
-          </div>
-          <div id="baikeContent">
-            <div class="empty-state"><img class="bird-illu" src="./assets/birds/b9_grid6_stand.png?v=4" alt=""><p>点击「生成今日鹦鹉百科」联网获取每日 10 条鹦鹉百科知识</p><p class="small">可加入知识库 / 删除</p></div>
-          </div>
-        </div>
 
         <!-- 存入知识库弹窗（选择一/二级分类 + 确认/取消） -->
         <div class="kn-save-mask" id="knSaveModal" style="display:none;" onclick="if(event.target===this)knSaveCancel()">
@@ -5075,6 +4997,24 @@ function getHomeStreakMessages() {
       if(!isStreakDismissed(key)) msgs.push({ type:'cheer', key, text:`💪 <b>${escapeHtml(it.text)}</b> 昨天没打卡，别气馁～ 之前已经连续坚持了 <b>${preStreak}</b> 天，今天重新开始就好！` });
     }
   });
+  // 排期逾期提醒：拍摄时间早于今天、且状态未标记「已发布」的排期任务
+  const todayKey = dailyDateKey(new Date());
+  Object.keys(dailyTaskData).forEach(dKey => {
+    const tasks = dailyTaskData[dKey] && dailyTaskData[dKey].tasks;
+    if (!Array.isArray(tasks)) return;
+    tasks.forEach((t, i) => {
+      const tDate = (t.date || '').trim();
+      if (!tDate) return;
+      if (tDate >= todayKey) return;          // 排期未到或当天，不算逾期
+      if (t.status === 'green') return;       // 已发布，不提醒
+      const overdueDays = Math.round((new Date(todayKey + 'T00:00:00') - new Date(tDate + 'T00:00:00')) / 86400000);
+      if (overdueDays <= 0) return;
+      const title = (t.content || '').trim() || '（未命名排期）';
+      const key = 'overdue|' + dKey + '|' + i + '|' + title;
+      if (isStreakDismissed(key)) return;
+      msgs.push({ type:'warn', key, text:`⏰ <b>${escapeHtml(title)}</b> 任务已逾期 <b>${overdueDays}</b> 天，请及时处理！` });
+    });
+  });
   return msgs;
 }
 
@@ -5111,7 +5051,7 @@ function renderHome() {
         '<div class="home-streak-item idle"><div class="si-emo">🌱</div><div class="si-text">今天还没打卡动态哦～ 挑一个重复小习惯完成它，明天就能收获第一句夸夸啦！✨</div></div>';
     } else {
       streakWrap.innerHTML = '<div class="k2-section-title">🔔 打卡小播报</div>' +
-        msgs.map(m => `<div class="home-streak-item ${m.type}"><div class="si-emo">${m.type === 'praise' ? '🎉' : '💪'}</div><div class="si-text">${m.text}</div><button class="si-del" title="删除这条播报" onclick="dismissStreakMsg(${JSON.stringify(m.key).replace(/"/g,'&quot;')})">✕</button></div>`).join('');
+        msgs.map(m => `<div class="home-streak-item ${m.type}"><div class="si-emo">${m.type === 'praise' ? '🎉' : (m.type === 'warn' ? '⏰' : '💪')}</div><div class="si-text">${m.text}</div><button class="si-del" title="删除这条播报" onclick="dismissStreakMsg(${JSON.stringify(m.key).replace(/"/g,'&quot;')})">✕</button></div>`).join('');
     }
   }
 
@@ -6423,7 +6363,7 @@ function renderDailyTaskCell(dKey, t, i, c) {
       return `<td><div class="row-actions"><button class="del-row" onclick="delTaskRow('${dKey}',${i})" title="删除">✕</button></div></td>`;
     case 'status': {
       const v = t.status || 'gray';
-      const opts = [['gray','⚪ 待拍'],['green','🟢 完成'],['red','🔴 未完成']];
+      const opts = [['gray','⚪ 待拍'],['green','🟢 已发布'],['red','🔴 未完成']];
       return `<td><select class="status-select status-${v}" onchange="this.className='status-select status-'+this.value;updateTaskField('${dKey}',${i},'status',this.value);updateDailyStats('${dKey}')">${opts.map(([k,lab])=>`<option value="${k}" ${v===k?'selected':''}>${lab}</option>`).join('')}</select></td>`;
     }
     case 'textarea':
@@ -6549,7 +6489,7 @@ function saveDailyData() {
 function exportFeishuTable() {
   const dKey = dailyDateKey(dailySelectedDate);
   const dayData = dailyTaskData[dKey] || { checklist: [], tasks: [] };
-  const sm = { green: '🟢完成', red: '🔴未完成', gray: '⚪待拍' };
+  const sm = { green: '🟢已发布', red: '🔴未完成', gray: '⚪待拍' };
   let text = '=== ' + formatDate(dailySelectedDate) + ' 拍摄任务 ===\n\n';
   text += '【拍摄清单】\n';
   if(dayData.checklist && dayData.checklist.length > 0) {
@@ -6715,16 +6655,14 @@ function clearAllHotAdopt() {
 // Tab 切换：我的拆解 / 我的采纳
 function switchHotTab(tab) {
   document.getElementById('hotTabBreak').style.display = tab === 'break' ? 'block' : 'none';
-  document.getElementById('hotTabAdopt').style.display = tab === 'adopt' ? 'block' : 'none';
   document.getElementById('hotTabMind').style.display = tab === 'mind' ? 'block' : 'none';
   document.querySelectorAll('#hotTabBar .tab-btn').forEach(b => {
     const label = b.textContent;
     const isBreak = label.indexOf('我的拆解') >= 0;
     const isMind = label.indexOf('头脑风暴') >= 0;
-    b.classList.toggle('active', (tab === 'break' && isBreak) || (tab === 'adopt' && !isBreak && !isMind) || (tab === 'mind' && isMind));
+    b.classList.toggle('active', (tab === 'break' && isBreak) || (tab === 'mind' && isMind));
   });
   if(tab === 'break') renderHotItems();
-  else if(tab === 'adopt') { renderHotAdopt(); if(hotAdoptData.length === 0 || !hasTodayPush(hotAdoptData)) searchHotAccounts(); }
   else if(tab === 'mind') { mindUserPanned = false; renderMindMap(); }
 }
 // 应用内全屏脑图：激活「学习爆款视频→头脑风暴」标签并铺满视口；再次调用/双击空白处/Esc 退出
@@ -9881,12 +9819,10 @@ function exportKnowledge() {
 // ===================== 百度百科 · 每日推送 =====================
 function saveBaikeData() { localStorage.setItem('parrot_baike_data', JSON.stringify(baikeData)); onLocalDataChange(); }
 function switchKnowledgeTab(tab) {
-  document.querySelectorAll('#knTabBar .tab-btn').forEach(b => b.classList.remove('active'));
-  const btns = document.querySelectorAll('#knTabBar .tab-btn');
-  if(tab === 'baike') btns[1].classList.add('active'); else btns[0].classList.add('active');
-  document.getElementById('knTabMine').style.display = (tab === 'mine') ? 'block' : 'none';
-  document.getElementById('knTabBaike').style.display = (tab === 'baike') ? 'block' : 'none';
-  if(tab === 'baike') { renderBaike(); if(baikeData.length === 0 || !hasTodayPush(baikeData)) genBaike(); }
+  const mine = document.getElementById('knTabMine');
+  if(mine) mine.style.display = 'block';
+  const baike = document.getElementById('knTabBaike');
+  if(baike) baike.style.display = 'none';
 }
 
 // 每日轮换的百科主题（保证每天推送内容不一致）
