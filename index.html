@@ -157,6 +157,30 @@ body {
 .menu-icon { width: 38px; height: 38px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: rgba(129,199,132,0.12); flex-shrink: 0; transition: all 0.25s; }
 .menu-item:hover .menu-icon { transform: scale(1.12) rotate(-5deg); }
 .menu-item.active .menu-icon { background: linear-gradient(135deg, #FFF8E1 0%, #E8F5E9 100%); box-shadow: 0 4px 12px rgba(129,199,132,0.25); border: 2px solid rgba(129,199,132,0.2); }
+
+/* 左侧菜单分组 */
+.menu-group { display: flex; flex-direction: column; }
+.menu-group-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; margin: 2px 0; border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--text-secondary); font-size: 13px; font-weight: 600;
+  transition: all .2s ease; user-select: none;
+}
+.menu-group-header:hover { background: rgba(74,155,127,0.06); color: var(--primary); }
+.menu-group-arrow { font-size: 11px; transition: transform .25s ease; color: var(--text-secondary); }
+.menu-group.collapsed .menu-group-arrow { transform: rotate(-90deg); }
+.menu-group-body {
+  display: flex; flex-direction: column; gap: 6px;
+  padding-left: 10px; margin-left: 4px;
+  border-left: 2px dashed rgba(129,199,132,0.22);
+  overflow: hidden; transition: max-height .3s ease, opacity .25s ease, padding .25s ease;
+  max-height: 600px; opacity: 1;
+}
+.menu-group.collapsed .menu-group-body {
+  max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0;
+}
+.menu-group .menu-item { padding: 10px 12px; font-size: 13.5px; }
+.menu-group .menu-icon { width: 32px; height: 32px; font-size: 16px; border-radius: 12px; }
 .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-secondary); text-align: center; line-height: 1.6; }
 
 /* ===== 云同步 ===== */
@@ -2640,7 +2664,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260852</div>
+    <div class="splash-ver">v2.0.20260853</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -2684,18 +2708,46 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
       <button class="user-edit-btn" title="编辑头像/名称/签名">✏️</button>
     </div>
     <div class="sidebar-section">工作台菜单</div>
-    <div class="menu-list">
+    <div class="menu-list" id="mainMenuList">
       <div class="menu-item active" data-panel="home"><div class="menu-icon">🏠</div><span>首页</span></div>
       <div class="menu-item" data-panel="myGoals"><div class="menu-icon">🎯</div><span>我的目标</span></div>
       <div class="menu-item" data-panel="dailyTask"><div class="menu-icon">📋</div><span>今日任务</span></div>
-      <div class="menu-item" data-panel="hotVideos"><div class="menu-icon">🔥</div><span>学习爆款视频</span></div>
-      <div class="menu-item" data-panel="birdCare"><div class="menu-icon">🦜</div><span>养鸟知识</span></div>
-      <div class="menu-item" data-panel="products"><div class="menu-icon">🛒</div><span>我的选品</span></div>
-      <div class="menu-item" data-panel="liveScript"><div class="menu-icon">🎙️</div><span>我的直播话术</span></div>
+
+      <div class="menu-group" data-group="side hustle" id="menuGroupSideHustle">
+        <div class="menu-group-header" onclick="toggleMenuGroup('side hustle')">
+          <span class="menu-group-title">人生副业支线</span>
+          <span class="menu-group-arrow">▼</span>
+        </div>
+        <div class="menu-group-body">
+          <div class="menu-item" data-panel="hotVideos"><div class="menu-icon">🔥</div><span>学习爆款视频</span></div>
+          <div class="menu-item" data-panel="birdCare"><div class="menu-icon">🦜</div><span>养鸟知识</span></div>
+          <div class="menu-item" data-panel="products"><div class="menu-icon">🛒</div><span>我的选品</span></div>
+          <div class="menu-item" data-panel="liveScript"><div class="menu-icon">🎙️</div><span>我的直播话术</span></div>
+        </div>
+      </div>
+
+      <div class="menu-group" data-group="finance" id="menuGroupFinance">
+        <div class="menu-group-header" onclick="toggleMenuGroup('finance')">
+          <span class="menu-group-title">人生理财计划</span>
+          <span class="menu-group-arrow">▼</span>
+        </div>
+        <div class="menu-group-body">
+          <div class="menu-item" data-panel="expense"><div class="menu-icon">💰</div><span>岁岁花销记</span></div>
+          <div class="menu-item" data-panel="gold"><div class="menu-icon">🥇</div><span>金攒攒</span></div>
+        </div>
+      </div>
+
+      <div class="menu-group" data-group="relax" id="menuGroupRelax">
+        <div class="menu-group-header" onclick="toggleMenuGroup('relax')">
+          <span class="menu-group-title">人生放松时刻</span>
+          <span class="menu-group-arrow">▼</span>
+        </div>
+        <div class="menu-group-body">
+          <div class="menu-item" data-panel="travel"><div class="menu-icon">🧳</div><span>逃离计划</span></div>
+        </div>
+      </div>
+
       <div class="menu-item" data-panel="contentReview"><div class="menu-icon">📝</div><span>内容复盘</span></div>
-      <div class="menu-item" data-panel="expense"><div class="menu-icon">💰</div><span>岁岁花销记</span></div>
-      <div class="menu-item" data-panel="gold"><div class="menu-icon">🥇</div><span>金攒攒</span></div>
-      <div class="menu-item" data-panel="travel"><div class="menu-icon">🧳</div><span>逃离计划</span></div>
       <div class="menu-item" data-panel="settings"><div class="menu-icon">⚙️</div><span>设置</span></div>
     </div>
     <div class="sidebar-footer">🐦 鸟用品短视频 & 直播变现助手<br>今日日期：<span id="sidebarDate"></span></div>
@@ -4717,6 +4769,28 @@ document.getElementById('sidebarDate').textContent = todayStr;
 // ===================== 菜单切换 =====================
 const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
 
+// 菜单分组展开/收起（持久化）
+const MENU_GROUP_KEY = 'parrot_menu_groups_collapsed';
+function getCollapsedGroups() { try { return JSON.parse(localStorage.getItem(MENU_GROUP_KEY) || '[]'); } catch(e) { return []; } }
+function saveCollapsedGroups(list) { localStorage.setItem(MENU_GROUP_KEY, JSON.stringify(list)); }
+function toggleMenuGroup(groupName) {
+  const group = document.querySelector('.menu-group[data-group="' + groupName + '"]');
+  if(!group) return;
+  const collapsed = getCollapsedGroups();
+  const idx = collapsed.indexOf(groupName);
+  if(idx >= 0) { collapsed.splice(idx, 1); group.classList.remove('collapsed'); }
+  else { collapsed.push(groupName); group.classList.add('collapsed'); }
+  saveCollapsedGroups(collapsed);
+}
+function initMenuGroups() {
+  const collapsed = getCollapsedGroups();
+  document.querySelectorAll('.menu-group').forEach(g => {
+    const name = g.dataset.group;
+    if(collapsed.includes(name)) g.classList.add('collapsed');
+    else g.classList.remove('collapsed');
+  });
+}
+
 document.querySelectorAll('.menu-item').forEach(item => {
   item.addEventListener('click', () => {
     document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
@@ -4726,12 +4800,16 @@ document.querySelectorAll('.menu-item').forEach(item => {
     document.getElementById('panel-'+pid).classList.add('active');
     document.getElementById('topbarText').textContent=menuLabels[pid].text;
     document.getElementById('topbarIcon').textContent=menuLabels[pid].icon;
+    // 点击子菜单时自动展开所在分组
+    const parentGroup = item.closest('.menu-group');
+    if(parentGroup && parentGroup.classList.contains('collapsed')) toggleMenuGroup(parentGroup.dataset.group);
     if(pid==='home') renderHome();
     if(pid==='gold') { renderGoldAll(); fetchGoldPrice(); }
     if(pid==='travel') ensureTravelReady();
     if(window.innerWidth<=767) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
   });
 });
+initMenuGroups();
 function switchSettingsTab(tab) {
   document.querySelectorAll('#panel-settings .set-tab').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === tab));
   document.querySelectorAll('#panel-settings .set-tab-panel').forEach(p => p.classList.toggle('active', p.id === (tab === 'data' ? 'settingsData' : 'settingsAi')));
