@@ -2706,7 +2706,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260854</div>
+    <div class="splash-ver">v2.0.20260855</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -2752,7 +2752,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <div class="sidebar-section">工作台菜单</div>
     <div class="menu-list" id="mainMenuList">
       <div class="menu-item active" data-panel="home"><div class="menu-icon">🏠</div><span>首页</span></div>
-      <div class="menu-item" data-panel="lifeCredo"><div class="menu-icon">🌟</div><span>我想过怎么的人生</span></div>
       <div class="menu-item" data-panel="myGoals"><div class="menu-icon">🎯</div><span>我的目标</span></div>
       <div class="menu-item" data-panel="dailyTask"><div class="menu-icon">📋</div><span>今日任务</span></div>
 
@@ -2829,6 +2828,20 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           </div>
         </div>
         <div class="home-streak-wrap" id="homeStreak"></div>
+        <div class="k2-card" id="lifeCredoCard">
+          <div class="lc-header">
+            <div class="lc-title">🌟 我想过怎么的人生</div>
+            <div class="lc-sub">写下一句句人生信条，随时回看，提醒自己真正想要的生活</div>
+          </div>
+          <div class="lc-add-card">
+            <textarea id="lifeCredoInput" class="lc-textarea" rows="2" placeholder="例如：我希望每天都能被自己热爱的事叫醒……"></textarea>
+            <div class="lc-add-actions">
+              <button class="kitty-btn-outline" onclick="clearLifeCredoInput()">清空</button>
+              <button class="kitty-btn-primary" onclick="addLifeCredo()">➕ 添加信条</button>
+            </div>
+          </div>
+          <div class="lc-list" id="lifeCredoList"></div>
+        </div>
         <div class="k2-card">
           <div class="home-shortcut-head">
             <div class="k2-section-title" style="margin-bottom:0;">⚡ 快捷入口</div>
@@ -2836,22 +2849,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           </div>
           <div class="home-shortcut-grid" id="homeShortcutGrid"></div>
         </div>
-      </div>
-
-      <!-- 我想过怎么的人生 -->
-      <div class="panel" id="panel-lifeCredo">
-        <div class="lc-header">
-          <div class="lc-title">🌟 我想过怎么的人生</div>
-          <div class="lc-sub">写下一句句人生信条，随时回看，提醒自己真正想要的生活</div>
-        </div>
-        <div class="lc-add-card">
-          <textarea id="lifeCredoInput" class="lc-textarea" rows="2" placeholder="例如：我希望每天都能被自己热爱的事叫醒……"></textarea>
-          <div class="lc-add-actions">
-            <button class="kitty-btn-outline" onclick="clearLifeCredoInput()">清空</button>
-            <button class="kitty-btn-primary" onclick="addLifeCredo()">➕ 添加信条</button>
-          </div>
-        </div>
-        <div class="lc-list" id="lifeCredoList"></div>
       </div>
 
       <!-- 我的目标 -->
@@ -4826,7 +4823,7 @@ document.getElementById('dateDisplay').textContent = todayStr;
 document.getElementById('sidebarDate').textContent = todayStr;
 
 // ===================== 菜单切换 =====================
-const menuLabels = { home:{text:'首页',icon:'🏠'}, lifeCredo:{text:'我想过怎么的人生',icon:'🌟'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
+const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, hotVideos:{text:'学习爆款视频',icon:'🔥'}, birdCare:{text:'养鸟知识',icon:'🦜'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
 
 // 菜单分组展开/收起（持久化）
 const MENU_GROUP_KEY = 'parrot_menu_groups_collapsed';
@@ -4863,7 +4860,6 @@ document.querySelectorAll('.menu-item').forEach(item => {
     const parentGroup = item.closest('.menu-group');
     if(parentGroup && parentGroup.classList.contains('collapsed')) toggleMenuGroup(parentGroup.dataset.group);
     if(pid==='home') renderHome();
-    if(pid==='lifeCredo') renderLifeCredo();
     if(pid==='gold') { renderGoldAll(); fetchGoldPrice(); }
     if(pid==='travel') ensureTravelReady();
     if(window.innerWidth<=767) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
@@ -5121,6 +5117,9 @@ function renderHome() {
 
   // 快捷入口
   renderHomeShortcuts();
+
+  // 人生信条（首页模块，位于快捷入口上方）
+  renderLifeCredo();
 }
 
 function renderHomeShortcuts() {
