@@ -54,6 +54,16 @@
   --bird-mint: #D4F0E0;
   --bird-warm: #FFFBF1;
   --bird-line: #6B6157;
+  /* ===== 马卡龙粉主题（弹窗/支线流/搞钱概览等通用）===== */
+  --kitty-pink: #ffb7c5;
+  --kitty-pink-light: #ffe4e9;
+  --kitty-pink-dark: #ff8da1;
+  --kitty-mint: #c8f6d8;
+  --kitty-lavender: #e6e6fa;
+  --kitty-lemon: #fffacd;
+  --kitty-coral: #ff9aa2;
+  --kitty-text: #6d5a6d;
+  --kitty-shadow: rgba(255, 183, 197, 0.35);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -1273,10 +1283,10 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   .main-area { margin-left: 0; }
   .main { padding: 14px 14px 80px; }
   .topbar { padding: 12px 14px; }
-  .topbar-title { font-size: 16px; }
+  .topbar-title { font-size: 16px; white-space: nowrap; flex-shrink: 0; }
   .topbar-title span { font-size: 18px; }
-  .topbar-date { font-size: 11px; padding: 6px 10px; }
-  .mobile-menu-btn { display: flex !important; }
+  .topbar-date { font-size: 11px; padding: 6px 10px; flex-shrink: 0; }
+  .mobile-menu-btn { display: flex !important; flex-shrink: 0; }
   .card { padding: 16px; border-radius: 16px; }
   .card-title { font-size: 16px; margin-bottom: 14px; }
   .btn { padding: 8px 14px; font-size: 13px; border-radius: 12px; }
@@ -1327,6 +1337,14 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   .sidebar-brand h1 { font-size: 18px; }
   .calendar-nav button { width: 32px; height: 32px; }
   .calendar-nav .month-label { font-size: 14px; }
+  .mo-board, .edit-board, .shoot-week-board { flex-direction: column; }
+  .mo-col, .mo-cat, .eb-col, .sw-col { min-width: auto; width: 100%; }
+  .idea-item { flex-direction: column; }
+  .idea-actions { flex-direction: row; }
+  .pub-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+@media (max-width: 480px) {
+  .topbar-date { display: none; }
 }
 @media (min-width: 768px) { .mobile-menu-btn { display: none; } }
 @media (min-width: 768px) and (max-width: 1024px) { .mobile-menu-btn { display: none; } }
@@ -2767,7 +2785,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260858</div>
+    <div class="splash-ver">v2.0.20260859</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -16015,7 +16033,8 @@ let topicCats = [];       // 选题库分类 [{id,name,items:[{flowId,title,audi
 let scriptCats = [];      // 脚本库分类 [{id,name,items:[{flowId,title,script,note}]}]
 let copyCats = [];        // 文案库分类 [{id,name,items:[{flowId,title,text}]}]
 let shootSchedules = [];  // 拍摄排期 [{flowId,date,time,note,title}]
-let editBoard = [];       // 剪辑进度 [{flowId,status:'pending'|'editing'|'done',note,title}]
+let editBoard = [];       // 剪辑进度 [{flowId,status:'pending'|'editing',note,title}]
+let pendingPublish = [];  // 剪辑完成待发布 [{flowId,title}]
 let published = [];       // 已发布 [{flowId,platform,publishTime,note,title,golden:[{text,done}]}]
 
 function loadFlowData(){
@@ -16026,6 +16045,7 @@ function loadFlowData(){
   copyCats = JSON.parse(localStorage.getItem('parrot_copy_cats_v1') || '[]');
   shootSchedules = JSON.parse(localStorage.getItem('parrot_shoot_sched_v1') || '[]');
   editBoard = JSON.parse(localStorage.getItem('parrot_edit_board_v1') || '[]');
+  pendingPublish = JSON.parse(localStorage.getItem('parrot_pending_publish_v1') || '[]');
   published = JSON.parse(localStorage.getItem('parrot_published_v1') || '[]');
 }
 function saveFlow(){ localStorage.setItem('parrot_flow_items_v1', JSON.stringify(flowItems)); onLocalDataChange(); }
@@ -16035,6 +16055,7 @@ function saveScriptCats(){ localStorage.setItem('parrot_script_cats_v1', JSON.st
 function saveCopyCats(){ localStorage.setItem('parrot_copy_cats_v1', JSON.stringify(copyCats)); onLocalDataChange(); }
 function saveShoot(){ localStorage.setItem('parrot_shoot_sched_v1', JSON.stringify(shootSchedules)); onLocalDataChange(); }
 function saveEditBoard(){ localStorage.setItem('parrot_edit_board_v1', JSON.stringify(editBoard)); onLocalDataChange(); }
+function savePendingPublish(){ localStorage.setItem('parrot_pending_publish_v1', JSON.stringify(pendingPublish)); onLocalDataChange(); }
 function savePublished(){ localStorage.setItem('parrot_published_v1', JSON.stringify(published)); onLocalDataChange(); }
 
 // 主线更新：保证一条数据只有最新状态；title 取非空最新
@@ -16404,12 +16425,12 @@ function renderShootWeek(){
     </div>`;
   }).join('');
 }
-function openShootScheduleModal(){
+function openShootScheduleModal(preselectedFlowId){
   // 选择脚本库数据
   const allScripts = scriptCats.flatMap(c=>c.items.map(it=>({catId:c.id, ...it})));
   if(!allScripts.length){ showToast('请先在脚本库添加脚本'); return; }
   showAppPrompt({ title:'添加拍摄排期', fields:[
-    { key:'flowId', label:'选择脚本', type:'select', options:allScripts.map(s=>({value:s.flowId,text:s.title})) },
+    { key:'flowId', label:'选择脚本', type:'select', value:preselectedFlowId||'', options:allScripts.map(s=>({value:s.flowId,text:s.title})) },
     { key:'date', label:'拍摄日期', type:'date' },
     { key:'time', label:'时间（可选）' },
     { key:'note', label:'备注', type:'textarea' }
@@ -16421,6 +16442,9 @@ function openShootScheduleModal(){
     renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
     showToast('🎬 已加入拍摄排期');
   });
+}
+function scriptToShoot(flowId){
+  openShootScheduleModal(flowId);
 }
 function renderShootCalendar(){
   const box = document.getElementById('shootCalendar'); if(!box) return;
@@ -16434,10 +16458,12 @@ function renderShootCalendar(){
 function shootToEdit(flowId){
   if(editBoard.find(x=>x.flowId===flowId)){ showToast('已在剪辑看板'); return; }
   const s = shootSchedules.find(x=>x.flowId===flowId);
+  shootSchedules = shootSchedules.filter(x=>x.flowId!==flowId);
+  saveShoot();
   editBoard.push({ flowId, status:'pending', note:s?s.note:'', title:flowTitle(flowId) });
   saveEditBoard();
   touchFlow(flowId, { status:'edit_pending' });
-  renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+  renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
   showToast('✂️ 已加入待剪辑');
 }
 function openEditFromShootModal(){
@@ -16448,17 +16474,18 @@ function openEditFromShootModal(){
     { key:'note', label:'备注', type:'textarea' }
   ]}, (vals)=>{
     if(!vals || !vals.flowId) return;
+    shootSchedules = shootSchedules.filter(x=>x.flowId!==vals.flowId);
+    saveShoot();
     editBoard.push({ flowId:vals.flowId, status:'pending', note:vals.note||'', title:flowTitle(vals.flowId) });
     saveEditBoard();
     touchFlow(vals.flowId, { status:'edit_pending' });
-    renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
   });
 }
 function renderEditBoard(){
   const box = document.getElementById('editBoard'); if(!box) return;
   const pending = editBoard.filter(e=>e.status==='pending');
   const editing = editBoard.filter(e=>e.status==='editing');
-  const done = editBoard.filter(e=>e.status==='done');
   const col = (title, arr, allowMove)=>`<div class="eb-col">
     <div class="eb-col-head">${title}<span class="eb-count">${arr.length}</span></div>
     <div class="eb-col-body">${arr.map(e=>`<div class="eb-card">
@@ -16467,26 +16494,34 @@ function renderEditBoard(){
       <div class="eb-card-actions">${allowMove==='pending'?`<button class="btn btn-outline btn-sm" onclick="editMove('${e.flowId}','editing')">→剪辑中</button>`:''}${allowMove==='editing'?`<button class="btn btn-outline btn-sm" onclick="editMove('${e.flowId}','done')">→已完成</button>`:''}${allowMove==='pending'?`<button class="btn btn-outline btn-sm" onclick="editRemove('${e.flowId}')">✕</button>`:''}</div>
     </div>`).join('') || '<div class="eb-empty">空</div>'}</div>
   </div>`;
-  box.innerHTML = col('待剪辑', pending, 'pending') + col('剪辑中', editing, 'editing') + col('已完成', done, '');
+  box.innerHTML = col('待剪辑', pending, 'pending') + col('剪辑中', editing, 'editing');
 }
 function editMove(flowId, status){
   const e = editBoard.find(x=>x.flowId===flowId); if(!e) return;
+  if(status==='done'){
+    editBoard = editBoard.filter(x=>x.flowId!==flowId);
+    saveEditBoard();
+    pendingPublish.push({ flowId, title:flowTitle(flowId, e.title) });
+    savePendingPublish();
+    touchFlow(flowId, { status:'editing' });
+    renderEditBoard(); renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    showToast('✅ 剪辑完成，去发布列表发布吧');
+    return;
+  }
   e.status = status; saveEditBoard();
-  const flowStatus = status==='editing'?'editing':(status==='done'?'editing':'edit_pending');
-  touchFlow(flowId, { status: flowStatus });
+  touchFlow(flowId, { status: status==='editing'?'editing':'edit_pending' });
   renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
-  if(status==='done'){ showToast('✅ 剪辑完成，去发布列表发布吧'); }
 }
 function editRemove(flowId){
   editBoard = editBoard.filter(x=>x.flowId!==flowId); saveEditBoard();
   touchFlow(flowId, { status:'shoot' });
-  renderEditBoard(); renderShootWeek(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+  renderEditBoard(); renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
 }
 function renderPublishList(){
   const box = document.getElementById('publishList'); if(!box) return;
-  const done = editBoard.filter(e=>e.status==='done');
   const pubMap = {}; published.forEach(p=>pubMap[p.flowId]=p);
-  const rows = done.map(e=> pubMap[e.flowId]).filter(Boolean).concat(done.filter(e=>!pubMap[e.flowId]).map(e=>({flowId:e.flowId, title:flowTitle(e.flowId,e.title), unpublished:true})));
+  const rows = pendingPublish.map(e=>({flowId:e.flowId, title:flowTitle(e.flowId,e.title), unpublished:true}))
+    .concat(published.map(p=>({...p, unpublished:false})));
   if(!rows.length){ box.innerHTML = '<div class="empty-state"><p>剪辑完成的视频会出现在这里，点击「设为已发布」归档</p></div>'; return; }
   box.innerHTML = rows.map(p=> p.unpublished ? `<div class="pub-item">
     <div class="pub-title">${escapeHtml(flowTitle(p.flowId,p.title))}</div>
@@ -16498,7 +16533,7 @@ function renderPublishList(){
   </div>`).join('');
 }
 function publishIt(flowId){
-  const e = editBoard.find(x=>x.flowId===flowId);
+  const e = pendingPublish.find(x=>x.flowId===flowId);
   showAppPrompt({ title:'设为已发布', fields:[
     { key:'platform', label:'发布平台', placeholder:'如 抖音/小红书' },
     { key:'publishTime', label:'发布时间', type:'date' },
@@ -16506,6 +16541,7 @@ function publishIt(flowId){
     { key:'golden', label:'黄金1小时动作（每行一条，自定义）', type:'textarea', placeholder:'回复前10条评论\n转发到粉丝群\n记录首小时播放数据' }
   ]}, (vals)=>{
     if(!vals) return;
+    pendingPublish = pendingPublish.filter(x=>x.flowId!==flowId); savePendingPublish();
     const golden = (vals.golden||'').split('\n').map(t=>t.trim()).filter(Boolean).map(t=>({text:t,done:false}));
     published.push({ flowId, platform:vals.platform||'', publishTime:vals.publishTime||'', note:vals.note||'', title:flowTitle(flowId), golden });
     savePublished();
