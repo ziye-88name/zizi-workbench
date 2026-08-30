@@ -850,12 +850,21 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .mind-drop-tip.mode-before { background: var(--primary-dark); }
 .mind-drop-tip.mode-after  { background: var(--primary-dark); }
 #mindDropRect { transition: x 0.05s linear, y 0.05s linear, width 0.05s linear, height 0.05s linear; }
-/* 应用内全屏脑图：复用同一套渲染与数据，不再依赖外部文件 */
+/* 应用内「最大化」脑图：只铺满一级 tab 栏以下的区域，
+   侧边栏与「选题策划 / 脚本创作 / 拍摄执行」仍可见可点，随时能切走（不再锁死整个页面） */
 .mind-wrap.fullscreen {
-  position: fixed; inset: 0; z-index: 10000;
-  height: 100vh; min-height: 0; border: none; border-radius: 0; background: #FBFCFE;
+  position: fixed; left: 0; right: 0; bottom: 0; top: 0; z-index: 900;
+  height: auto; min-height: 0; border: none; border-radius: 0; background: #FBFCFE;
+  box-shadow: 0 -8px 26px rgba(45,60,45,0.16);
 }
 .mind-wrap.fullscreen .mind-toolbar { padding: 12px 16px; }
+/* 最大化态右上角常驻退出按钮，避免用户不知道怎么退出 */
+.mind-fs-exit { display:none; position:absolute; top:12px; right:14px; z-index:6;
+  padding:7px 14px; border-radius:999px; border:none; cursor:pointer;
+  background:var(--accent); color:#fff; font-family:inherit; font-size:12.5px; font-weight:700;
+  box-shadow:0 4px 12px rgba(255,138,76,0.35); }
+.mind-fs-exit:hover { filter:brightness(1.05); }
+.mind-wrap.fullscreen .mind-fs-exit { display:inline-flex; align-items:center; gap:5px; }
 
 /* ===== 知识库：拖拽排序 & 底部添加 ===== */
 .kn-drag { cursor:grab; color:var(--text-secondary); font-size:16px; user-select:none; opacity:0.55; }
@@ -2213,23 +2222,35 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   display: flex; gap: 10px; margin-top: 18px;
 }
 .kitty-modal-actions button {
-  flex: 1; border: none; padding: 13px; font-family: inherit; font-size: 15px;
-  border-radius: 999px; cursor: pointer;
+  flex: 1; padding: 13px; font-family: inherit; font-size: 15px;
+  border-radius: 999px; cursor: pointer; min-width: 0;
+}
+/* 马卡龙粉按钮基础样式（弹窗内外通用，避免继承浏览器默认黑边框） */
+.kitty-btn-primary, .kitty-btn-outline {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 20px; border-radius: 999px; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 700; line-height: 1.2;
+  transition: all .2s; white-space: nowrap; box-sizing: border-box;
 }
 .kitty-btn-primary {
   background: linear-gradient(135deg, var(--kitty-pink) 0%, var(--kitty-pink-dark) 100%);
   color: #fff;
+  border: none;
   box-shadow: 0 5px 0 #e0788a;
 }
 .kitty-btn-primary:active {
-  transform: translateY(4px);
-  box-shadow: 0 1px 0 #e0788a;
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #e0788a;
 }
 .kitty-btn-outline {
   background: #fff;
   color: #a37e8f;
   border: 2px solid var(--kitty-pink-light);
   box-shadow: 0 4px 0 #f5f5f5;
+}
+.kitty-btn-outline:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #f5f5f5;
 }
 
 /* 学习爆款 · 标签管理 */
@@ -2724,6 +2745,44 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .sub-tab-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
 .sub-tab-btn { padding:10px 16px; border:2px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); font-size:14px; cursor:pointer; font-weight:600; transition:.2s; }
 .sub-tab-btn.active { background:linear-gradient(120deg,var(--primary),var(--primary-dark)); color:#fff; border-color:transparent; }
+
+/* ===== 我的支线流 · 一/二/三级 tab 视觉层级 ===== */
+/* 一级（选题策划 / 脚本创作 / 拍摄执行）：最大最突出 */
+#sideFlowTabBar { gap: 12px; margin-bottom: 20px; }
+#sideFlowTabBar .tab-btn {
+  padding: 13px 30px; font-size: 16px; font-weight: 800;
+  border-radius: 20px; border-width: 3px;
+}
+#sideFlowTabBar .tab-btn.active {
+  box-shadow: 0 6px 20px rgba(129,199,132,0.38);
+  transform: translateY(-1px);
+}
+/* 二级（选题 / 养鸟知识库 / 学习爆款视频）：中等 */
+#planSubTabBar { gap: 10px; margin-bottom: 14px; padding-left: 4px; }
+#planSubTabBar .sub-tab-btn {
+  padding: 8px 18px; font-size: 14px; font-weight: 700;
+  border-radius: 14px; border-width: 2px;
+}
+/* 三级（我的拆解 / 头脑风暴 / 我的知识 等）：最小最轻 */
+.plan-sub-panel .tab-bar { gap: 8px; margin-bottom: 12px; padding-left: 8px; }
+.plan-sub-panel .tab-bar .tab-btn {
+  padding: 5px 13px; font-size: 12.5px; font-weight: 600;
+  border-radius: 10px; border-width: 1.5px;
+  background: #fff; color: var(--text-secondary);
+}
+.plan-sub-panel .tab-bar .tab-btn.active {
+  background: linear-gradient(120deg, var(--primary-light) 0%, #EAF7EB 100%);
+  color: var(--primary-dark); border-color: var(--primary-soft);
+  box-shadow: none;
+}
+/* 搞钱概览列表：标题列加宽 + 自动换行 + 可点击跳转 */
+.mo-tip { font-size:12.5px; color:var(--text-secondary); background:var(--primary-light); border-radius:12px; padding:9px 14px; margin-bottom:12px; line-height:1.6; }
+.mo-table td { white-space:normal; word-break:break-word; overflow-wrap:anywhere; line-height:1.5; }
+.mo-table th { white-space:normal; word-break:break-word; }
+.mo-link { background:none; border:none; padding:0; font:inherit; color:var(--primary-dark); font-weight:600; cursor:pointer; text-align:left; line-height:1.5; white-space:normal; word-break:break-word; overflow-wrap:anywhere; transition:color .15s; }
+.mo-link:hover { color:var(--primary); text-decoration:underline; }
+.mo-board .mo-card-title { cursor:pointer; transition:color .15s; }
+.mo-board .mo-card-title:hover { color:var(--primary); text-decoration:underline; }
 .mo-board { display:flex; gap:14px; overflow-x:auto; padding-bottom:10px; }
 .mo-col { flex:1; min-width:200px; background:#fff; border-radius:16px; padding:12px; border:1px solid var(--border); }
 .mo-col-head { display:flex; align-items:center; gap:8px; font-weight:700; padding-bottom:10px; margin-bottom:10px; border-bottom:2px solid var(--border); }
@@ -2791,7 +2850,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260860</div>
+    <div class="splash-ver">v2.0.20260861</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3114,12 +3173,10 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
           <button class="tab-btn" onclick="switchMoneyOverviewTab('board')">📊 看板</button>
         </div>
         <div id="moneyOverviewList" class="money-overview-panel">
-          <div class="btn-group" style="margin-bottom:14px;">
-            <button class="btn btn-outline btn-sm" onclick="exportMoneyOverview()">📋 导出</button>
-          </div>
+          <div class="mo-tip">💡 点击「标题」可跳转到我的支线流对应环节；表头右侧小竖条可左右拖拽调整列宽。</div>
           <div class="table-container">
-            <table class="daily-task-table" id="moneyOverviewTable">
-              <thead><tr><th style="width:160px;">时间</th><th>标题</th><th style="width:120px;">来源</th><th style="width:120px;">状态</th></tr></thead>
+            <table class="daily-task-table mo-table" id="moneyOverviewTable">
+              <thead><tr><th style="width:150px;">时间</th><th style="width:300px;min-width:200px;">标题</th><th style="width:120px;">来源</th><th style="width:130px;">状态</th></tr></thead>
               <tbody id="moneyOverviewBody"></tbody>
             </table>
           </div>
@@ -3262,9 +3319,10 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
               <button class="btn btn-outline btn-sm" onclick="mindFitView()">⊙ 居中</button>
               <button class="btn btn-outline btn-sm" onclick="mindToggleAll()">🔀 展开/折叠全部</button>
               <button class="btn btn-outline btn-sm" onclick="exportMindMap()">📋 导出</button>
-              <button class="btn btn-accent btn-sm" onclick="toggleMindFullscreen()">⛶ 全屏/退出</button>
-              <span class="mind-hint">单击选中 · 双击节点改名 · 拖拽空白处平移画布 · 空白处双击打开全屏查看 · 选中后 Backspace 删除</span>
+              <button class="btn btn-accent btn-sm" id="mindFsBtn" onclick="toggleMindFullscreen()">⛶ 最大化</button>
+              <span class="mind-hint">单击选中 · 双击节点改名 · 拖拽空白处平移画布 · 空白处双击最大化/还原 · 选中后 Backspace 删除</span>
             </div>
+            <button class="mind-fs-exit" id="mindFsExit" onclick="toggleMindFullscreen(false)">✕ 退出最大化 (Esc)</button>
             <div class="mind-canvas" id="mindCanvas">
               <div id="mindStage">
                 <svg id="mindSvg"></svg>
@@ -4974,13 +5032,14 @@ document.querySelectorAll('.menu-item').forEach(item => {
     document.getElementById('panel-'+pid).classList.add('active');
     document.getElementById('topbarText').textContent=menuLabels[pid].text;
     document.getElementById('topbarIcon').textContent=menuLabels[pid].icon;
+    if(pid!=='sideFlow') exitMindFullscreen(); // 离开支线流时还原最大化脑图
     // 点击子菜单时自动展开所在分组
     const parentGroup = item.closest('.menu-group');
     if(parentGroup && parentGroup.classList.contains('collapsed')) toggleMenuGroup(parentGroup.dataset.group);
     if(pid==='home') renderHome();
     if(pid==='gold') { renderGoldAll(); fetchGoldPrice(); }
     if(pid==='travel') ensureTravelReady();
-    if(pid==='moneyOverview') { renderMoneyOverviewList(); renderMoneyOverviewBoard(); }
+    if(pid==='moneyOverview') { renderMoneyOverviewList(); renderMoneyOverviewBoard(); initMoneyOverviewResize(); }
     if(pid==='sideFlow') { renderSideFlowActive(); }
     if(window.innerWidth<=767) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
   });
@@ -5070,8 +5129,8 @@ const HOME_SHORTCUT_DEFAULT = [
   { id:'review',  label:'每日复盘', icon:'📝', panel:'contentReview' },
   { id:'task',    label:'建任务',   icon:'📋', panel:'dailyTask',   addTask:true },
   { id:'expense', label:'记一笔',   icon:'💰', action:'openExpenseModal()' },
-  { id:'hot',     label:'拆爆款',   icon:'🔥', panel:'hotVideos' },
-  { id:'bird',    label:'增知识',   icon:'🦜', panel:'birdCare' },
+  { id:'hot',     label:'拆爆款',   icon:'🔥', panel:'sideFlow' },
+  { id:'bird',    label:'增知识',   icon:'🦜', panel:'sideFlow' },
   { id:'product', label:'增选品',   icon:'🛒', panel:'products' },
   { id:'script',  label:'增直播话术', icon:'🎙️', panel:'liveScript' },
   { id:'travel',  label:'出去玩',   icon:'🧳', panel:'travel' }
@@ -5285,8 +5344,8 @@ function homeShortcutClick(id) {
       return;
     case 'task': openHomeAddTask(); return;           // 建任务 → 今日任务输入
     case 'review':  openHomePanel('contentReview'); return;
-    case 'hot':     openHomePanel('hotVideos'); return;
-    case 'bird':    openHomePanel('birdCare'); return;
+    case 'hot':     openSideFlowPath('hot', 'break'); return;   // 拆爆款 → 支线流·学习爆款视频·我的拆解
+    case 'bird':    openSideFlowPath('bird'); return;           // 增知识 → 支线流·养鸟知识库
     case 'product': openHomePanel('products'); return;
     case 'script':  openHomePanel('liveScript'); return;
     case 'travel':  openHomePanel('travel'); return;
@@ -5300,6 +5359,19 @@ function homeShortcutClick(id) {
 function openHomePanel(pid) {
   const mi = document.querySelector('.menu-item[data-panel="' + pid + '"]');
   if (mi) mi.click();
+}
+// 跳到「我的支线流 → 选题策划 → 二级(sub) → 三级(hotTab)」（拆爆款 / 养鸟知识库已合并进支线流）
+function openSideFlowPath(sub, hotTab) {
+  const mi = document.querySelector('.menu-item[data-panel="sideFlow"]');
+  if (!mi) return;
+  mi.click();
+  setTimeout(() => {
+    switchSideFlowTab('plan');
+    if (sub) switchPlanSub(sub);
+    if (sub === 'hot' && hotTab) switchHotTab(hotTab);
+    const bar = document.getElementById('sideFlowTabBar');
+    if (bar && bar.scrollIntoView) bar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
 }
 
 function openHomeAddTask() {
@@ -6852,6 +6924,7 @@ function clearAllHotAdopt() {
 }
 // Tab 切换：我的拆解 / 我的采纳
 function switchHotTab(tab) {
+  if(tab !== 'mind') exitMindFullscreen();
   document.getElementById('hotTabBreak').style.display = tab === 'break' ? 'block' : 'none';
   document.getElementById('hotTabMind').style.display = tab === 'mind' ? 'block' : 'none';
   document.querySelectorAll('#hotTabBar .tab-btn').forEach(b => {
@@ -6863,26 +6936,70 @@ function switchHotTab(tab) {
   if(tab === 'break') renderHotItems();
   else if(tab === 'mind') { mindUserPanned = false; renderMindMap(); }
 }
-// 应用内全屏脑图：激活「学习爆款视频→头脑风暴」标签并铺满视口；再次调用/双击空白处/Esc 退出
-function toggleMindFullscreen() {
-  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  const mi = document.querySelector('.menu-item[data-panel="hotVideos"]');
-  if(mi) mi.classList.add('active');
-  const pv = document.getElementById('panel-hotVideos');
-  if(pv) pv.classList.add('active');
+// 退出脑图最大化（不改动当前面板/tab，安全可重复调用）
+function exitMindFullscreen() {
+  const w = document.querySelector('#hotTabMind .mind-wrap.fullscreen');
+  if(!w) return false;
+  w.classList.remove('fullscreen');
+  w.style.top = ''; w.style.left = '';
+  updateMindFsBtn();
+  requestAnimationFrame(() => { try { mindFitView(); } catch(_){} });
+  return true;
+}
+// 计算最大化脑图的左上角：让出侧边栏与一级 tab 栏，保证「脚本创作」等 tab 随时可点
+function applyMindFullscreenRect() {
+  const w = document.querySelector('#hotTabMind .mind-wrap.fullscreen');
+  if(!w) return;
+  const vh = window.innerHeight, vw = window.innerWidth;
+  let top = 0, left = 0;
+  const bar = document.getElementById('sideFlowTabBar');
+  if(bar) {
+    const r = bar.getBoundingClientRect();
+    if(r.bottom < 40) { exitMindFullscreen(); return; } // tab 栏被滚出视口，直接还原，避免锁住导航
+    top = Math.min(Math.max(0, r.bottom + 10), Math.max(0, vh - 200));
+  }
+  const sb = document.getElementById('sidebar');
+  if(sb && vw > 767) {
+    const r = sb.getBoundingClientRect();
+    if(r.width > 0) left = Math.max(0, Math.min(r.right, Math.max(0, vw - 240)));
+  }
+  w.style.top = top + 'px';
+  w.style.left = left + 'px';
+}
+function updateMindFsBtn() {
+  const b = document.getElementById('mindFsBtn');
+  if(!b) return;
+  const fs = !!document.querySelector('#hotTabMind .mind-wrap.fullscreen');
+  b.textContent = fs ? '✕ 退出最大化' : '⛶ 最大化';
+}
+// 应用内最大化脑图：定位到「我的支线流 → 选题策划 → 学习爆款视频 → 头脑风暴」并铺满 tab 栏以下区域；
+// 再次调用 / 双击空白处 / 右上角 ✕ / Esc 均可还原。force=true 强制进入，false 强制退出，缺省则切换。
+function toggleMindFullscreen(force) {
+  const wrap0 = document.querySelector('#hotTabMind .mind-wrap');
+  if(!wrap0) return;
+  const next = (typeof force === 'boolean') ? force : !wrap0.classList.contains('fullscreen');
+  // 1) 先确保处于正确路径（旧的 hotVideos / birdCare 独立面板已合并进支线流，不能再切过去）
+  const sideFlow = document.getElementById('panel-sideFlow');
+  if(sideFlow && !sideFlow.classList.contains('active')) {
+    const mi = document.querySelector('.menu-item[data-panel="sideFlow"]');
+    if(mi) mi.click();
+  }
+  switchSideFlowTab('plan');
+  switchPlanSub('hot');
   switchHotTab('mind'); // 内部已 renderMindMap
   const wrap = document.querySelector('#hotTabMind .mind-wrap');
   if(!wrap) return;
-  wrap.classList.toggle('fullscreen');
+  wrap.classList.toggle('fullscreen', next);
+  if(next) applyMindFullscreenRect();
+  else { wrap.style.top = ''; wrap.style.left = ''; }
+  updateMindFsBtn();
   requestAnimationFrame(() => { try { mindFitView(); } catch(e){} });
 }
 document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape') {
-    const w = document.querySelector('#hotTabMind .mind-wrap.fullscreen');
-    if(w) { w.classList.remove('fullscreen'); requestAnimationFrame(() => { try { mindFitView(); } catch(_){} }); }
-  }
+  if(e.key === 'Escape') exitMindFullscreen();
 });
+window.addEventListener('resize', applyMindFullscreenRect);
+window.addEventListener('scroll', applyMindFullscreenRect, true);
 function saveHotOrder() {
   localStorage.setItem('parrot_hot_order', JSON.stringify(hotOrder));
   onLocalDataChange();
@@ -16085,13 +16202,39 @@ function switchMoneyOverviewTab(t){
   document.getElementById('moneyOverviewBoard').style.display = t==='board'?'block':'none';
   if(t==='list') renderMoneyOverviewList(); else renderMoneyOverviewBoard();
 }
+// 状态 → 我的支线流目标 tab（列表/看板点击标题时跳转）
+const FLOW_JUMP = {
+  selected:      { tab:'plan',  sub:'topic' },
+  script_todo:   { tab:'script' },
+  script_done:   { tab:'script' },
+  shoot:         { tab:'shoot'  },
+  edit_pending:  { tab:'shoot'  },
+  editing:       { tab:'shoot'  },
+  published:     { tab:'shoot'  }
+};
+function goToPanelById(pid){
+  const item = document.querySelector('.menu-item[data-panel="'+pid+'"]');
+  if(item) item.click();
+}
+function jumpToFlow(flowId){
+  const it = flowItems.find(x=>x.flowId===flowId);
+  const t = FLOW_JUMP[(it && it.status) || ''] || { tab:'plan', sub:'topic' };
+  goToPanelById('sideFlow');
+  setTimeout(()=>{
+    switchSideFlowTab(t.tab);
+    if(t.tab==='plan' && t.sub) switchPlanSub(t.sub);
+    const bar = document.getElementById('sideFlowTabBar');
+    if(bar && bar.scrollIntoView) bar.scrollIntoView({behavior:'smooth', block:'start'});
+    else window.scrollTo({top:0, behavior:'smooth'});
+  }, 60);
+}
 function renderMoneyOverviewList(){
   const box = document.getElementById('moneyOverviewBody'); if(!box) return;
   if(!flowItems.length){ box.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-secondary);">暂无内容数据，去「我的支线流」开始创作吧～</td></tr>'; return; }
   const sorted = flowItems.slice().sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
   box.innerHTML = sorted.map(it=>`<tr>
     <td>${it.createdAt||''}</td>
-    <td>${escapeHtml(it.title||'未命名')}</td>
+    <td><button class="mo-link" onclick="jumpToFlow('${it.flowId}')" title="跳转到我的支线流对应环节">${escapeHtml(it.title||'未命名')}</button></td>
     <td>${escapeHtml(it.source||'手动')}</td>
     <td><span class="mo-status-pill" style="background:${flowStatusColor(it.status)}22;color:${flowStatusColor(it.status)};">${flowStatusLabel(it.status)}</span></td>
   </tr>`).join('');
@@ -16102,20 +16245,24 @@ function renderMoneyOverviewBoard(){
     const items = flowItems.filter(x=>x.status===s.key);
     return `<div class="mo-col">
       <div class="mo-col-head" style="border-color:${s.color};"><span class="mo-col-dot" style="background:${s.color}"></span>${s.label}<span class="mo-col-count">${items.length}</span></div>
-      <div class="mo-col-body">${items.map(it=>`<div class="mo-card"><div class="mo-card-title">${escapeHtml(it.title||'未命名')}</div><div class="mo-card-time">${it.createdAt||''}</div></div>`).join('') || '<div class="mo-empty">空</div>'}</div>
+      <div class="mo-col-body">${items.map(it=>`<div class="mo-card"><div class="mo-card-title" onclick="jumpToFlow('${it.flowId}')" title="跳转到我的支线流对应环节">${escapeHtml(it.title||'未命名')}</div><div class="mo-card-time">${it.createdAt||''}</div></div>`).join('') || '<div class="mo-empty">空</div>'}</div>
     </div>`;
   }).join('');
 }
-function exportMoneyOverview(){
-  let text = '时间\t标题\t来源\t状态\n';
-  flowItems.slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).forEach(it=>{
-    text += `${it.createdAt||''}\t${(it.title||'未命名').replace(/\n/g,' ')}\t${it.source||'手动'}\t${flowStatusLabel(it.status)}\n`;
-  });
-  downloadText('搞钱概览.csv', text);
+// 搞钱概览列表列宽拖拽（宽度记忆到 localStorage）
+const MO_COLW_KEY = 'parrot_mo_colw_v1';
+function initMoneyOverviewResize(){
+  const api = {
+    getColKeys: ()=> ['time','title','source','status'],
+    getColW: (k)=> { try{ const m=JSON.parse(localStorage.getItem(MO_COLW_KEY)||'{}'); return m[k]; }catch(e){ return null; } },
+    setColW: (k,w)=> { try{ const m=JSON.parse(localStorage.getItem(MO_COLW_KEY)||'{}'); m[k]=w; localStorage.setItem(MO_COLW_KEY, JSON.stringify(m)); }catch(e){} }
+  };
+  try { enableTableResize('moneyOverviewTable', api); } catch(e){}
 }
 
 // ============ 我的支线流 切换 ============
 function switchSideFlowTab(t){
+  exitMindFullscreen(); // 离开选题策划时自动还原最大化的脑图，避免浮层挡住内容
   document.querySelectorAll('#sideFlowTabBar .tab-btn').forEach(b=>b.classList.toggle('active', b.textContent.includes(t==='plan'?'选题策划':t==='script'?'脚本创作':'拍摄执行')));
   document.getElementById('sideFlowPlan').style.display = t==='plan'?'block':'none';
   document.getElementById('sideFlowScript').style.display = t==='script'?'block':'none';
@@ -16125,11 +16272,11 @@ function switchSideFlowTab(t){
   if(t==='shoot'){ renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList(); }
 }
 function switchPlanSub(t){
+  if(t!=='hot') exitMindFullscreen();
   document.querySelectorAll('#planSubTabBar .sub-tab-btn').forEach(b=>b.classList.toggle('active', b.textContent.includes(t==='topic'?'选题':t==='bird'?'养鸟':'爆款')));
   document.getElementById('planTopic').style.display = t==='topic'?'block':'none';
   document.getElementById('planBird').style.display = t==='bird'?'block':'none';
   document.getElementById('planHot').style.display = t==='hot'?'block':'none';
-  if(t==='bird'){ const mi=document.querySelector('.menu-item[data-panel="birdCare"]'); }
   if(t==='bird') renderKnowledge();
   if(t==='hot') renderHotItems();
 }
@@ -16284,11 +16431,12 @@ function renderTopicBoard(){
 }
 
 // ============ 脚本库 ============
-function openScriptCatModal(){
+function openScriptCatModal(after){
   showAppPrompt({ title:'新建脚本分类', fields:[ { key:'name', label:'分类名称' } ] }, (vals)=>{
     if(!vals || !vals.name) return;
     scriptCats.push({ id:genFlowId(), name:vals.name, items:[] });
     saveScriptCats(); renderScriptBoard();
+    if(typeof after === 'function') after();
   });
 }
 function openScriptAddDirect(catId){
@@ -16316,23 +16464,29 @@ function topicToScript(flowId){
   // 从选题库点击「写脚本」：自动复用标题，切到脚本创作 tab
   const it = topicCats.flatMap(c=>c.items).find(x=>x.flowId===flowId);
   const title = it?it.title:'';
-  switchSideFlowTab('script'); switchScriptSub('lib');
-  if(!scriptCats.length){ openScriptCatModal(); }
-  setTimeout(()=>{
-    showAppPrompt({ title:'添加脚本', fields:[
-      { key:'topicFlowId', label:'复用选题', type:'select', options:[{value:flowId,text:title}] },
-      { key:'title', label:'标题', value:title },
-      { key:'script', label:'脚本', type:'textarea' },
-      { key:'note', label:'备注', type:'textarea' }
-    ]}, (vals)=>{
-      if(!vals || !vals.title) return;
-      const cat = scriptCats[0];
-      cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'' });
-      saveScriptCats();
-      touchFlow(flowId, { title:vals.title, status:'script_done' });
-      renderScriptBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
-    });
-  }, 50);
+  switchSideFlowTab('script'); // 旧的 switchScriptSub('lib') 已不存在，直接去掉，避免抛错中断后续弹窗
+  // 没有分类时先建分类，建完再弹「添加脚本」，避免两个弹窗互相覆盖导致脚本丢失
+  const openAdd = ()=>{
+    setTimeout(()=>{
+      if(!scriptCats.length){ showToast('请先创建一个脚本分类'); return; }
+      showAppPrompt({ title:'添加脚本', fields:[
+        { key:'topicFlowId', label:'复用选题', type:'select', options:[{value:flowId,text:title}] },
+        { key:'title', label:'标题', value:title },
+        { key:'script', label:'脚本', type:'textarea' },
+        { key:'note', label:'备注', type:'textarea' }
+      ]}, (vals)=>{
+        if(!vals || !vals.title) return;
+        const cat = scriptCats[0];
+        if(!cat) return;
+        cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'' });
+        saveScriptCats();
+        touchFlow(flowId, { title:vals.title, status:'script_done' });
+        renderScriptBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+      });
+    }, 50);
+  };
+  if(!scriptCats.length) openScriptCatModal(openAdd);
+  else openAdd();
 }
 function deleteScriptItem(catId, flowId){
   const cat = scriptCats.find(c=>c.id===catId); if(!cat) return;
@@ -16560,6 +16714,16 @@ function toggleGolden(flowId, idx){
 }
 
 function downloadText(filename, text){ const blob=new Blob([text],{type:"text/plain;charset=utf-8"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
+
+// ===== 初始化：页面加载时把「我的支线流 / 搞钱概览」数据读进内存并渲染 =====
+// 之前只在云端同步回填时才 reloadAllData()，未开同步的用户进来列表/看板/选题库全是空的
+(function initFlowDataOnce(){
+  try { loadFlowData(); } catch(e){ console.error('loadFlowData error', e); }
+  try { renderIdeaList(); renderTopicBoard(); } catch(e){}
+  try { renderScriptBoard(); renderCopyBoard(); } catch(e){}
+  try { renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList(); } catch(e){}
+  try { renderMoneyOverviewList(); renderMoneyOverviewBoard(); } catch(e){}
+})();
 
 </script>
 
