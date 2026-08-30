@@ -1280,9 +1280,15 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 @media (max-width: 767px) {
   .sidebar { width: 260px; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 99; }
   .sidebar.open { transform: translateX(0); box-shadow: 4px 0 32px rgba(0,0,0,0.15); }
-  .main-area { margin-left: 0; }
-  .main { padding: 14px 14px 80px; }
+  .main-area { margin-left: 0; width: 100vw; min-width: 0; }
+  .main { padding: 14px 14px 80px; max-width: 100%; min-width: 0; }
   .topbar { padding: 12px 14px; }
+  #prodTableCard { overflow: hidden !important; }
+  .prod-table th, .prod-table td { padding: 6px 4px; font-size: 12px; }
+  .prod-table .col-date { width: 64px; }
+  .prod-table .col-del { width: 40px; }
+  .prod-table th:nth-child(3), .prod-table td:nth-child(3),
+  .prod-table th:nth-child(4), .prod-table td:nth-child(4) { width: auto; min-width: 80px; }
   .topbar-title { font-size: 16px; white-space: nowrap; flex-shrink: 0; }
   .topbar-title span { font-size: 18px; }
   .topbar-date { font-size: 11px; padding: 6px 10px; flex-shrink: 0; }
@@ -2785,7 +2791,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
     <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
     <p class="splash-quote" id="splashQuote"></p>
     <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-    <div class="splash-ver">v2.0.20260859</div>
+    <div class="splash-ver">v2.0.20260860</div>
   </div>
   <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3267,9 +3273,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
             </div>
           </div>
         </div>
-      </div>
           </div>
-        </div>
 
         <!-- 脚本创作 -->
         <div id="sideFlowScript" class="side-flow-panel" style="display:none;">
