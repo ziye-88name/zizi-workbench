@@ -2847,6 +2847,28 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .sd-shot-btn:hover { border-color:var(--primary); color:var(--primary); }
 .sd-shot-btn.on { background:var(--primary,#81C784); border-color:var(--primary,#81C784); color:#fff; font-weight:700; }
 .sd-empty { text-align:center; color:var(--text-secondary); font-size:13px; padding:36px 10px; }
+/* 文案库：tab + 列表 */
+.copy-board { padding:4px 2px; }
+.copy-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.copy-tab { display:flex; align-items:center; gap:4px; padding:7px 14px; border-radius:20px; background:var(--bg); border:1px solid var(--border); cursor:pointer; font-size:13px; color:var(--text-secondary); transition:all .16s; user-select:none; }
+.copy-tab:hover { background:rgba(129,199,132,.12); border-color:var(--primary); }
+.copy-tab.active { background:var(--primary-light); color:var(--primary); border-color:var(--primary); font-weight:700; }
+.copy-tab .copy-count { font-size:11px; opacity:.85; }
+.copy-tab-del { opacity:0; font-size:11px; padding:1px 3px; border-radius:4px; transition:opacity .16s; }
+.copy-tab:hover .copy-tab-del { opacity:.55; }
+.copy-tab-del:hover { opacity:1 !important; background:rgba(239,83,80,.12); }
+.copy-list { display:flex; flex-direction:column; gap:10px; min-height:120px; }
+.copy-item { background:var(--bg); border:1px solid var(--border); border-radius:14px; padding:12px 14px; display:flex; gap:12px; align-items:flex-start; transition:box-shadow .16s; }
+.copy-item:hover { box-shadow:var(--shadow-soft); }
+.copy-quote { font-size:28px; color:var(--primary); line-height:1; flex-shrink:0; opacity:.35; margin-top:-2px; }
+.copy-main { flex:1; min-width:0; }
+.copy-title { font-weight:700; font-size:14px; margin-bottom:4px; color:var(--text); }
+.copy-text { font-size:13px; line-height:1.65; color:var(--text); white-space:pre-wrap; word-break:break-word; }
+.copy-actions { display:flex; gap:6px; flex-shrink:0; flex-direction:column; }
+.copy-add { margin-top:14px; width:100%; }
+@media (max-width:767px){
+  .copy-actions { flex-direction:row; }
+}
 /* 拖拽通用样式 */
 .sf-drag { cursor:grab; }
 .sf-drag.dragging { opacity:.35; transform:scale(.97); cursor:grabbing; }
@@ -3092,7 +3114,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260869</div>
+<div class="splash-ver">v2.0.20260870</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3545,7 +3567,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <span>📝 文案库</span>
 <button class="btn btn-outline btn-sm" onclick="openCopyCatModal()">➕ 新分类</button>
 </div>
-<div class="mo-board" id="copyBoard"></div>
+<div class="copy-board" id="copyBoard"></div>
 </div>
 </div>
 <!-- 拍摄执行 -->
@@ -17714,8 +17736,33 @@ function topicToScript(flowId){
 }
 function deleteScriptItem(catId, flowId){
   const cat = scriptCats.find(c=>c.id===catId); if(!cat) return;
-  cat.items = cat.items.filter(x=>x.flowId!==flowId);
-  saveScriptCats(); renderScriptBoard();
+  const it = cat.items.find(x=>x.flowId===flowId); if(!it) return;
+  const title = it.title || '未命名';
+  showConfirm('确定删除脚本「' + title + '」吗？<br/>相关排期、剪辑看板、待发布/已发布数据会同步删除，且不可恢复。', ()=>{
+    // 1) 删除脚本
+    cat.items = cat.items.filter(x=>x.flowId!==flowId);
+    saveScriptCats();
+    // 2) 级联删除拍摄排期
+    const hadSchedule = shootSchedules.some(x=>x.flowId===flowId);
+    shootSchedules = shootSchedules.filter(x=>x.flowId!==flowId);
+    if(hadSchedule) saveShoot();
+    // 3) 级联删除剪辑看板
+    const hadEdit = editBoard.some(x=>x.flowId===flowId);
+    editBoard = editBoard.filter(x=>x.flowId!==flowId);
+    if(hadEdit) saveEditBoard();
+    // 4) 级联删除待发布 / 已发布
+    const hadPending = pendingPublish.some(x=>x.flowId===flowId);
+    const hadPublished = published.some(x=>x.flowId===flowId);
+    pendingPublish = pendingPublish.filter(x=>x.flowId!==flowId);
+    published = published.filter(x=>x.flowId!==flowId);
+    if(hadPending) savePendingPublish();
+    if(hadPublished) savePublished();
+    // 5) 主线状态回退到待写脚本（项目本身保留）
+    touchFlow(flowId, { status:'script_todo' });
+    renderScriptBoard(); renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
+    showToast('🗑 脚本及相关数据已删除');
+  }, { title:'删除脚本', danger:true });
 }
 function renderScriptBoard(){
   const box = document.getElementById('scriptBoard'); if(!box) return;
@@ -17731,7 +17778,7 @@ function renderScriptBoard(){
         ${it.script?`<div class="mo-card-sub" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">📄 ${escapeHtml(it.script)}</div>`:''}
         ${it.note?`<div class="mo-card-sub">📝 ${escapeHtml(it.note)}</div>`:''}
         <div class="mo-card-actions">
-          <button class="btn btn-outline btn-sm" onclick="scriptToShoot('${it.flowId}')">排期</button>
+          <button class="btn btn-outline btn-sm" onclick="scriptToShoot('${it.flowId}')">${shootSchedules.find(x=>x.flowId===it.flowId)?'📝 修改排期':'🎬 设置排期'}</button>
           <button class="btn btn-outline btn-sm" onclick="deleteScriptItem('${cat.id}','${it.flowId}')">✕</button>
         </div>
       </div>`).join('') || '<div class="mo-empty">暂无脚本</div>'}</div>
@@ -17742,8 +17789,11 @@ function renderScriptBoard(){
 function openCopyCatModal(){
   showAppPrompt({ title:'新建文案分类', fields:[ { key:'name', label:'分类名称' } ] }, (vals)=>{
     if(!vals || !vals.name) return;
-    copyCats.push({ id:genFlowId(), name:vals.name, items:[] });
-    saveCopyCats(); renderCopyBoard();
+    const cat = { id:genFlowId(), name:vals.name, items:[] };
+    copyCats.push(cat);
+    saveCopyCats();
+    copyActiveCatId = cat.id;
+    renderCopyBoard();
   });
 }
 function openCopyAddDirect(catId){
@@ -17759,24 +17809,40 @@ function openCopyAddDirect(catId){
 }
 function deleteCopyItem(catId, itemId){
   const cat = copyCats.find(c=>c.id===catId); if(!cat) return;
-  cat.items = cat.items.filter(x=>x.id!==itemId);
-  saveCopyCats(); renderCopyBoard();
+  const it = cat.items.find(x=>x.id===itemId); if(!it) return;
+  showConfirm('确定删除文案「' + (it.title || '未命名') + '」吗？删除后不可恢复。', ()=>{
+    cat.items = cat.items.filter(x=>x.id!==itemId);
+    saveCopyCats(); renderCopyBoard();
+    showToast('🗑 文案已删除');
+  }, { title:'删除文案' });
+}
+let copyActiveCatId = null;
+function switchCopyTab(catId){
+  copyActiveCatId = catId; renderCopyBoard();
 }
 function renderCopyBoard(){
   const box = document.getElementById('copyBoard'); if(!box) return;
-  if(!copyCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
-  box.innerHTML = copyCats.map(cat=>`
-    <div class="mo-cat sf-cat-drop" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'copy','${cat.id}')">
-      <div class="mo-cat-head"><span class="mo-cat-name" ondblclick="renameSFCat('copy','${cat.id}')" title="双击可修改分类名">${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
-        <button class="btn btn-outline btn-sm" onclick="openCopyAddDirect('${cat.id}')">➕ 加文案</button>
-        <button class="mo-cat-del" title="删除分类" onclick="deleteSFCat('copy','${cat.id}')">🗑</button>
+  if(!copyCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点右上角「新分类」创建</p></div>'; return; }
+  if(!copyActiveCatId || !copyCats.find(c=>c.id===copyActiveCatId)) copyActiveCatId = copyCats[0].id;
+  const cat = copyCats.find(c=>c.id===copyActiveCatId);
+  box.innerHTML = `
+    <div class="copy-tabs">${copyCats.map(c=>`
+      <div class="copy-tab ${c.id===copyActiveCatId?'active':''}" onclick="switchCopyTab('${c.id}')" ondblclick="renameSFCat('copy','${c.id}')" title="双击可修改分类名">
+        ${escapeHtml(c.name)}<span class="copy-count">(${c.items.length})</span>
+        <span class="copy-tab-del" title="删除分类" onclick="event.stopPropagation(); deleteSFCat('copy','${c.id}')">🗑</span>
+      </div>`).join('')}</div>
+    <div class="copy-list">${cat.items.map(it=>`<div class="copy-item">
+      <div class="copy-quote">“</div>
+      <div class="copy-main">
+        <div class="copy-title">${escapeHtml(it.title)}</div>
+        <div class="copy-text">${escapeHtml(it.text||'')}</div>
       </div>
-      <div class="mo-cat-body" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'copy','${cat.id}')">${cat.items.map(it=>`<div class="mo-card sf-drag" draggable="true" ondragstart="sfDragStart(event,'copy','${cat.id}','${it.id}')" ondragend="sfDragEnd(event)">
-        <div class="mo-card-title" onclick="openCopyItemEditor('${cat.id}','${it.id}')">${escapeHtml(it.title)}</div>
-        ${it.text?`<div class="mo-card-sub" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(it.text)}</div>`:''}
-        <div class="mo-card-actions"><button class="btn btn-outline btn-sm" onclick="deleteCopyItem('${cat.id}','${it.id}')">✕</button></div>
-      </div>`).join('') || '<div class="mo-empty">暂无文案</div>'}</div>
-    </div>`).join('');
+      <div class="copy-actions">
+        <button class="btn btn-outline btn-sm" onclick="openCopyItemEditor('${cat.id}','${it.id}')">编辑</button>
+        <button class="btn btn-outline btn-sm" onclick="deleteCopyItem('${cat.id}','${it.id}')" style="color:var(--danger);border-color:var(--danger);">删除</button>
+      </div>
+    </div>`).join('') || '<div class="empty-state" style="padding:28px 10px;">当前分类还没有文案，点击下方「➕ 加文案」添加</div>'}</div>
+    <button class="btn btn-outline btn-sm copy-add" onclick="openCopyAddDirect('${cat.id}')">➕ 加文案</button>`;
 }
 
 // ============ 拍摄执行 ============
@@ -17804,7 +17870,7 @@ function renderShootWeek(){
         <div class="sw-card-title">${s.shot?'✅ ':''}${escapeHtml(flowTitle(s.flowId,s.title))}</div>
         ${s.time?`<div class="sw-card-sub">🕐 ${escapeHtml(s.time)}</div>`:''}
         ${s.note?`<div class="sw-card-sub">📝 ${escapeHtml(s.note)}</div>`:''}
-        <div class="sw-card-actions"><button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button></div>
+        <div class="sw-card-actions"><button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button><button class="btn btn-outline btn-sm" onclick="deleteShootSchedule('${s.flowId}')" style="color:var(--danger);border-color:var(--danger);">🗑</button></div>
       </div>`).join('') || '<div class="sw-empty">—</div>'}</div>
     </div>`;
   }).join('');
@@ -17813,13 +17879,44 @@ function openShootScheduleModal(preselectedFlowId){
   // 选择脚本库数据
   const allScripts = scriptCats.flatMap(c=>c.items.map(it=>({catId:c.id, ...it})));
   if(!allScripts.length){ showToast('请先在脚本库添加脚本'); return; }
+  const existing = preselectedFlowId ? shootSchedules.find(x=>x.flowId===preselectedFlowId) : null;
+  const isEdit = !!existing;
+  // 编辑已有排期：脚本下拉不可选其它已有排期（防重复），但允许改回自己
+  if(isEdit){
+    showAppPrompt({ title:'编辑拍摄排期', fields:[
+      { key:'flowId', label:'选择脚本', type:'select', value:preselectedFlowId, options:allScripts.map(s=>({value:s.flowId,text:s.title})) },
+      { key:'date', label:'拍摄日期', type:'date', value:existing.date },
+      { key:'time', label:'时间（可选）', value:existing.time||'' },
+      { key:'note', label:'备注', type:'textarea', value:existing.note||'' }
+    ]}, (vals)=>{
+      if(!vals || !vals.flowId || !vals.date) return;
+      const conflict = shootSchedules.find(x=>x.flowId===vals.flowId && x.flowId!==preselectedFlowId);
+      if(conflict){ showToast('该脚本已存在排期，请从排期列表删除后再添加'); return; }
+      existing.flowId = vals.flowId;
+      existing.date = vals.date;
+      existing.time = vals.time||'';
+      existing.note = vals.note||'';
+      existing.title = flowTitle(vals.flowId);
+      saveShoot();
+      touchFlow(vals.flowId, { status:'shoot' });
+      renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+      try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
+      showToast('🎬 排期已更新');
+    });
+    return;
+  }
+  // 新增排期：排除已安排过的脚本
+  const scheduledIds = new Set(shootSchedules.map(x=>x.flowId));
+  const availScripts = allScripts.filter(s=>!scheduledIds.has(s.flowId));
+  if(!availScripts.length){ showToast('所有脚本都已设置排期，请从排期列表删除后再添加'); return; }
   showAppPrompt({ title:'添加拍摄排期', fields:[
-    { key:'flowId', label:'选择脚本', type:'select', value:preselectedFlowId||'', options:allScripts.map(s=>({value:s.flowId,text:s.title})) },
+    { key:'flowId', label:'选择脚本', type:'select', value:preselectedFlowId||'', options:availScripts.map(s=>({value:s.flowId,text:s.title})) },
     { key:'date', label:'拍摄日期', type:'date' },
     { key:'time', label:'时间（可选）' },
     { key:'note', label:'备注', type:'textarea' }
   ]}, (vals)=>{
     if(!vals || !vals.flowId || !vals.date) return;
+    if(shootSchedules.find(x=>x.flowId===vals.flowId)){ showToast('该脚本已存在排期'); return; }
     shootSchedules.push({ flowId:vals.flowId, date:vals.date, time:vals.time||'', note:vals.note||'', title:flowTitle(vals.flowId) });
     saveShoot();
     touchFlow(vals.flowId, { status:'shoot' });
@@ -17827,6 +17924,18 @@ function openShootScheduleModal(preselectedFlowId){
     try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
     showToast('🎬 已加入拍摄排期');
   });
+}
+function deleteShootSchedule(flowId){
+  const s = shootSchedules.find(x=>x.flowId===flowId);
+  if(!s) return;
+  showConfirm('确定删除「' + (flowTitle(flowId,s.title) || '该脚本') + '」的拍摄排期吗？删除后可在脚本库重新设置。', ()=>{
+    shootSchedules = shootSchedules.filter(x=>x.flowId!==flowId);
+    saveShoot();
+    touchFlow(flowId, { status:'script_done' });
+    renderShootWeek(); renderShootCalendar(); renderScriptBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
+    showToast('🗑 排期已删除');
+  }, { title:'删除排期' });
 }
 function scriptToShoot(flowId){
   openShootScheduleModal(flowId);
@@ -17928,6 +18037,7 @@ function renderShootCalendar(){
           <div class="sd-actions">
             <button class="sd-shot-btn ${s.shot ? 'on' : ''}" onclick="toggleShootShot('${s.flowId}')">${s.shot ? '✅ 已拍' : '标记为已拍'}</button>
             <button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button>
+            <button class="btn btn-outline btn-sm" onclick="deleteShootSchedule('${s.flowId}')" style="color:var(--danger);border-color:var(--danger);">🗑</button>
           </div>
         </div>`;
       }).join('');
@@ -18004,9 +18114,13 @@ function editMove(flowId, status){
   renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
 }
 function editRemove(flowId){
-  editBoard = editBoard.filter(x=>x.flowId!==flowId); saveEditBoard();
-  touchFlow(flowId, { status:'shoot' });
-  renderEditBoard(); renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+  const e = editBoard.find(x=>x.flowId===flowId); if(!e) return;
+  showConfirm('确定从剪辑看板移除「' + (flowTitle(flowId,e.title) || '该任务') + '」吗？移除后会回到拍摄排期。', ()=>{
+    editBoard = editBoard.filter(x=>x.flowId!==flowId); saveEditBoard();
+    touchFlow(flowId, { status:'shoot' });
+    renderEditBoard(); renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    showToast('↩️ 已移除并回到拍摄排期');
+  }, { title:'移除剪辑任务' });
 }
 function renderPublishList(){
   const box = document.getElementById('publishList'); if(!box) return;
