@@ -2806,9 +2806,21 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .mo-cat-del:hover { opacity:1 !important; background:var(--bg); }
 .mo-cat-body { display:flex; flex-direction:column; gap:10px; }
 .mo-status-pill { display:inline-block; padding:2px 10px; border-radius:10px; font-size:12px; font-weight:600; white-space:nowrap; }
-/* 搞钱概览：桌面看板用网格填充，移动端列表用卡片 */
-#moneyOverviewBoard .mo-board { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:14px; overflow:visible; padding-bottom:0; align-items:start; }
-#moneyOverviewBoard .mo-col { min-width:auto; width:auto; }
+/* 搞钱概览筛选栏 */
+.mo-filter-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; padding:10px 12px; background:var(--bg); border-radius:14px; border:1px solid var(--border); }
+.mo-table-wrap .daily-task-table th,
+.mo-table-wrap .daily-task-table td { white-space:nowrap; }
+.mo-filter-label { font-size:13px; color:var(--text-secondary); white-space:nowrap; }
+.mo-filter-select { padding:6px 10px; border-radius:10px; border:1px solid var(--border); background:#fff; font-size:13px; color:var(--text); min-width:120px; cursor:pointer; }
+.mo-filter-hint { font-size:12px; color:var(--text-secondary); margin-left:auto; }
+/* 搞钱概览：看板横向滚动，占满页面 */
+#moneyOverviewBoard .mo-board { display:flex; gap:14px; overflow-x:auto; padding-bottom:12px; min-height:calc(100vh - 260px); align-items:flex-start; }
+#moneyOverviewBoard .mo-board::-webkit-scrollbar { height:10px; }
+#moneyOverviewBoard .mo-board::-webkit-scrollbar-track { background:var(--bg); border-radius:5px; }
+#moneyOverviewBoard .mo-board::-webkit-scrollbar-thumb { background:var(--primary-soft); border-radius:5px; }
+#moneyOverviewBoard .mo-board::-webkit-scrollbar-thumb:hover { background:var(--primary); }
+#moneyOverviewBoard .mo-col { flex:0 0 300px; min-width:300px; width:300px; background:#fff; border-radius:16px; padding:12px; border:1px solid var(--border); display:flex; flex-direction:column; max-height:calc(100vh - 280px); }
+#moneyOverviewBoard .mo-col-body { overflow-y:auto; flex:1; padding-right:2px; }
 .mo-mobile-list { display:none; }
 .mo-mcard { background:var(--bg); border:1px solid var(--border); border-radius:14px; padding:13px 15px; }
 .mo-mcard-title { display:block; width:100%; text-align:left; background:none; border:none; padding:0; font:inherit; font-weight:700; font-size:15px; color:var(--primary-dark); cursor:pointer; line-height:1.45; word-break:break-word; margin-bottom:8px; }
@@ -2817,11 +2829,12 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .mo-mcard-source { color:var(--text-secondary); }
 @media (max-width: 767px){
   .money-overview-panel { padding:0 2px; }
-  .mo-table-wrap { display:none; }
-  .mo-mobile-list { display:block; }
-  #moneyOverviewBoard .mo-board { grid-template-columns:1fr; }
-  #moneyOverviewBoard .mo-col { width:100%; min-width:auto; }
+  .mo-table-wrap { display:block; overflow-x:auto; }
+  .mo-mobile-list { display:none; }
+  .mo-filter-hint { display:none; }
   .mo-tip { font-size:12px; padding:8px 12px; line-height:1.5; }
+  #moneyOverviewBoard .mo-board { flex-direction:row; }
+  #moneyOverviewBoard .mo-col { flex:0 0 260px; min-width:260px; width:260px; max-height:calc(100vh - 240px); }
 }
 .idea-list { display:flex; flex-direction:column; gap:10px; }
 .idea-item { display:flex; gap:12px; align-items:flex-start; background:var(--bg); border-radius:14px; padding:12px 14px; border:1px solid var(--border); }
@@ -3189,7 +3202,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260873</div>
+<div class="splash-ver">v2.0.20260874</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3485,6 +3498,13 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 </div>
 <div class="money-overview-panel" id="moneyOverviewList">
 <div class="mo-tip">💡 点击「标题」可跳转到我的支线流对应环节；表头右侧小竖条可左右拖拽调整列宽。</div>
+<div class="mo-filter-bar">
+  <span class="mo-filter-label">🔍 状态筛选：</span>
+  <select class="mo-filter-select" id="moStatusFilter" onchange="renderMoneyOverviewList()">
+    <option value="all">全部状态</option>
+  </select>
+  <span class="mo-filter-hint">默认按状态排序：已选题 → 待写脚本 → 完成脚本 → 待拍摄 → 待剪辑 → 剪辑中 → 已发布</span>
+</div>
 <div class="table-container mo-table-wrap">
 <table class="daily-task-table mo-table" id="moneyOverviewTable">
 <thead><tr><th style="width:150px;">时间</th><th style="width:300px;min-width:200px;">标题</th><th style="width:120px;">来源</th><th style="width:130px;">状态</th></tr></thead>
@@ -3494,6 +3514,13 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <div class="mo-mobile-list" id="moneyOverviewMobileList"></div>
 </div>
 <div class="money-overview-panel" id="moneyOverviewBoard" style="display:none;">
+<div class="mo-filter-bar">
+  <span class="mo-filter-label">🔍 状态筛选：</span>
+  <select class="mo-filter-select" id="moBoardStatusFilter" onchange="renderMoneyOverviewBoard()">
+    <option value="all">全部状态</option>
+  </select>
+  <span class="mo-filter-hint">左右拖动下方滚动条查看更多列</span>
+</div>
 <div class="mo-board" id="moBoard"></div>
 </div>
 </div>
@@ -17867,19 +17894,39 @@ function renderMoneyOverviewList(){
   const box = document.getElementById('moneyOverviewBody');
   const mob = document.getElementById('moneyOverviewMobileList');
   if(!box || !mob) return;
-  if(!flowItems.length){
-    box.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-secondary);">暂无内容数据，去「我的支线流」开始创作吧～</td></tr>';
-    mob.innerHTML = '<div class="empty-state" style="padding:30px 10px;">暂无内容数据，去「我的支线流」开始创作吧～</div>';
+  // 状态筛选下拉
+  const sel = document.getElementById('moStatusFilter');
+  let filter = 'all';
+  if(sel){
+    filter = sel.value || 'all';
+    const curVal = sel.value;
+    sel.innerHTML = `<option value="all">全部状态</option>` + FLOW_STATUS.map(s => `<option value="${s.key}">${s.label}</option>`).join('');
+    sel.value = (FLOW_STATUS.some(s => s.key === curVal) ? curVal : 'all');
+  }
+  const statusOrder = {};
+  FLOW_STATUS.forEach((s,i) => statusOrder[s.key] = i);
+  let data = flowItems.slice();
+  if(filter !== 'all') data = data.filter(x => x.status === filter);
+  // 列表按状态顺序排列，同状态按创建时间倒序
+  data.sort((a,b)=>{
+    const oa = statusOrder[a.status] ?? 999, ob = statusOrder[b.status] ?? 999;
+    if(oa !== ob) return oa - ob;
+    return (b.createdAt||'').localeCompare(a.createdAt||'');
+  });
+  if(!data.length){
+    const msg = filter === 'all' ? '暂无内容数据，去「我的支线流」开始创作吧～' : '该状态下暂无内容';
+    box.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-secondary);">' + msg + '</td></tr>';
+    mob.innerHTML = '<div class="empty-state" style="padding:30px 10px;">' + msg + '</div>';
     return;
   }
-  const sorted = flowItems.slice().sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
-  box.innerHTML = sorted.map(it=>`<tr>
+  const rowHtml = it => `<tr>
     <td>${it.createdAt||''}</td>
     <td><button class="mo-link" onclick="jumpToFlow('${it.flowId}')" title="跳转到我的支线流对应环节">${escapeHtml(it.title||'未命名')}</button></td>
     <td>${escapeHtml(it.source||'手动')}</td>
     <td><span class="mo-status-pill" style="background:${flowStatusColor(it.status)}22;color:${flowStatusColor(it.status)};">${flowStatusLabel(it.status)}</span></td>
-  </tr>`).join('');
-  mob.innerHTML = sorted.map(it=>{
+  </tr>`;
+  box.innerHTML = data.map(rowHtml).join('');
+  mob.innerHTML = data.map(it=>{
     const t = (it.createdAt||'').split(' ');
     const date = t[0] || '';
     const time = t[1] || '';
@@ -17896,7 +17943,17 @@ function renderMoneyOverviewList(){
 function renderMoneyOverviewBoard(){
   try { cleanupOrphanFlowItems(); } catch(e){}
   const box = document.getElementById('moBoard'); if(!box) return;
-  box.innerHTML = FLOW_STATUS.map(s=>{
+  // 状态筛选下拉
+  const sel = document.getElementById('moBoardStatusFilter');
+  let filter = 'all';
+  if(sel){
+    filter = sel.value || 'all';
+    const curVal = sel.value;
+    sel.innerHTML = `<option value="all">全部状态</option>` + FLOW_STATUS.map(s => `<option value="${s.key}">${s.label}</option>`).join('');
+    sel.value = (FLOW_STATUS.some(s => s.key === curVal) ? curVal : 'all');
+  }
+  const statuses = filter === 'all' ? FLOW_STATUS : FLOW_STATUS.filter(s => s.key === filter);
+  box.innerHTML = statuses.map(s=>{
     const items = flowItems.filter(x=>x.status===s.key);
     return `<div class="mo-col">
       <div class="mo-col-head" style="border-color:${s.color};"><span class="mo-col-dot" style="background:${s.color}"></span>${s.label}<span class="mo-col-count">${items.length}</span></div>
