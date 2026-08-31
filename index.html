@@ -2805,7 +2805,24 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .mo-cat-head:hover .mo-cat-del { opacity:.65; }
 .mo-cat-del:hover { opacity:1 !important; background:var(--bg); }
 .mo-cat-body { display:flex; flex-direction:column; gap:10px; }
-.mo-status-pill { padding:2px 10px; border-radius:10px; font-size:12px; font-weight:600; }
+.mo-status-pill { display:inline-block; padding:2px 10px; border-radius:10px; font-size:12px; font-weight:600; white-space:nowrap; }
+/* 搞钱概览：桌面看板用网格填充，移动端列表用卡片 */
+#moneyOverviewBoard .mo-board { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:14px; overflow:visible; padding-bottom:0; align-items:start; }
+#moneyOverviewBoard .mo-col { min-width:auto; width:auto; }
+.mo-mobile-list { display:none; }
+.mo-mcard { background:var(--bg); border:1px solid var(--border); border-radius:14px; padding:13px 15px; }
+.mo-mcard-title { display:block; width:100%; text-align:left; background:none; border:none; padding:0; font:inherit; font-weight:700; font-size:15px; color:var(--primary-dark); cursor:pointer; line-height:1.45; word-break:break-word; margin-bottom:8px; }
+.mo-mcard-title:hover { color:var(--primary); text-decoration:underline; }
+.mo-mcard-meta { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; font-size:12.5px; color:var(--text-secondary); }
+.mo-mcard-source { color:var(--text-secondary); }
+@media (max-width: 767px){
+  .money-overview-panel { padding:0 2px; }
+  .mo-table-wrap { display:none; }
+  .mo-mobile-list { display:block; }
+  #moneyOverviewBoard .mo-board { grid-template-columns:1fr; }
+  #moneyOverviewBoard .mo-col { width:100%; min-width:auto; }
+  .mo-tip { font-size:12px; padding:8px 12px; line-height:1.5; }
+}
 .idea-list { display:flex; flex-direction:column; gap:10px; }
 .idea-item { display:flex; gap:12px; align-items:flex-start; background:var(--bg); border-radius:14px; padding:12px 14px; border:1px solid var(--border); }
 .idea-main { flex:1; }
@@ -3114,7 +3131,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260870</div>
+<div class="splash-ver">v2.0.20260871</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3409,12 +3426,13 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 </div>
 <div class="money-overview-panel" id="moneyOverviewList">
 <div class="mo-tip">💡 点击「标题」可跳转到我的支线流对应环节；表头右侧小竖条可左右拖拽调整列宽。</div>
-<div class="table-container">
+<div class="table-container mo-table-wrap">
 <table class="daily-task-table mo-table" id="moneyOverviewTable">
 <thead><tr><th style="width:150px;">时间</th><th style="width:300px;min-width:200px;">标题</th><th style="width:120px;">来源</th><th style="width:130px;">状态</th></tr></thead>
 <tbody id="moneyOverviewBody"></tbody>
 </table>
 </div>
+<div class="mo-mobile-list" id="moneyOverviewMobileList"></div>
 </div>
 <div class="money-overview-panel" id="moneyOverviewBoard" style="display:none;">
 <div class="mo-board" id="moBoard"></div>
@@ -17433,6 +17451,20 @@ function touchFlow(flowId, patch){
   return it;
 }
 function getFlow(flowId){ return flowItems.find(x=>x.flowId===flowId); }
+// 当某 flowId 从所有支线流环节中消失时，同步从搞钱概览（flowItems）中清理
+function cleanupFlowItem(flowId){
+  const inTopic = topicCats.some(c => c.items.some(x => x.flowId === flowId));
+  const inScript = scriptCats.some(c => c.items.some(x => x.flowId === flowId));
+  const inShoot = shootSchedules.some(x => x.flowId === flowId);
+  const inEdit = editBoard.some(x => x.flowId === flowId);
+  const inPending = pendingPublish.some(x => x.flowId === flowId);
+  const inPublished = published.some(x => x.flowId === flowId);
+  if(!inTopic && !inScript && !inShoot && !inEdit && !inPending && !inPublished){
+    const before = flowItems.length;
+    flowItems = flowItems.filter(x => x.flowId !== flowId);
+    if(flowItems.length !== before) saveFlow();
+  }
+}
 function flowTitle(flowId, fallback){
   const it = getFlow(flowId);
   return (it && it.title) ? it.title : (fallback || '未命名');
@@ -17474,8 +17506,14 @@ function jumpToFlow(flowId){
   }, 60);
 }
 function renderMoneyOverviewList(){
-  const box = document.getElementById('moneyOverviewBody'); if(!box) return;
-  if(!flowItems.length){ box.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-secondary);">暂无内容数据，去「我的支线流」开始创作吧～</td></tr>'; return; }
+  const box = document.getElementById('moneyOverviewBody');
+  const mob = document.getElementById('moneyOverviewMobileList');
+  if(!box || !mob) return;
+  if(!flowItems.length){
+    box.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-secondary);">暂无内容数据，去「我的支线流」开始创作吧～</td></tr>';
+    mob.innerHTML = '<div class="empty-state" style="padding:30px 10px;">暂无内容数据，去「我的支线流」开始创作吧～</div>';
+    return;
+  }
   const sorted = flowItems.slice().sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
   box.innerHTML = sorted.map(it=>`<tr>
     <td>${it.createdAt||''}</td>
@@ -17483,6 +17521,19 @@ function renderMoneyOverviewList(){
     <td>${escapeHtml(it.source||'手动')}</td>
     <td><span class="mo-status-pill" style="background:${flowStatusColor(it.status)}22;color:${flowStatusColor(it.status)};">${flowStatusLabel(it.status)}</span></td>
   </tr>`).join('');
+  mob.innerHTML = sorted.map(it=>{
+    const t = (it.createdAt||'').split(' ');
+    const date = t[0] || '';
+    const time = t[1] || '';
+    return `<div class="mo-mcard">
+      <button class="mo-mcard-title" onclick="jumpToFlow('${it.flowId}')">${escapeHtml(it.title||'未命名')}</button>
+      <div class="mo-mcard-meta">
+        <span class="mo-mcard-date">${date}${time?' · '+time:''}</span>
+        <span class="mo-mcard-source">${escapeHtml(it.source||'手动')}</span>
+        <span class="mo-status-pill" style="background:${flowStatusColor(it.status)}22;color:${flowStatusColor(it.status)};">${flowStatusLabel(it.status)}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 function renderMoneyOverviewBoard(){
   const box = document.getElementById('moBoard'); if(!box) return;
@@ -17651,8 +17702,15 @@ function openTopicAddDirect(catId){
 }
 function deleteTopicItem(catId, flowId){
   const cat = topicCats.find(c=>c.id===catId); if(!cat) return;
-  cat.items = cat.items.filter(x=>x.flowId!==flowId);
-  saveTopicCats(); renderTopicBoard();
+  const it = cat.items.find(x=>x.flowId===flowId); if(!it) return;
+  const title = it.title || '未命名';
+  showConfirm('确定删除选题「' + title + '」吗？<br/>若该选题已没有脚本、排期等后续环节，搞钱概览中也会同步删除。', ()=>{
+    cat.items = cat.items.filter(x=>x.flowId!==flowId);
+    saveTopicCats();
+    cleanupFlowItem(flowId);
+    renderTopicBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    showToast('🗑 选题已删除');
+  }, { title:'删除选题' });
 }
 function renderTopicBoard(){
   const box = document.getElementById('topicBoard'); if(!box) return;
@@ -17738,7 +17796,7 @@ function deleteScriptItem(catId, flowId){
   const cat = scriptCats.find(c=>c.id===catId); if(!cat) return;
   const it = cat.items.find(x=>x.flowId===flowId); if(!it) return;
   const title = it.title || '未命名';
-  showConfirm('确定删除脚本「' + title + '」吗？<br/>相关排期、剪辑看板、待发布/已发布数据会同步删除，且不可恢复。', ()=>{
+  showConfirm('确定删除脚本「' + title + '」吗？<br/>相关排期、剪辑看板、待发布/已发布、搞钱概览数据会同步删除，且不可恢复。', ()=>{
     // 1) 删除脚本
     cat.items = cat.items.filter(x=>x.flowId!==flowId);
     saveScriptCats();
@@ -17757,8 +17815,8 @@ function deleteScriptItem(catId, flowId){
     published = published.filter(x=>x.flowId!==flowId);
     if(hadPending) savePendingPublish();
     if(hadPublished) savePublished();
-    // 5) 主线状态回退到待写脚本（项目本身保留）
-    touchFlow(flowId, { status:'script_todo' });
+    // 5) 若该 flowId 已没有后续环节，从搞钱概览清理；否则保留（状态由后续环节决定）
+    cleanupFlowItem(flowId);
     renderScriptBoard(); renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
     try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
     showToast('🗑 脚本及相关数据已删除');
@@ -17931,7 +17989,7 @@ function deleteShootSchedule(flowId){
   showConfirm('确定删除「' + (flowTitle(flowId,s.title) || '该脚本') + '」的拍摄排期吗？删除后可在脚本库重新设置。', ()=>{
     shootSchedules = shootSchedules.filter(x=>x.flowId!==flowId);
     saveShoot();
-    touchFlow(flowId, { status:'script_done' });
+    cleanupFlowItem(flowId);
     renderShootWeek(); renderShootCalendar(); renderScriptBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
     try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
     showToast('🗑 排期已删除');
