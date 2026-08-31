@@ -2801,6 +2801,9 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .mo-cat { flex:1; min-width:240px; background:#fff; border-radius:16px; padding:12px; border:1px solid var(--border); }
 .mo-cat-head { display:flex; align-items:center; gap:8px; font-weight:700; padding-bottom:10px; margin-bottom:10px; border-bottom:2px solid var(--border); }
 .mo-cat-count { background:var(--bg); border-radius:10px; padding:1px 9px; font-size:12px; }
+.mo-cat-del { border:none; background:transparent; cursor:pointer; font-size:12px; opacity:0; padding:2px 4px; border-radius:6px; transition:opacity .16s, background .16s; margin-left:-2px; }
+.mo-cat-head:hover .mo-cat-del { opacity:.65; }
+.mo-cat-del:hover { opacity:1 !important; background:var(--bg); }
 .mo-cat-body { display:flex; flex-direction:column; gap:10px; }
 .mo-status-pill { padding:2px 10px; border-radius:10px; font-size:12px; font-weight:600; }
 .idea-list { display:flex; flex-direction:column; gap:10px; }
@@ -2816,10 +2819,56 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .sw-date { font-size:11px; color:var(--text-secondary); font-weight:400; }
 .sw-col-body { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
 .sw-card { background:var(--bg); border-radius:10px; padding:8px 10px; border:1px solid var(--border); }
+.sw-card.sw-shot { background:rgba(129,199,132,.12); border-color:rgba(129,199,132,.45); }
 .sw-card-title { font-weight:600; font-size:12.5px; line-height:1.3; }
 .sw-card-sub { font-size:11px; color:var(--text-secondary); margin-top:3px; }
 .sw-card-actions { margin-top:6px; }
 .shoot-calendar { display:flex; flex-direction:column; gap:6px; }
+/* 拍摄日历（左月历 + 右当日详情） */
+.shoot-cal-legend { display:flex; gap:14px; justify-content:center; margin-top:10px; font-size:11.5px; color:var(--text-secondary); }
+.shoot-cal-legend .sc-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+.shoot-cal-legend .sc-dot.todo { background:var(--orange,#FF9800); }
+.shoot-cal-legend .sc-dot.done { background:var(--primary,#81C784); }
+.shoot-cal-today { width:100%; margin-top:10px; }
+#shootCalendarGrid .calendar-day { cursor:pointer; position:relative; }
+#shootCalendarGrid .calendar-day.sd-todo { background:rgba(255,152,0,.14); border-color:rgba(255,152,0,.45); font-weight:700; }
+#shootCalendarGrid .calendar-day.sd-done { background:rgba(129,199,132,.20); border-color:rgba(129,199,132,.55); font-weight:700; }
+#shootCalendarGrid .calendar-day.sd-today-mark::before { content:''; position:absolute; left:50%; top:3px; transform:translateX(-50%); width:16px; height:2px; border-radius:2px; background:var(--purple); }
+.shoot-cal-count { font-size:12px; color:var(--text-secondary); font-weight:400; }
+.shoot-day-list { display:flex; flex-direction:column; gap:10px; min-height:180px; }
+.sd-item { background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; gap:10px; align-items:flex-start; }
+.sd-item.shot { background:rgba(129,199,132,.10); border-color:rgba(129,199,132,.4); }
+.sd-main { flex:1; min-width:0; }
+.sd-title { font-weight:600; font-size:13.5px; line-height:1.35; word-break:break-word; }
+.sd-item.shot .sd-title { color:var(--text-secondary); }
+.sd-meta { font-size:11.5px; color:var(--text-secondary); margin-top:4px; display:flex; flex-wrap:wrap; gap:8px; }
+.sd-actions { display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+.sd-shot-btn { border:1px solid var(--border); background:#fff; color:var(--text-secondary); border-radius:8px; padding:5px 10px; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; }
+.sd-shot-btn:hover { border-color:var(--primary); color:var(--primary); }
+.sd-shot-btn.on { background:var(--primary,#81C784); border-color:var(--primary,#81C784); color:#fff; font-weight:700; }
+.sd-empty { text-align:center; color:var(--text-secondary); font-size:13px; padding:36px 10px; }
+/* 拖拽通用样式 */
+.sf-drag { cursor:grab; }
+.sf-drag.dragging { opacity:.35; transform:scale(.97); cursor:grabbing; }
+.sf-drop-over { outline:2px dashed var(--primary,#81C784); outline-offset:-3px; background:rgba(129,199,132,.10) !important; border-radius:12px; }
+.sf-cat-drop { transition:background .16s, outline-color .16s; }
+.mo-cat-name { cursor:text; user-select:none; }
+.mo-cat-name::after { content:'✏️'; font-size:10px; margin-left:5px; opacity:0; transition:opacity .16s; }
+.mo-cat-head:hover .mo-cat-name::after { opacity:.5; }
+.sd-item.sf-drag, .sw-card.sf-drag { cursor:grab; }
+#shootCalendarGrid .calendar-day.sf-drop-over { outline:2px dashed var(--primary,#81C784); outline-offset:-2px; }
+/* 脚本编辑器 */
+#scriptEditorModal .modal { max-width:760px; }
+.se-row { margin-bottom:12px; }
+.se-label { font-size:12.5px; font-weight:700; color:var(--text-secondary); margin-bottom:5px; display:block; }
+.se-title-input { width:100%; padding:11px 13px; border:2px solid var(--border); border-radius:12px; font-size:15px; font-weight:700; background:var(--bg); color:var(--text); }
+.se-title-input:focus, .se-textarea:focus, .se-select:focus { outline:none; border-color:var(--primary); }
+.se-textarea { width:100%; min-height:260px; padding:12px 14px; border:2px solid var(--border); border-radius:12px; font-size:14px; line-height:1.7; background:var(--bg); color:var(--text); resize:vertical; font-family:inherit; }
+.se-note-area { min-height:70px; }
+.se-select { width:100%; padding:10px 12px; border:2px solid var(--border); border-radius:12px; font-size:14px; background:var(--bg); color:var(--text); }
+.se-foot { display:flex; gap:10px; justify-content:flex-end; align-items:center; padding-top:4px; flex-wrap:wrap; }
+.se-foot .se-tip { margin-right:auto; font-size:12px; color:var(--text-secondary); }
+.se-stat { font-size:12px; color:var(--text-secondary); margin-top:4px; }
 .cal-item { display:flex; gap:10px; align-items:center; background:var(--bg); border-radius:10px; padding:8px 12px; font-size:13px; }
 .cal-date { font-weight:700; color:var(--purple); }
 .cal-time { font-size:12px; color:var(--text-secondary); }
@@ -3043,7 +3092,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260868</div>
+<div class="splash-ver">v2.0.20260869</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3328,20 +3377,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 </div>
 </div>
 </div>
-<!-- 我的排期表（单独在日历与今日任务模块下方） -->
-<div class="daily-task-table-card" id="dailyTaskTableCard">
-<div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-<span>🎬 我的排期表</span>
-<button class="btn btn-outline btn-sm" onclick="openAddDailyCol()">➕ 添加列</button>
-</div>
-<div class="table-container">
-<table class="daily-task-table" id="dailyTaskTable">
-<thead><tr id="dailyTaskHeader"></tr></thead>
-<tbody id="dailyTaskTableBody"></tbody>
-</table>
-</div>
-<button class="btn btn-outline btn-sm add-row-btn" onclick="addTaskRow()" style="margin-top:12px;">➕ 添加新行</button>
-</div>
 </div>
 <!-- 学习爆款视频 -->
 <!-- 搞钱概览 -->
@@ -3517,14 +3552,41 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <div class="side-flow-panel" id="sideFlowShoot" style="display:none;">
 <div class="card">
 <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
-<span>🎬 本周拍摄排期（<span id="shootWeekRange"></span>）</span>
+<span>📅 拍摄日历</span>
 <button class="btn btn-primary btn-sm" onclick="openShootScheduleModal()">➕ 添加排期</button>
 </div>
-<div class="shoot-week-board" id="shootWeekBoard"></div>
+<div class="daily-task-layout">
+<!-- 左：月历 -->
+<div class="daily-mini-calendar">
+<div class="calendar-header">
+<div class="calendar-nav">
+<button onclick="changeShootMonth(-1)">◀</button>
+<span class="month-label" id="shootCalMonthLabel"></span>
+<button onclick="changeShootMonth(1)">▶</button>
+</div>
+</div>
+<div class="calendar-grid" id="shootCalendarGrid"></div>
+<div class="shoot-cal-legend">
+<span><i class="sc-dot todo"></i>待拍</span>
+<span><i class="sc-dot done"></i>已拍</span>
+</div>
+<button class="btn btn-outline btn-sm shoot-cal-today" onclick="shootCalGoToday()">回到今天</button>
+</div>
+<!-- 右：当日排期详情 -->
+<div class="checklist-card">
+<div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+<span id="shootCalDateLabel">📅 当日排期</span>
+<span class="shoot-cal-count" id="shootCalCount"></span>
+</div>
+<div class="shoot-day-list" id="shootDayList"></div>
+</div>
+</div>
 </div>
 <div class="card" style="margin-top:16px;">
-<div class="card-title">📅 拍摄日历</div>
-<div class="shoot-calendar" id="shootCalendar"></div>
+<div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+<span>🎬 本周拍摄排期（<span id="shootWeekRange"></span>）</span>
+</div>
+<div class="shoot-week-board" id="shootWeekBoard"></div>
 </div>
 <div class="card" style="margin-top:16px;">
 <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
@@ -5302,9 +5364,11 @@ const HOME_SHORTCUT_KEY = 'parrot_home_shortcuts_v1';
 const HOME_SHORTCUT_DEFAULT = [
   { id:'review',  label:'每日复盘', icon:'📝', panel:'contentReview' },
   { id:'task',    label:'建任务',   icon:'📋', panel:'dailyTask',   addTask:true },
+  { id:'topic',   label:'去选题',   icon:'🎯', action:'openSideFlowPlanTopic()' },
+  { id:'flowScript', label:'写脚本', icon:'✍️', action:'openSideFlowScript()' },
+  { id:'progress',label:'查看进度', icon:'📈', panel:'moneyOverview' },
+  { id:'pets',    label:'我的小宠', icon:'🐾', panel:'pets' },
   { id:'expense', label:'记一笔',   icon:'💰', action:'openExpenseModal()' },
-  { id:'hot',     label:'拆爆款',   icon:'🔥', panel:'sideFlow' },
-  { id:'bird',    label:'增知识',   icon:'🦜', panel:'sideFlow' },
   { id:'product', label:'增选品',   icon:'🛒', panel:'products' },
   { id:'script',  label:'增直播话术', icon:'🎙️', panel:'liveScript' },
   { id:'travel',  label:'出去玩',   icon:'🧳', panel:'travel' }
@@ -5312,7 +5376,21 @@ const HOME_SHORTCUT_DEFAULT = [
 function loadHomeShortcuts() {
   try {
     const raw = JSON.parse(localStorage.getItem(HOME_SHORTCUT_KEY) || 'null');
-    if (Array.isArray(raw) && raw.length) return raw;
+    if (Array.isArray(raw) && raw.length) {
+      // 迁移：剔除已废弃入口，补齐新增入口，保留用户自定义顺序/显隐
+      const removed = ['hot','bird'];
+      const cleaned = raw.filter(s => !removed.includes(s.id));
+      const existingIds = cleaned.map(s => s.id);
+      let inserted = 0;
+      HOME_SHORTCUT_DEFAULT.forEach((d, idx) => {
+        if(!existingIds.includes(d.id)) {
+          cleaned.splice(Math.min(idx + inserted, cleaned.length), 0, Object.assign({}, d, { visible:true }));
+          inserted++;
+        }
+      });
+      localStorage.setItem(HOME_SHORTCUT_KEY, JSON.stringify(cleaned));
+      return cleaned;
+    }
   } catch (e) {}
   // 首次使用：按默认顺序写入完整配置（全部显示）
   const def = HOME_SHORTCUT_DEFAULT.map(s => Object.assign({}, s, { visible:true }));
@@ -5321,14 +5399,19 @@ function loadHomeShortcuts() {
 }
 function saveHomeShortcuts(list) { localStorage.setItem(HOME_SHORTCUT_KEY, JSON.stringify(list)); }
 
+// 安全读取支线流拍摄排期（shootSchedules 在文件后段用 let 声明，此处做 TDZ 兜底）
+function getShootSchedulesSafe() {
+  try { return (typeof shootSchedules !== 'undefined' && shootSchedules) ? shootSchedules : []; } catch (e) { return []; }
+}
 function getHomeTaskStats() {
   const dKey = dailyDateKey(new Date());
   const day = dailyTaskData[dKey] || { checklist: [], tasks: [] };
-  const tasks = (day.tasks || []);
   const expanded = expandRecurringChecklist(dKey);
   const checklistDone = expanded.filter(c => c.done).length;
-  const shootTotal = tasks.length;
-  const shoot = tasks.filter(t => t.status === 'green').length;
+  // 今日已拍：取「我的支线流 · 拍摄执行 · 拍摄日历」中当天的数据
+  const todayShoot = getShootSchedulesSafe().filter(s => (s.date || '') === dKey);
+  const shootTotal = todayShoot.length;
+  const shoot = todayShoot.filter(s => s.shot).length;
   const done = checklistDone + shoot;
   const total = expanded.length + shootTotal;
   return { done, total, shoot, shootTotal };
@@ -5518,8 +5601,10 @@ function homeShortcutClick(id) {
       return;
     case 'task': openHomeAddTask(); return;           // 建任务 → 今日任务输入
     case 'review':  openHomePanel('contentReview'); return;
-    case 'hot':     openSideFlowPath('hot', 'break'); return;   // 拆爆款 → 支线流·学习爆款视频·我的拆解
-    case 'bird':    openSideFlowPath('bird'); return;           // 增知识 → 支线流·养鸟知识库
+    case 'topic':   openSideFlowPath('topic'); return;          // 去选题 → 支线流·选题策划·选题
+    case 'flowScript': openSideFlowScript(); return;            // 写脚本 → 支线流·脚本创作
+    case 'progress': openHomePanel('moneyOverview'); return;    // 查看进度 → 搞钱概览
+    case 'pets':    openHomePanel('pets'); return;              // 我的小宠
     case 'product': openHomePanel('products'); return;
     case 'script':  openHomePanel('liveScript'); return;
     case 'travel':  openHomePanel('travel'); return;
@@ -5555,6 +5640,22 @@ function openHomeAddTask() {
     const inp = document.getElementById('checklistInput');
     if (inp) { inp.focus(); showToast('📋 在这里输入今日任务，回车添加'); }
   }, 120);
+}
+
+// 首页快捷入口：去选题（支线流·选题策划·选题）
+function openSideFlowPlanTopic() {
+  openSideFlowPath('topic');
+}
+// 首页快捷入口：写脚本（支线流·脚本创作）
+function openSideFlowScript() {
+  const mi = document.querySelector('.menu-item[data-panel="sideFlow"]');
+  if (!mi) return;
+  mi.click();
+  setTimeout(() => {
+    switchSideFlowTab('script');
+    const bar = document.getElementById('sideFlowTabBar');
+    if (bar && bar.scrollIntoView) bar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
 }
 
 // 快捷入口设置弹窗（拖拽排序 + 显示/隐藏）
@@ -6283,8 +6384,6 @@ function loadDailyData(dKey) {
   const dayData = dailyTaskData[dKey] || { checklist: [], tasks: [] };
   if(!dailyTaskData[dKey]) dailyTaskData[dKey] = dayData;
   renderChecklist(dKey);
-  renderDailyTaskHeader();
-  renderDailyTaskTable(dKey);
   updateDailyStats(dKey);
 }
 
@@ -6771,6 +6870,7 @@ function renderDailyTaskHeader() {
 
 function renderDailyTaskTable(dKey) {
   const tbody = document.getElementById('dailyTaskTableBody');
+  if(!tbody) return;
   const tasks = (dailyTaskData[dKey] && dailyTaskData[dKey].tasks) || [];
   if(tasks.length === 0) {
     const wm = document.getElementById('dailyTaskTableWatermark'); if(wm) wm.style.display='none';
@@ -17536,13 +17636,14 @@ function renderTopicBoard(){
   const box = document.getElementById('topicBoard'); if(!box) return;
   if(!topicCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
   box.innerHTML = topicCats.map(cat=>`
-    <div class="mo-cat">
-      <div class="mo-cat-head"><span>${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
+    <div class="mo-cat sf-cat-drop" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'topic','${cat.id}')">
+      <div class="mo-cat-head"><span class="mo-cat-name" ondblclick="renameSFCat('topic','${cat.id}')" title="双击可修改分类名">${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
         <button class="btn btn-outline btn-sm" onclick="openTopicAddDirect('${cat.id}')">➕ 加选题</button>
+        <button class="mo-cat-del" title="删除分类" onclick="deleteSFCat('topic','${cat.id}')">🗑</button>
       </div>
-      <div class="mo-cat-body">${cat.items.map(it=>`<div class="mo-card">
+      <div class="mo-cat-body" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'topic','${cat.id}')">${cat.items.map(it=>`<div class="mo-card sf-drag" draggable="true" ondragstart="sfDragStart(event,'topic','${cat.id}','${it.flowId}')" ondragend="sfDragEnd(event)">
         <div class="mo-card-prio prio-${(it.prio||'P2').toLowerCase()}">${it.prio||'P2'}</div>
-        <div class="mo-card-title">${escapeHtml(it.title)}</div>
+        <div class="mo-card-title" onclick="openTopicItemEditor('${cat.id}','${it.flowId}')">${escapeHtml(it.title)}</div>
         ${it.audience?`<div class="mo-card-sub">👤 ${escapeHtml(it.audience)}</div>`:''}
         ${it.pain?`<div class="mo-card-sub">💢 ${escapeHtml(it.pain)}</div>`:''}
         <div class="mo-card-actions">
@@ -17620,12 +17721,13 @@ function renderScriptBoard(){
   const box = document.getElementById('scriptBoard'); if(!box) return;
   if(!scriptCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
   box.innerHTML = scriptCats.map(cat=>`
-    <div class="mo-cat">
-      <div class="mo-cat-head"><span>${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
+    <div class="mo-cat sf-cat-drop" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'script','${cat.id}')">
+      <div class="mo-cat-head"><span class="mo-cat-name" ondblclick="renameSFCat('script','${cat.id}')" title="双击可修改分类名">${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
         <button class="btn btn-outline btn-sm" onclick="openScriptAddDirect('${cat.id}')">➕ 加脚本</button>
+        <button class="mo-cat-del" title="删除分类" onclick="deleteSFCat('script','${cat.id}')">🗑</button>
       </div>
-      <div class="mo-cat-body">${cat.items.map(it=>`<div class="mo-card">
-        <div class="mo-card-title">${escapeHtml(it.title)}</div>
+      <div class="mo-cat-body" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'script','${cat.id}')">${cat.items.map(it=>`<div class="mo-card sf-drag" draggable="true" ondragstart="sfDragStart(event,'script','${cat.id}','${it.flowId}')" ondragend="sfDragEnd(event)">
+        <div class="mo-card-title" onclick="openScriptEditor('${cat.id}','${it.flowId}')" title="点击打开脚本编辑器">${escapeHtml(it.title)}</div>
         ${it.script?`<div class="mo-card-sub" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">📄 ${escapeHtml(it.script)}</div>`:''}
         ${it.note?`<div class="mo-card-sub">📝 ${escapeHtml(it.note)}</div>`:''}
         <div class="mo-card-actions">
@@ -17664,12 +17766,13 @@ function renderCopyBoard(){
   const box = document.getElementById('copyBoard'); if(!box) return;
   if(!copyCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
   box.innerHTML = copyCats.map(cat=>`
-    <div class="mo-cat">
-      <div class="mo-cat-head"><span>${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
+    <div class="mo-cat sf-cat-drop" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'copy','${cat.id}')">
+      <div class="mo-cat-head"><span class="mo-cat-name" ondblclick="renameSFCat('copy','${cat.id}')" title="双击可修改分类名">${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
         <button class="btn btn-outline btn-sm" onclick="openCopyAddDirect('${cat.id}')">➕ 加文案</button>
+        <button class="mo-cat-del" title="删除分类" onclick="deleteSFCat('copy','${cat.id}')">🗑</button>
       </div>
-      <div class="mo-cat-body">${cat.items.map(it=>`<div class="mo-card">
-        <div class="mo-card-title">${escapeHtml(it.title)}</div>
+      <div class="mo-cat-body" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'copy','${cat.id}')">${cat.items.map(it=>`<div class="mo-card sf-drag" draggable="true" ondragstart="sfDragStart(event,'copy','${cat.id}','${it.id}')" ondragend="sfDragEnd(event)">
+        <div class="mo-card-title" onclick="openCopyItemEditor('${cat.id}','${it.id}')">${escapeHtml(it.title)}</div>
         ${it.text?`<div class="mo-card-sub" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(it.text)}</div>`:''}
         <div class="mo-card-actions"><button class="btn btn-outline btn-sm" onclick="deleteCopyItem('${cat.id}','${it.id}')">✕</button></div>
       </div>`).join('') || '<div class="mo-empty">暂无文案</div>'}</div>
@@ -17697,8 +17800,8 @@ function renderShootWeek(){
     const items = shootSchedules.filter(s=>s.date===key);
     return `<div class="sw-col">
       <div class="sw-col-head">${wd[i]}<div class="sw-date">${d.getMonth()+1}/${d.getDate()}</div></div>
-      <div class="sw-col-body">${items.map(s=>`<div class="sw-card">
-        <div class="sw-card-title">${escapeHtml(flowTitle(s.flowId,s.title))}</div>
+      <div class="sw-col-body">${items.map(s=>`<div class="sw-card sf-drag ${s.shot?'sw-shot':''}" draggable="true" ondragstart="sfDragStart(event,'shoot','','${s.flowId}')" ondragend="sfDragEnd(event)" title="拖到左侧日历某天可改期">
+        <div class="sw-card-title">${s.shot?'✅ ':''}${escapeHtml(flowTitle(s.flowId,s.title))}</div>
         ${s.time?`<div class="sw-card-sub">🕐 ${escapeHtml(s.time)}</div>`:''}
         ${s.note?`<div class="sw-card-sub">📝 ${escapeHtml(s.note)}</div>`:''}
         <div class="sw-card-actions"><button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button></div>
@@ -17721,20 +17824,125 @@ function openShootScheduleModal(preselectedFlowId){
     saveShoot();
     touchFlow(vals.flowId, { status:'shoot' });
     renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
     showToast('🎬 已加入拍摄排期');
   });
 }
 function scriptToShoot(flowId){
   openShootScheduleModal(flowId);
 }
+// ============ 拍摄日历（左月历 + 右当日排期） ============
+let shootCalMonth = null;      // Date，当前展示月份
+let shootCalSelected = null;   // 'YYYY-MM-DD'
+function shootCalEnsureInit(){
+  const today = new Date();
+  if(!shootCalSelected) shootCalSelected = dailyDateKey(today);
+  if(!shootCalMonth) shootCalMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+}
+function changeShootMonth(dir){
+  shootCalEnsureInit();
+  shootCalMonth = new Date(shootCalMonth.getFullYear(), shootCalMonth.getMonth() + dir, 1);
+  renderShootCalendar();
+}
+function shootCalGoToday(){
+  const t = new Date();
+  shootCalSelected = dailyDateKey(t);
+  shootCalMonth = new Date(t.getFullYear(), t.getMonth(), 1);
+  renderShootCalendar();
+}
+function selectShootDate(dKey){
+  shootCalSelected = dKey;
+  const p = dKey.split('-');
+  shootCalMonth = new Date(Number(p[0]), Number(p[1]) - 1, 1);
+  renderShootCalendar();
+}
+function getShootByDate(){
+  const map = {};
+  shootSchedules.forEach(s => {
+    const k = s.date || '';
+    if(!k) return;
+    (map[k] = map[k] || []).push(s);
+  });
+  return map;
+}
 function renderShootCalendar(){
-  const box = document.getElementById('shootCalendar'); if(!box) return;
-  if(!shootSchedules.length){ box.innerHTML = '<div class="empty-state"><p>暂无拍摄排期</p></div>'; return; }
-  box.innerHTML = shootSchedules.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(s=>`<div class="cal-item">
-    <span class="cal-date">${s.date}</span>
-    <span class="cal-title">${escapeHtml(flowTitle(s.flowId,s.title))}</span>
-    ${s.time?`<span class="cal-time">🕐${escapeHtml(s.time)}</span>`:''}
-  </div>`).join('');
+  shootCalEnsureInit();
+  const grid = document.getElementById('shootCalendarGrid');
+  const list = document.getElementById('shootDayList');
+  const label = document.getElementById('shootCalMonthLabel');
+  const dateLabel = document.getElementById('shootCalDateLabel');
+  const countEl = document.getElementById('shootCalCount');
+  if(!grid && !list) return;
+
+  const y = shootCalMonth.getFullYear(), m = shootCalMonth.getMonth();
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  if(label) label.textContent = y + '年 ' + monthNames[m];
+  const byDate = getShootByDate();
+  const todayKey = dailyDateKey(new Date());
+
+  if(grid){
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    let html = '';
+    ['日','一','二','三','四','五','六'].forEach(w => { html += `<div class="calendar-weekday">${w}</div>`; });
+    for(let i=0; i<firstDay; i++) html += '<div class="calendar-day empty"></div>';
+    for(let d=1; d<=daysInMonth; d++){
+      const dKey = dateKey(new Date(y, m, d));
+      const arr = byDate[dKey] || [];
+      let cls = 'calendar-day';
+      if(arr.length){
+        const allShot = arr.every(s => s.shot);
+        cls += allShot ? ' sd-done' : ' sd-todo';
+      }
+      if(dKey === todayKey) cls += ' today sd-today-mark';
+      if(dKey === shootCalSelected) cls += ' selected';
+      const tip = arr.length ? ` title="${arr.length} 条排期"` : '';
+      html += `<div class="${cls}"${tip} onclick="selectShootDate('${dKey}')" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropShootToDate(event,'${dKey}')">${d}</div>`;
+    }
+    grid.innerHTML = html;
+  }
+
+  if(dateLabel){
+    const p = shootCalSelected.split('-');
+    const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    const wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+    dateLabel.textContent = `📅 ${Number(p[1])}月${Number(p[2])}日 ${wd}` + (shootCalSelected === todayKey ? '（今天）' : '');
+  }
+  const items = (byDate[shootCalSelected] || []).slice().sort((a,b) => (a.time||'').localeCompare(b.time||''));
+  if(countEl) countEl.textContent = items.length ? `共 ${items.length} 条 · 已拍 ${items.filter(s=>s.shot).length}` : '';
+  if(list){
+    if(!items.length){
+      list.innerHTML = '<div class="sd-empty">这一天还没有拍摄排期<br/>点击左侧日期可切换，或点右上角「➕ 添加排期」</div>';
+    } else {
+      list.innerHTML = items.map(s => {
+        const title = escapeHtml(flowTitle(s.flowId, s.title));
+        const meta = [];
+        if(s.time) meta.push('🕐 ' + escapeHtml(s.time));
+        if(s.note) meta.push('📝 ' + escapeHtml(s.note));
+        meta.push(s.shot ? '✅ 已拍' : '⏳ 待拍');
+        return `<div class="sd-item sf-drag ${s.shot ? 'shot' : ''}" draggable="true" ondragstart="sfDragStart(event,'shoot','','${s.flowId}')" ondragend="sfDragEnd(event)" title="拖到左侧日历某天可改期">
+          <div class="sd-main">
+            <div class="sd-title">${title}</div>
+            <div class="sd-meta">${meta.join('<span>·</span>')}</div>
+          </div>
+          <div class="sd-actions">
+            <button class="sd-shot-btn ${s.shot ? 'on' : ''}" onclick="toggleShootShot('${s.flowId}')">${s.shot ? '✅ 已拍' : '标记为已拍'}</button>
+            <button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+function toggleShootShot(flowId){
+  const s = shootSchedules.find(x => x.flowId === flowId);
+  if(!s) return;
+  s.shot = !s.shot;
+  saveShoot();
+  renderShootCalendar();
+  renderShootWeek();
+  try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
+  showToast(s.shot ? '✅ 已标记为已拍，已计入首页「今日已拍」' : '↩️ 已取消已拍标记');
 }
 function shootToEdit(flowId){
   if(editBoard.find(x=>x.flowId===flowId)){ showToast('已在剪辑看板'); return; }
@@ -17745,6 +17953,7 @@ function shootToEdit(flowId){
   saveEditBoard();
   touchFlow(flowId, { status:'edit_pending' });
   renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+  try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
   showToast('✂️ 已加入待剪辑');
 }
 function openEditFromShootModal(){
@@ -17761,6 +17970,7 @@ function openEditFromShootModal(){
     saveEditBoard();
     touchFlow(vals.flowId, { status:'edit_pending' });
     renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
   });
 }
 function renderEditBoard(){
@@ -17837,6 +18047,245 @@ function toggleGolden(flowId, idx){
 }
 
 function downloadText(filename, text){ const blob=new Blob([text],{type:"text/plain;charset=utf-8"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
+
+// ===================== 支线流：拖拽换分类 / 分类重命名 / 脚本编辑器 =====================
+const SF_BOARDS = {
+  topic:  { get:()=>topicCats,  save:saveTopicCats,  render:renderTopicBoard,  idKey:'flowId', label:'选题' },
+  script: { get:()=>scriptCats, save:saveScriptCats, render:renderScriptBoard, idKey:'flowId', label:'脚本' },
+  copy:   { get:()=>copyCats,   save:saveCopyCats,   render:renderCopyBoard,   idKey:'id',     label:'文案' }
+};
+let sfDrag = null; // { board, catId, itemId } 或 { board:'shoot', flowId }
+
+function sfClearDropMarks(){
+  try { document.querySelectorAll('.sf-drop-over').forEach(el => el.classList.remove('sf-drop-over')); } catch(e){}
+}
+function sfDragStart(e, board, catId, itemId){
+  sfDrag = { board, catId:catId||'', itemId:String(itemId) };
+  try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', board + ':' + itemId); } catch(err){}
+  const t = e.currentTarget;
+  if(t && t.classList) t.classList.add('dragging');
+}
+function sfDragEnd(e){
+  const t = e.currentTarget;
+  if(t && t.classList) t.classList.remove('dragging');
+  sfClearDropMarks();
+  sfDrag = null;
+}
+function sfDragOver(e){
+  if(!sfDrag) return;
+  e.preventDefault();
+  try { e.dataTransfer.dropEffect = 'move'; } catch(err){}
+}
+function sfDragEnter(e){
+  if(!sfDrag) return;
+  e.preventDefault();
+  const el = e.currentTarget;
+  if(el && el.classList) el.classList.add('sf-drop-over');
+}
+function sfDragLeave(e){
+  const el = e.currentTarget;
+  if(!el || !el.classList) return;
+  const to = e.relatedTarget;
+  if(to && el.contains && el.contains(to)) return;  // 移到自身子元素不算离开
+  el.classList.remove('sf-drop-over');
+}
+// 卡片拖到另一个分类
+function sfDropToCat(e, board, catId){
+  e.preventDefault();
+  const d = sfDrag; sfDrag = null; sfClearDropMarks();
+  if(!d || d.board !== board) return;
+  const cfg = SF_BOARDS[board]; if(!cfg) return;
+  const cats = cfg.get();
+  const from = cats.find(c => c.id === d.catId);
+  const to = cats.find(c => c.id === catId);
+  if(!from || !to) return;
+  if(from.id === to.id) return;
+  const idx = from.items.findIndex(x => String(x[cfg.idKey]) === String(d.itemId));
+  if(idx < 0) return;
+  const [it] = from.items.splice(idx, 1);
+  to.items.push(it);
+  cfg.save(); cfg.render();
+  try { renderMoneyOverviewList(); renderMoneyOverviewBoard(); } catch(err){}
+  showToast('↔️ 已移动到「' + to.name + '」');
+}
+// 拍摄排期拖到日历某一天
+function sfDropShootToDate(e, dKey){
+  e.preventDefault();
+  const d = sfDrag; sfDrag = null; sfClearDropMarks();
+  if(!d || d.board !== 'shoot') return;
+  const s = shootSchedules.find(x => String(x.flowId) === String(d.itemId));
+  if(!s) return;
+  if(s.date === dKey) return;
+  s.date = dKey;
+  saveShoot();
+  shootCalSelected = dKey;
+  const p = dKey.split('-');
+  shootCalMonth = new Date(Number(p[0]), Number(p[1]) - 1, 1);
+  renderShootCalendar(); renderShootWeek();
+  try { if(typeof renderHome === 'function') renderHome(); } catch(err){}
+  showToast('📅 拍摄排期已改到 ' + dKey);
+}
+// 分类重命名（双击分类名）
+function renameSFCat(board, catId){
+  const cfg = SF_BOARDS[board]; if(!cfg) return;
+  const cat = cfg.get().find(c => c.id === catId); if(!cat) return;
+  showAppPrompt({ title:'重命名分类', fields:[ { key:'name', label:'分类名称', value:cat.name } ] }, (vals)=>{
+    if(!vals || !vals.name || !vals.name.trim()) return;
+    cat.name = vals.name.trim();
+    cfg.save(); cfg.render();
+    showToast('✏️ 分类已改名为「' + cat.name + '」');
+  });
+}
+// 删除分类（仅空分类可直接删，非空需确认）
+function deleteSFCat(board, catId){
+  const cfg = SF_BOARDS[board]; if(!cfg) return;
+  const cats = cfg.get();
+  const cat = cats.find(c => c.id === catId); if(!cat) return;
+  const doDelete = ()=>{
+    const i = cats.indexOf(cat);
+    if(i >= 0) cats.splice(i, 1);
+    cfg.save(); cfg.render();
+    try { renderMoneyOverviewList(); renderMoneyOverviewBoard(); } catch(err){}
+    showToast('🗑 分类「' + cat.name + '」已删除');
+  };
+  if(cat.items && cat.items.length){
+    showConfirm('分类「' + cat.name + '」下还有 ' + cat.items.length + ' 条内容，删除后这些内容也会一起删掉，确定继续吗？', doDelete, { title:'删除分类' });
+  } else {
+    doDelete();
+  }
+}
+
+// 选题 / 文案 条目编辑（点击卡片标题打开）
+function openTopicItemEditor(catId, flowId){
+  const cat = topicCats.find(c => c.id === catId); if(!cat) return;
+  const it = cat.items.find(x => String(x.flowId) === String(flowId)); if(!it) return;
+  showAppPrompt({ title:'编辑选题', fields:[
+    { key:'title', label:'标题', value:it.title||'' },
+    { key:'audience', label:'人群', value:it.audience||'' },
+    { key:'pain', label:'痛点', value:it.pain||'' },
+    { key:'prio', label:'优先级', type:'select', value:it.prio||'P2', options:[{value:'P0',text:'P0'},{value:'P1',text:'P1'},{value:'P2',text:'P2'},{value:'P3',text:'P3'}] }
+  ]}, (vals)=>{
+    if(!vals || !vals.title) return;
+    it.title = vals.title; it.audience = vals.audience||''; it.pain = vals.pain||''; it.prio = vals.prio||'P2';
+    saveTopicCats(); renderTopicBoard();
+    try { renderMoneyOverviewList(); renderMoneyOverviewBoard(); } catch(e){}
+    showToast('🎯 选题已更新');
+  });
+}
+function openCopyItemEditor(catId, itemId){
+  const cat = copyCats.find(c => c.id === catId); if(!cat) return;
+  const it = cat.items.find(x => String(x.id) === String(itemId)); if(!it) return;
+  showAppPrompt({ title:'编辑文案', fields:[
+    { key:'title', label:'标题', value:it.title||'' },
+    { key:'text', label:'文案内容', type:'textarea', value:it.text||'' }
+  ]}, (vals)=>{
+    if(!vals || !vals.title) return;
+    it.title = vals.title; it.text = vals.text||'';
+    saveCopyCats(); renderCopyBoard();
+    showToast('📝 文案已更新');
+  });
+}
+// ---------- 脚本编辑器（脚本库条目点击打开） ----------
+let seCtx = null; // { catId, flowId }
+function findScriptItem(catId, flowId){
+  const cat = scriptCats.find(c => c.id === catId);
+  if(!cat) return null;
+  const it = cat.items.find(x => String(x.flowId) === String(flowId));
+  return it ? { cat, it } : null;
+}
+function openScriptEditor(catId, flowId){
+  const found = findScriptItem(catId, flowId);
+  if(!found) { showToast('找不到这条脚本'); return; }
+  seCtx = { catId, flowId:String(flowId) };
+  document.getElementById('seTitle').value = found.it.title || '';
+  document.getElementById('seContent').value = found.it.script || '';
+  document.getElementById('seNote').value = found.it.note || '';
+  const sel = document.getElementById('seCat');
+  if(sel) sel.innerHTML = scriptCats.map(c => `<option value="${c.id}"${c.id === catId ? ' selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+  const meta = document.getElementById('seMeta');
+  if(meta) meta.textContent = '所属：' + found.cat.name + (found.it.status ? ' · ' + found.it.status : '');
+  updateScriptEditorStat();
+  document.getElementById('scriptEditorModal').classList.add('open');
+}
+function closeScriptEditor(){
+  const m = document.getElementById('scriptEditorModal');
+  if(m) m.classList.remove('open');
+  seCtx = null;
+}
+function updateScriptEditorStat(){
+  const el = document.getElementById('seStat');
+  if(!el) return;
+  const v = (document.getElementById('seContent') || {}).value || '';
+  el.textContent = v.replace(/\s/g, '').length + ' 字 · ' + v.split('\n').filter(x => x.trim()).length + ' 行';
+}
+function saveScriptEditor(){
+  if(!seCtx) return;
+  const found = findScriptItem(seCtx.catId, seCtx.flowId);
+  if(!found) { showToast('找不到这条脚本'); return; }
+  const title = (document.getElementById('seTitle').value || '').trim();
+  const content = document.getElementById('seContent').value || '';
+  const note = document.getElementById('seNote').value || '';
+  const newCatId = (document.getElementById('seCat') || {}).value || seCtx.catId;
+  if(!title){ showToast('标题不能为空'); return; }
+  found.it.title = title;
+  found.it.script = content;
+  found.it.note = note;
+  // 换分类
+  if(newCatId !== seCtx.catId){
+    const target = scriptCats.find(c => c.id === newCatId);
+    if(target){
+      found.cat.items = found.cat.items.filter(x => String(x.flowId) !== String(seCtx.flowId));
+      target.items.push(found.it);
+      seCtx = { catId:newCatId, flowId:seCtx.flowId };
+    }
+  }
+  saveScriptCats();
+  touchFlow(seCtx.flowId, { title });
+  renderScriptBoard();
+  try { renderMoneyOverviewList(); renderMoneyOverviewBoard(); } catch(e){}
+  closeScriptEditor();
+  showToast('💾 脚本已保存');
+}
+function copyScriptEditorContent(){
+  const v = document.getElementById('seContent').value || '';
+  if(!v.trim()){ showToast('脚本内容是空的'); return; }
+  const title = (document.getElementById('seTitle').value || '').trim();
+  const text = (title ? title + '\n\n' : '') + v;
+  const done = ()=>showToast('📋 脚本已复制');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>{ fallbackCopyText(text, done); });
+  } else {
+    fallbackCopyText(text, done);
+  }
+}
+function fallbackCopyText(text, cb){
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch(e){}
+  if(typeof cb === 'function') cb();
+}
+function deleteScriptEditorItem(){
+  if(!seCtx) return;
+  const found = findScriptItem(seCtx.catId, seCtx.flowId);
+  if(!found) { closeScriptEditor(); return; }
+  const ctx = { catId:seCtx.catId, flowId:seCtx.flowId };
+  const title = found.it.title || '未命名';
+  closeScriptEditor();
+  setTimeout(()=>{
+    showConfirm('确定删除脚本「' + title + '」吗？删除后不可恢复。', ()=>{
+      const cat = scriptCats.find(c => c.id === ctx.catId);
+      if(!cat) return;
+      cat.items = cat.items.filter(x => String(x.flowId) !== String(ctx.flowId));
+      saveScriptCats();
+      renderScriptBoard();
+      try { renderMoneyOverviewList(); renderMoneyOverviewBoard(); } catch(e){}
+      showToast('🗑 脚本已删除');
+    }, { title:'删除脚本', danger:true });
+  }, 60);
+}
 
 // ===== 初始化：页面加载时把「我的支线流 / 搞钱概览」数据读进内存并渲染 =====
 // 之前只在云端同步回填时才 reloadAllData()，未开同步的用户进来列表/看板/选题库全是空的
@@ -18351,6 +18800,42 @@ function downloadText(filename, text){ const blob=new Blob([text],{type:"text/pl
 <div class="kitty-modal-actions">
 <button class="kitty-btn-outline" onclick="closeGoldModal()">取消</button>
 <button class="kitty-btn-primary" onclick="saveGoldRecord()">保存</button>
+</div>
+</div>
+</div>
+<!-- 脚本编辑器（脚本库条目点击打开） -->
+<div class="modal-mask" id="scriptEditorModal" onclick="if(event.target===this)closeScriptEditor()">
+<div class="modal">
+<div class="modal-head">
+<div class="modal-title">✍️ 脚本编辑器</div>
+<button class="modal-close" onclick="closeScriptEditor()">×</button>
+</div>
+<div class="modal-body">
+<div class="se-row">
+<label class="se-label">标题</label>
+<input class="se-title-input" id="seTitle" oninput="updateScriptEditorStat()" placeholder="给这条脚本起个名字"/>
+</div>
+<div class="se-row">
+<label class="se-label">所属分类</label>
+<select class="se-select" id="seCat"></select>
+</div>
+<div class="se-row">
+<label class="se-label">脚本正文</label>
+<textarea class="se-textarea" id="seContent" oninput="updateScriptEditorStat()" placeholder="写你的分镜 / 口播 / 台词…"></textarea>
+<div class="se-stat" id="seStat">0 字</div>
+</div>
+<div class="se-row">
+<label class="se-label">备注（可选）</label>
+<textarea class="se-textarea se-note-area" id="seNote" placeholder="拍摄提示、道具、注意点…"></textarea>
+</div>
+</div>
+<div class="modal-body" style="padding-top:0;">
+<div class="se-foot">
+<span class="se-tip" id="seMeta"></span>
+<button class="btn btn-outline btn-sm" onclick="copyScriptEditorContent()">📋 复制</button>
+<button class="btn btn-outline btn-sm" onclick="deleteScriptEditorItem()" style="color:var(--danger);border-color:var(--danger);">🗑 删除</button>
+<button class="btn btn-primary btn-sm" onclick="saveScriptEditor()">💾 保存</button>
+</div>
 </div>
 </div>
 </div>
