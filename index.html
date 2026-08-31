@@ -2899,7 +2899,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 @media (max-width:767px){
   .copy-actions { flex-direction:row; }
 }
-/* ===== 人生清单 ===== */
+/* ===== i人回血 ===== */
 .ll-wrap { padding:4px 2px 20px; }
 .ll-hero { background:linear-gradient(135deg,var(--bird-lavender) 0%,var(--bird-pink) 55%,var(--bird-peach) 100%); border-radius:var(--radius); padding:20px 22px; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; box-shadow:var(--shadow-soft); margin-bottom:16px; position:relative; overflow:hidden; }
 .ll-hero::after { content:'✨'; position:absolute; right:10px; bottom:-26px; font-size:104px; opacity:.16; transform:rotate(-12deg); pointer-events:none; }
@@ -3202,7 +3202,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260874</div>
+<div class="splash-ver">v2.0.20260875</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3281,7 +3281,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 </div>
 </div>
 <div class="menu-item" data-panel="pets"><div class="menu-icon">🐾</div><span>我的小宠</span></div>
-<div class="menu-item" data-panel="lifeList"><div class="menu-icon">✨</div><span>人生清单</span></div>
+<div class="menu-item" data-panel="lifeList"><div class="menu-icon">🔋</div><span>i人回血</span></div>
 <div class="menu-item" data-panel="contentReview"><div class="menu-icon">📝</div><span>内容复盘</span></div>
 <div class="menu-item" data-panel="settings"><div class="menu-icon">⚙️</div><span>设置</span></div>
 </div>
@@ -3895,13 +3895,13 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   </div>
 </div>
 <!-- 内容复盘 - 日历模式 -->
-<!-- 人生清单 -->
+<!-- i人回血 -->
 <div class="panel" id="panel-lifeList">
 <div class="ll-wrap">
   <div class="ll-hero">
     <div class="ll-hero-left">
-      <div class="ll-hero-title">✨ 我的人生清单</div>
-      <div class="ll-hero-sub">把想做的事写下来，然后一件一件划掉它 🌿</div>
+      <div class="ll-hero-title">🔋 i人回血清单</div>
+      <div class="ll-hero-sub">一个人也能好好充电的小事，做完就回血 🌿</div>
     </div>
     <div class="ll-hero-stat">
       <div class="ll-ring" id="llRing"><span class="ll-ring-in" id="llPctText">0%</span></div>
@@ -5386,7 +5386,7 @@ document.getElementById('dateDisplay').textContent = todayStr;
 document.getElementById('sidebarDate').textContent = todayStr;
 
 // ===================== 菜单切换 =====================
-const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, moneyOverview:{text:'搞钱概览',icon:'💡'}, sideFlow:{text:'我的支线流',icon:'🌊'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, pets:{text:'我的小宠',icon:'🐾'}, lifeList:{text:'人生清单',icon:'✨'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
+const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, moneyOverview:{text:'搞钱概览',icon:'💡'}, sideFlow:{text:'我的支线流',icon:'🌊'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, pets:{text:'我的小宠',icon:'🐾'}, lifeList:{text:'i人回血',icon:'🔋'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
 
 // 菜单分组展开/收起（持久化）
 const MENU_GROUP_KEY = 'parrot_menu_groups_collapsed';
@@ -16790,7 +16790,7 @@ function buildTravelBasemaps(L) {
   return make;
 }
 
-// ===================== 人生清单 =====================
+// ===================== i人回血 =====================
 const LL_KEY = 'parrot_life_list_v1';
 // 预置清单：用户截图补充后可继续追加/替换（分类与条目都支持增删改）
 const LL_SEED = [
