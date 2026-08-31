@@ -2862,16 +2862,24 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .pet-dashboard { display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; }
 .pet-dash-card { background:#fff; border-radius:18px; padding:14px; border:1px solid rgba(222,210,198,.35); box-shadow:0 4px 14px rgba(120,90,70,.05); min-height:120px; }
 .pet-dash-head { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--text); margin-bottom:10px; }
+.pet-dash-head .pet-edit-link { margin-left:auto; font-size:12.5px; color:var(--primary); cursor:pointer; }
+.pet-dash-head .pet-edit-link:hover { text-decoration:underline; }
 .pet-dash-body { display:flex; flex-direction:column; gap:6px; }
 .pet-dash-full { grid-column:1 / -1; }
-.pet-profile-mini { display:flex; align-items:center; gap:12px; }
-.pet-profile-mini .pet-avatar { width:64px; height:64px; border-radius:50%; object-fit:cover; background:var(--bg); border:2px solid var(--primary-light); }
-.pet-profile-meta { display:flex; flex-direction:column; gap:3px; }
+.pet-profile-mini { display:flex; align-items:flex-start; gap:14px; position:relative; }
+.pet-profile-mini .pet-avatar { width:70px; height:70px; border-radius:50%; object-fit:cover; background:var(--bg); border:2px solid var(--primary-light); }
+.pet-profile-meta { display:flex; flex-direction:column; gap:4px; flex:1; }
 .pet-profile-name { font-size:18px; font-weight:800; color:var(--text); }
 .pet-profile-sub { font-size:12.5px; color:var(--text-secondary); }
-.pet-profile-stat { display:flex; gap:14px; margin-top:6px; }
+.pet-profile-stat { display:flex; gap:14px; margin-top:6px; flex-wrap:wrap; }
 .pet-profile-stat span { font-size:13px; color:var(--text-secondary); }
 .pet-profile-stat b { color:var(--text); font-weight:700; }
+.pet-birthday-count { display:inline-flex; align-items:center; gap:4px; font-size:12px; color:var(--accent); background:#FFF3E0; border-radius:999px; padding:3px 9px; margin-top:4px; width:fit-content; }
+
+/* 编辑资料面板（仪表盘内展开） */
+.pet-edit-panel { display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--border); }
+.pet-edit-panel.show { display:block; }
+.pet-edit-note { font-size:12px; color:var(--text-secondary); margin-bottom:8px; }
 
 /* 进度条 */
 .pet-progress-wrap { margin-top:4px; }
@@ -2879,9 +2887,18 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .pet-progress-fill { height:100%; background:linear-gradient(90deg, var(--primary) 0%, #81C784 100%); border-radius:999px; transition:width .4s ease; }
 .pet-progress-text { display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-secondary); margin-top:6px; }
 
-/* 趋势图 */
-.pet-chart-wrap { position:relative; height:160px; margin-top:6px; }
+/* 趋势图 + 体重明细 */
+.pet-chart-wrap { position:relative; height:180px; margin-top:6px; }
 .pet-chart-wrap canvas { width:100%; height:100%; }
+.pet-weight-list { display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+.pet-weight-item { display:flex; align-items:center; justify-content:space-between; background:var(--bg); border-radius:12px; padding:10px 12px; font-size:13px; }
+.pet-weight-date { display:flex; flex-direction:column; align-items:center; min-width:46px; }
+.pet-weight-date .d { font-size:18px; font-weight:800; color:var(--text); line-height:1; }
+.pet-weight-date .m { font-size:11px; color:var(--text-secondary); }
+.pet-weight-value { font-size:15px; font-weight:700; color:var(--text); }
+.pet-weight-change { font-size:12px; font-weight:600; }
+.pet-weight-change.up { color:#E57373; }
+.pet-weight-change.down { color:var(--primary); }
 
 /* 最近记录 */
 .pet-rec-list { display:flex; flex-direction:column; gap:8px; }
@@ -2904,20 +2921,28 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .pet-form-avatar input[type="file"] { display:none; }
 .pet-form-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; }
 
-/* 列表 */
-.pet-list { display:flex; flex-direction:column; gap:10px; }
-.pet-list-item { background:#fff; border-radius:14px; padding:14px; border:1px solid var(--border); }
-.pet-list-head { display:flex; justify-content:space-between; align-items:flex-start; }
-.pet-list-title { font-weight:700; font-size:14px; }
-.pet-list-meta { font-size:12px; color:var(--text-secondary); margin-top:4px; }
-.pet-list-body { font-size:13px; color:var(--text); margin-top:8px; line-height:1.5; }
-.pet-list-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-.pet-tag { font-size:11px; padding:3px 8px; border-radius:999px; background:var(--bg); color:var(--text-secondary); }
-.pet-tag.warn { background:#FFF3E0; color:#E65100; }
-.pet-tag.danger { background:#FFEBEE; color:#C62828; }
-.pet-list-actions { display:flex; gap:8px; margin-top:10px; }
+/* 卡片时间线（健康/洗护） */
+.pet-timeline { display:flex; flex-direction:column; gap:12px; }
+.pet-timeline-card { background:#fff; border-radius:18px; padding:16px; border:1px solid var(--border); box-shadow:0 4px 14px rgba(120,90,70,.05); display:flex; gap:14px; position:relative; }
+.pet-timeline-left { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.pet-timeline-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; background:var(--primary-light); }
+.pet-timeline-bar { width:3px; flex:1; background:var(--bg); border-radius:999px; }
+.pet-timeline-main { flex:1; min-width:0; }
+.pet-timeline-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.pet-timeline-title { font-size:15px; font-weight:700; color:var(--text); }
+.pet-timeline-date { font-size:12px; color:var(--text-secondary); white-space:nowrap; }
+.pet-timeline-fields { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px 14px; margin-top:10px; }
+.pet-timeline-field { display:flex; flex-direction:column; gap:2px; }
+.pet-timeline-field span { font-size:11px; color:var(--text-secondary); }
+.pet-timeline-field b { font-size:13px; color:var(--text); font-weight:600; }
+.pet-timeline-note { margin-top:10px; background:var(--bg); border-radius:10px; padding:10px 12px; font-size:13px; color:var(--text); line-height:1.5; }
+.pet-timeline-del { position:absolute; top:12px; right:12px; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-secondary); font-size:16px; }
+.pet-timeline-del:hover { background:#FFEBEE; color:var(--danger); }
 
-/* 每日任务 */
+/* 储粮 */
+.pet-food-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:14px; }
+
+/* 每日 / 日常打卡 */
 .pet-daily-top { display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; margin-bottom:14px; }
 .pet-daily-top input { padding:10px 12px; border:2px solid var(--border); border-radius:12px; font-family:inherit; font-size:14px; }
 .pet-task-list { display:flex; flex-direction:column; gap:8px; }
@@ -2926,10 +2951,12 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .pet-task-check.done { background:var(--primary); border-color:var(--primary); color:#fff; }
 .pet-task-name { flex:1; font-size:14px; }
 .pet-task-name.done { text-decoration:line-through; color:var(--text-secondary); }
-.pet-task-del { color:var(--danger); font-size:17px; cursor:pointer; padding:2px 6px; }
-
-/* 储粮 */
-.pet-food-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:14px; }
+.pet-task-icon { font-size:18px; }
+.pet-task-del { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-secondary); font-size:18px; flex-shrink:0; }
+.pet-task-del:hover { background:#FFEBEE; color:var(--danger); }
+.pet-tag { display:inline-block; font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--bg); color:var(--text-secondary); white-space:nowrap; }
+.pet-tag.warn { background:#FFF3E0; color:#EF6C00; }
+.pet-tag.danger { background:#FFEBEE; color:var(--danger); }
 
 /* tab 容器 */
 .pet-tab-panel { display:none; }
@@ -2942,6 +2969,9 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   .pet-form-grid { grid-template-columns:1fr; }
   .pet-food-grid { grid-template-columns:1fr; }
   .pet-switch-name { font-size:13px; }
+  .pet-timeline-fields { grid-template-columns:1fr; }
+  .pet-timeline-head { flex-direction:column; }
+  .pet-weight-item { gap:8px; }
 }
 
 </style>
@@ -2955,7 +2985,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260864</div>
+<div class="splash-ver">v2.0.20260865</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3558,81 +3588,38 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <div class="panel" id="panel-pets">
   <div class="pet-switch-bar" id="petSwitchBar"></div>
   <div class="tab-bar" id="petTabBar">
-    <button class="tab-btn active" data-tab="dashboard" onclick="switchPetTab('dashboard')">🏠 仪表盘</button>
-    <button class="tab-btn" data-tab="profile" onclick="switchPetTab('profile')">📋 档案</button>
-    <button class="tab-btn" data-tab="health" onclick="switchPetTab('health')">💊 健康</button>
-    <button class="tab-btn" data-tab="grooming" onclick="switchPetTab('grooming')">🛁 洗护</button>
-    <button class="tab-btn" data-tab="daily" onclick="switchPetTab('daily')">📅 每日</button>
+    <button class="tab-btn active" data-tab="dashboard" onclick="switchPetTab('dashboard')">🏠 仪表板</button>
+    <button class="tab-btn" data-tab="daily" onclick="switchPetTab('daily')">✅ 日常打卡</button>
     <button class="tab-btn" data-tab="food" onclick="switchPetTab('food')">🥫 储粮</button>
+    <button class="tab-btn" data-tab="grooming" onclick="switchPetTab('grooming')">🛁 洗护驱虫</button>
+    <button class="tab-btn" data-tab="health" onclick="switchPetTab('health')">💊 生病记录</button>
   </div>
 
-  <!-- 仪表盘 -->
+  <!-- 仪表板 -->
   <div class="pet-tab-panel active" id="petTabDashboard">
     <div class="pet-dashboard" id="petDashboard"></div>
   </div>
 
-  <!-- 档案 -->
-  <div class="pet-tab-panel" id="petTabProfile">
-    <div class="card">
-      <div class="card-title">📋 宠物档案</div>
-      <form class="pet-form" id="petProfileForm" onsubmit="event.preventDefault(); savePetProfile();">
-        <div class="pet-form-avatar">
-          <img alt="" id="petProfileAvatar" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="/>
-          <button class="btn btn-outline" type="button" onclick="document.getElementById('petAvatarInput').click()">📷 更换头像</button>
-          <input accept="image/*" id="petAvatarInput" onchange="onPetAvatarChange(event)" type="file"/>
-        </div>
-        <div class="pet-form-grid">
-          <div class="pet-form-row"><label>名字 *</label><input id="petProfileName" required="" type="text"/></div>
-          <div class="pet-form-row"><label>品种</label><input id="petProfileBreed" placeholder="如：英国短毛猫 / 玄凤鹦鹉" type="text"/></div>
-          <div class="pet-form-row"><label>生日</label><input id="petProfileBirthday" type="date"/></div>
-          <div class="pet-form-row"><label>性别</label><select id="petProfileGender"><option value="">未知</option><option value="弟弟">弟弟</option><option value="妹妹">妹妹</option></select></div>
-          <div class="pet-form-row"><label>当前体重（kg）</label><input id="petProfileWeight" min="0" step="0.01" type="number"/></div>
-        </div>
-        <div class="pet-form-row"><label>备注</label><textarea id="petProfileNote" placeholder="性格、喜好、过敏史等…"></textarea></div>
-        <div class="btn-group">
-          <button class="btn btn-primary" type="submit">💾 保存档案</button>
-          <button class="btn btn-danger" type="button" onclick="deleteActivePet()">🗑️ 删除当前宠物</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 健康记录 -->
-  <div class="pet-tab-panel" id="petTabHealth">
-    <div class="btn-group">
-      <button class="btn btn-primary" onclick="openPetHealthModal()">➕ 添加健康记录</button>
-    </div>
-    <div class="pet-list" id="petHealthList"></div>
-  </div>
-
-  <!-- 洗护记录 -->
-  <div class="pet-tab-panel" id="petTabGrooming">
-    <div class="btn-group">
-      <button class="btn btn-primary" onclick="openPetGroomingModal()">➕ 添加洗护记录</button>
-    </div>
-    <div class="pet-list" id="petGroomingList"></div>
-  </div>
-
-  <!-- 每日记录 -->
+  <!-- 日常打卡 -->
   <div class="pet-tab-panel" id="petTabDaily">
     <div class="card">
+      <div class="card-title">✅ 日常打卡</div>
       <div class="pet-daily-top">
         <div class="pet-form-row" style="margin:0;">
           <label>日期</label>
           <input id="petDailyDate" onchange="renderPetDaily()" type="date"/>
         </div>
-        <button class="btn btn-primary" onclick="savePetDaily()">💾 保存今日记录</button>
       </div>
-      <div class="card-title">📝 护理任务</div>
+      <div style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">勾选后自动保存，任务每日自动重置</div>
       <div class="pet-task-list" id="petDailyTasks"></div>
       <div class="btn-group" style="margin-top:12px;">
-        <button class="btn btn-outline btn-sm" onclick="addPetDailyTask()">➕ 添加任务</button>
+        <button class="btn btn-outline btn-sm" onclick="addPetDailyTask()">➕ 添加自定义任务</button>
       </div>
       <div class="pet-form-grid" style="margin-top:16px;">
-        <div class="pet-form-row"><label>今日体重（kg）</label><input id="petDailyWeight" min="0" step="0.01" type="number"/></div>
-        <div class="pet-form-row"><label>今日食量</label><input id="petDailyFood" placeholder="如：主食 50g + 零食 10g" type="text"/></div>
+        <div class="pet-form-row"><label>今日体重（g）</label><input id="petDailyWeight" min="0" step="1" type="number" oninput="autoSavePetDaily()"/></div>
+        <div class="pet-form-row"><label>今日食量</label><input id="petDailyFood" placeholder="如：主食 50g + 零食 10g" type="text" oninput="autoSavePetDaily()"/></div>
       </div>
-      <div class="pet-form-row" style="margin-top:12px;"><label>备忘</label><textarea id="petDailyMemo" placeholder="今天有什么特别的…"></textarea></div>
+      <div class="pet-form-row" style="margin-top:12px;"><label>备忘</label><textarea id="petDailyMemo" placeholder="今天有什么特别的…" oninput="autoSavePetDaily()"></textarea></div>
     </div>
   </div>
 
@@ -3642,6 +3629,22 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
       <button class="btn btn-primary" onclick="openPetFoodModal()">➕ 添加储粮</button>
     </div>
     <div class="pet-food-grid" id="petFoodList"></div>
+  </div>
+
+  <!-- 洗护驱虫 -->
+  <div class="pet-tab-panel" id="petTabGrooming">
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openPetGroomingModal()">➕ 添加洗护驱虫记录</button>
+    </div>
+    <div class="pet-timeline" id="petGroomingList"></div>
+  </div>
+
+  <!-- 生病记录 -->
+  <div class="pet-tab-panel" id="petTabHealth">
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openPetHealthModal()">➕ 添加生病记录</button>
+    </div>
+    <div class="pet-timeline" id="petHealthList"></div>
   </div>
 </div>
 <!-- 内容复盘 - 日历模式 -->
@@ -12726,7 +12729,7 @@ if(savedProducts) { try { userProductRows = JSON.parse(savedProducts); renderPro
 const savedScripts = localStorage.getItem('parrot_user_scripts');
 if(savedScripts) { try { userScriptRows = JSON.parse(savedScripts); renderScriptTable(); } catch(e){} }
 
-// ===================== 我的小宠 =====================
+// ===================== 我的小宠 v2 =====================
 const PET_TODAY = dateKey(new Date());
 const PETS_KEY = 'parrot_pets_v1';
 const PET_ACTIVE_KEY = 'parrot_active_pet_id_v1';
@@ -12735,6 +12738,14 @@ const PET_DAILY_KEY = 'parrot_pet_daily_v1';
 const PET_HEALTH_KEY = 'parrot_pet_health_v1';
 const PET_GROOMING_KEY = 'parrot_pet_grooming_v1';
 const PET_FOOD_KEY = 'parrot_pet_food_v1';
+
+/* 内置日常任务 */
+const PET_DEFAULT_TASKS = ['互动玩耍', '换水换粮', '收拾笼子'];
+const PET_TASK_ICONS = { '互动玩耍':'🎾', '换水换粮':'💧', '收拾笼子':'🧹' };
+/* 分类图标 */
+const PET_HEALTH_ICONS = { '生病':'🤒', '疫苗':'💉', '体检':'🩺', '绝育':'✂️', '驱虫':'🐛', '其他':'📌' };
+const PET_GROOM_ICONS = { '洗澡':'🛁', '剪毛':'✂️', '剪指甲':'💅', '驱虫':'🐛', '刷牙':'🦷', '耳朵清洁':'👂', '其他':'🧴' };
+const PET_WEEK = ['周日','周一','周二','周三','周四','周五','周六'];
 
 let pets = [];
 let activePetId = null;
@@ -12748,6 +12759,21 @@ let currentPetTab = 'dashboard';
 function genPetId() { return 'pet_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6); }
 function genPetRecordId() { return 'pr_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6); }
 
+/* 老数据单位迁移：kg → g */
+function migratePetUnits() {
+  let changed = false;
+  pets.forEach(p => {
+    if(p.weightUnit !== 'g') { p.weight = Math.round((parseFloat(p.weight)||0) * 1000); p.weightUnit = 'g'; changed = true; }
+  });
+  petWeightRecords.forEach(r => {
+    if(r.unit !== 'g') { r.weight = Math.round((parseFloat(r.weight)||0) * 1000); r.unit = 'g'; changed = true; }
+  });
+  if(changed) {
+    try { localStorage.setItem(PETS_KEY, JSON.stringify(pets)); } catch(e){}
+    try { localStorage.setItem(PET_WEIGHT_KEY, JSON.stringify(petWeightRecords)); } catch(e){}
+  }
+}
+
 function loadPetsData() {
   try { pets = JSON.parse(localStorage.getItem(PETS_KEY) || '[]'); } catch(e) { pets = []; }
   try { activePetId = localStorage.getItem(PET_ACTIVE_KEY) || null; } catch(e) { activePetId = null; }
@@ -12757,6 +12783,7 @@ function loadPetsData() {
   try { petGroomingRecords = JSON.parse(localStorage.getItem(PET_GROOMING_KEY) || '[]'); } catch(e) { petGroomingRecords = []; }
   try { petFoodRecords = JSON.parse(localStorage.getItem(PET_FOOD_KEY) || '[]'); } catch(e) { petFoodRecords = []; }
   if(activePetId && !pets.find(p => p.id === activePetId)) activePetId = null;
+  migratePetUnits();
 }
 
 function savePets() { localStorage.setItem(PETS_KEY, JSON.stringify(pets)); onLocalDataChange(); }
@@ -12768,24 +12795,47 @@ function savePetGroomings() { localStorage.setItem(PET_GROOMING_KEY, JSON.string
 function savePetFoods() { localStorage.setItem(PET_FOOD_KEY, JSON.stringify(petFoodRecords)); onLocalDataChange(); }
 
 function getActivePet() { return pets.find(p => p.id === activePetId) || pets[0] || null; }
+function petGram(v) { return Math.round(parseFloat(v) || 0); }
+function petWeekday(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return isNaN(d.getTime()) ? '' : PET_WEEK[d.getDay()];
+}
 function getPetAge(birthday) {
   if(!birthday) return '';
-  const b = new Date(birthday), n = new Date();
+  const b = new Date(birthday + 'T00:00:00'), n = new Date();
   if(isNaN(b.getTime())) return '';
   let years = n.getFullYear() - b.getFullYear();
   let months = n.getMonth() - b.getMonth();
+  if(n.getDate() < b.getDate()) months--;
   if(months < 0) { years--; months += 12; }
   if(years > 0 && months > 0) return years + '岁' + months + '个月';
   if(years > 0) return years + '岁';
   if(months > 0) return months + '个月';
-  return '刚出生';
+  const days = Math.max(0, Math.floor((n - b) / 86400000));
+  return days + '天';
 }
 function daysUntil(dateStr) {
   if(!dateStr) return null;
   const d = new Date(dateStr + 'T00:00:00');
   if(isNaN(d.getTime())) return null;
-  const diff = Math.floor((d.getTime() - Date.now()) / 86400000);
-  return diff;
+  const today0 = new Date(); today0.setHours(0,0,0,0);
+  return Math.floor((d.getTime() - today0.getTime()) / 86400000);
+}
+/* 距离下一次生日还有几天（按自然日，每天自动变化） */
+function getDaysUntilBirthday(birthday) {
+  if(!birthday) return null;
+  const b = new Date(birthday + 'T00:00:00');
+  if(isNaN(b.getTime())) return null;
+  const now = new Date();
+  const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  function mk(y) {
+    let d = new Date(y, b.getMonth(), b.getDate());
+    if(d.getMonth() !== b.getMonth()) d = new Date(y, b.getMonth() + 1, 0); // 2月29 兜底
+    return d;
+  }
+  let next = mk(today0.getFullYear());
+  if(next.getTime() < today0.getTime()) next = mk(today0.getFullYear() + 1);
+  return Math.ceil((next.getTime() - today0.getTime()) / 86400000);
 }
 
 function switchPet(id) {
@@ -12796,12 +12846,11 @@ function switchPet(id) {
 }
 function switchPetTab(tab) {
   currentPetTab = tab;
-  document.querySelectorAll('#petTabBar .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab || b.getAttribute('onclick').includes("'"+tab+"'")));
+  document.querySelectorAll('#petTabBar .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('#panel-pets .pet-tab-panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById('petTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
   if(panel) panel.classList.add('active');
   if(tab === 'dashboard') renderPetDashboard();
-  if(tab === 'profile') renderPetProfile();
   if(tab === 'health') renderPetHealth();
   if(tab === 'grooming') renderPetGrooming();
   if(tab === 'daily') renderPetDaily();
@@ -12818,7 +12867,6 @@ function renderPets() {
     return;
   }
   if(currentPetTab === 'dashboard') renderPetDashboard();
-  if(currentPetTab === 'profile') renderPetProfile();
   if(currentPetTab === 'health') renderPetHealth();
   if(currentPetTab === 'grooming') renderPetGrooming();
   if(currentPetTab === 'daily') renderPetDaily();
@@ -12842,80 +12890,166 @@ function openAddPetModal() {
   const fields = [
     { key:'name', label:'名字 *', value:'' },
     { key:'breed', label:'品种', value:'' },
-    { key:'birthday', label:'生日', type:'date', value:'' },
+    { key:'homeDate', label:'到家时间', type:'date', value:PET_TODAY },
+    { key:'birthday', label:'生日（留空则按到家时间计算）', type:'date', value:'' },
     { key:'gender', label:'性别', type:'select', options:[{value:'',text:'未知'},{value:'弟弟',text:'弟弟'},{value:'妹妹',text:'妹妹'}], value:'' },
-    { key:'weight', label:'当前体重（kg）', value:'' },
+    { key:'weight', label:'当前体重（g）', value:'' },
     { key:'note', label:'备注', type:'textarea', value:'' }
   ];
   showAppPrompt({ title:'添加宠物', fields }, (vals) => {
     if(!vals || !vals.name) { showToast('请填写名字'); return; }
     const id = genPetId();
-    pets.push({ id, name:vals.name, breed:vals.breed||'', birthday:vals.birthday||'', gender:vals.gender||'', weight:parseFloat(vals.weight)||0, note:vals.note||'', avatarBase64:'', createdAt: nowStr(), updatedAt: nowStr() });
+    const homeDate = vals.homeDate || '';
+    pets.push({ id, name:vals.name.trim(), breed:vals.breed||'', homeDate: homeDate, birthday: vals.birthday || homeDate, gender: vals.gender||'', weight: petGram(vals.weight), weightUnit:'g', note: vals.note||'', avatarBase64:'', createdAt: nowStr(), updatedAt: nowStr() });
     activePetId = id;
     savePets();
     saveActivePet();
+    const w = petGram(vals.weight);
+    if(w > 0) {
+      petWeightRecords.push({ id: genPetRecordId(), petId: id, date: PET_TODAY, weight: w, unit:'g', note:'初始体重' });
+      savePetWeights();
+    }
+    currentPetTab = 'dashboard';
+    switchPetTab('dashboard');
     renderPets();
     showToast('✅ 已添加宠物');
   });
 }
 
+/* ============ 仪表板 ============ */
 function renderPetDashboard() {
   const dash = document.getElementById('petDashboard');
   const pet = getActivePet();
   if(!dash || !pet) return;
+
   const weights = petWeightRecords.filter(r => r.petId === pet.id).sort((a,b) => new Date(b.date) - new Date(a.date));
-  const latestWeight = weights[0];
-  const prevWeight = weights[1];
+  const latest = weights[0];
+  const prev = weights[1];
+
+  /* --- 体重趋势 + 数据明细 --- */
   let weightHtml = '<div class="pet-dash-card pet-dash-full"><div class="pet-dash-head">⚖️ 体重趋势</div>';
   if(weights.length >= 2) {
-    weightHtml += '<div class="pet-chart-wrap"><canvas id="petWeightChart" height="160"></canvas></div>';
+    weightHtml += '<div class="pet-chart-wrap"><canvas id="petWeightChart" height="180"></canvas></div>';
+  } else if(weights.length === 1) {
+    weightHtml += '<div class="empty-state" style="padding:14px 0;"><p>再记录 1 条体重即可生成趋势图</p></div>';
   } else {
-    weightHtml += '<div class="empty-state" style="padding:20px 0;"><p>记录 2 条以上体重即可生成趋势图</p></div>';
+    weightHtml += '<div class="empty-state" style="padding:14px 0;"><p>还没有体重记录，去「日常打卡」填写今日体重</p></div>';
   }
-  weightHtml += '</div>';
+  weightHtml += '<div style="font-size:12.5px; font-weight:700; color:var(--text-secondary); margin-top:14px;">数据明细</div>';
+  weightHtml += '<div class="pet-weight-list">';
+  if(!weights.length) {
+    weightHtml += '<div style="font-size:13px; color:var(--text-secondary); padding:4px 2px;">暂无明细</div>';
+  } else {
+    weights.forEach((w, i) => {
+      const older = weights[i+1];
+      let chg = '<div class="pet-weight-change">—</div>';
+      if(older) {
+        const diff = petGram(w.weight) - petGram(older.weight);
+        chg = diff === 0
+          ? '<div class="pet-weight-change">持平</div>'
+          : `<div class="pet-weight-change ${diff > 0 ? 'up' : 'down'}">${diff > 0 ? '↑' : '↓'} ${Math.abs(diff)} g</div>`;
+      }
+      const md = (w.date || '').slice(5).replace('-', '/');
+      weightHtml += `<div class="pet-weight-item">
+        <div class="pet-weight-date"><div class="d">${escapeHtml(md)}</div><div class="m">${escapeHtml(petWeekday(w.date))}</div></div>
+        <div class="pet-weight-value">${petGram(w.weight)} g</div>
+        ${chg}
+      </div>`;
+    });
+  }
+  weightHtml += '</div></div>';
 
-  const today = PET_TODAY;
-  const todayRecord = petDailyRecords.find(r => r.petId === pet.id && r.date === today);
-  const tasks = todayRecord ? (todayRecord.tasks || []) : [];
+  /* --- 今日打卡 --- */
+  const todayRec = petDailyRecords.find(r => r.petId === pet.id && r.date === PET_TODAY);
+  const tasks = todayRec ? (todayRec.tasks || []) : [];
   const doneCount = tasks.filter(t => t.done).length;
   const totalCount = tasks.length;
-  const pct = totalCount ? Math.round(doneCount/totalCount*100) : 0;
+  const pct = totalCount ? Math.round(doneCount / totalCount * 100) : 0;
 
+  /* --- 储粮预警 --- */
   const foods = petFoodRecords.filter(r => r.petId === pet.id);
-  const expiring = foods.filter(f => { const d = daysUntil(f.expireDate); return d !== null && d <= 30 && d >= 0; });
+  const expiring = foods.filter(f => { const d = daysUntil(f.expireDate); return d !== null && d >= 0 && d <= 30; });
   const expired = foods.filter(f => { const d = daysUntil(f.expireDate); return d !== null && d < 0; });
 
+  /* --- 最近记录 --- */
   const recentHealth = petHealthRecords.filter(r => r.petId === pet.id).sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,2);
   const recentGrooming = petGroomingRecords.filter(r => r.petId === pet.id).sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,2);
-  const recentFood = foods.sort((a,b) => { const da = daysUntil(a.expireDate)||999, db = daysUntil(b.expireDate)||999; return da - db; }).slice(0,2);
+  const recentFood = foods.slice().sort((a,b) => { const da = daysUntil(a.expireDate) ?? 9999, db = daysUntil(b.expireDate) ?? 9999; return da - db; }).slice(0,2);
+  const recentMemo = petDailyRecords.filter(r => r.petId === pet.id && r.memo && String(r.memo).trim()).sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,2);
 
   let recHtml = '';
-  function recItem(icon, title, sub, date) { return `<div class="pet-rec-item"><div class="pet-rec-left"><div class="pet-rec-icon">${icon}</div><div><div class="pet-rec-title">${escapeHtml(title)}</div><div class="pet-rec-sub">${escapeHtml(sub||'')}</div></div></div><div class="pet-rec-date">${escapeHtml(date||'')}</div></div>`; }
-  if(recentHealth.length || recentGrooming.length || recentFood.length) {
+  function recItem(icon, title, sub, date) {
+    return `<div class="pet-rec-item"><div class="pet-rec-left"><div class="pet-rec-icon">${icon}</div><div><div class="pet-rec-title">${escapeHtml(title)}</div><div class="pet-rec-sub">${escapeHtml(sub||'')}</div></div></div><div class="pet-rec-date">${escapeHtml(date||'')}</div></div>`;
+  }
+  if(recentHealth.length || recentGrooming.length || recentFood.length || recentMemo.length) {
     recHtml = '<div class="pet-dash-card pet-dash-full"><div class="pet-dash-head">📋 最近记录</div><div class="pet-rec-list">';
-    recentHealth.forEach(h => recHtml += recItem('💊', h.title || h.type, h.desc ? h.desc.slice(0,20) : '', h.date));
-    recentGrooming.forEach(g => recHtml += recItem('🛁', g.type, g.item ? g.item.slice(0,20) : '', g.date));
+    recentMemo.forEach(m => recHtml += recItem('📝', '日常备忘', String(m.memo).slice(0,24), m.date));
+    recentHealth.forEach(h => recHtml += recItem(PET_HEALTH_ICONS[h.type] || '💊', h.title || h.type, h.desc ? String(h.desc).slice(0,24) : (h.type || ''), h.date));
+    recentGrooming.forEach(g => recHtml += recItem(PET_GROOM_ICONS[g.type] || '🛁', g.type, g.item ? '用品：' + String(g.item).slice(0,20) : '', g.date));
     recentFood.forEach(f => {
       const d = daysUntil(f.expireDate);
-      let tag = d === null ? '' : (d < 0 ? ' 已过期' : (d <= 30 ? ' ' + d + '天后到期' : ''));
+      let tag = d === null ? '' : (d < 0 ? '（已过期）' : (d <= 30 ? `（${d}天后到期）` : ''));
       recHtml += recItem('🥫', f.name + tag, (f.amount||'') + (f.unit||''), f.expireDate);
     });
     recHtml += '</div></div>';
   }
 
+  /* --- 生日倒计时 --- */
+  const bday = pet.birthday || pet.homeDate || '';
+  const bdDays = getDaysUntilBirthday(bday);
+  let bdHtml = '';
+  if(bdDays !== null) {
+    bdHtml = `<div class="pet-birthday-count">🎂 距离下次生日还有 <b>${bdDays}</b> 天${bday ? '（' + bday.slice(5).replace('-','月') + '日）' : ''}</div>`;
+  } else {
+    bdHtml = `<div class="pet-birthday-count">🎂 到家和生日还没填，点「修改资料」补上</div>`;
+  }
+
   const avatar = pet.avatarBase64 || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  const homeTxt = pet.homeDate ? `到家 ${pet.homeDate}` : '到家时间未设置';
+
   dash.innerHTML = `
     <div class="pet-dash-card pet-dash-full">
+      <div class="pet-dash-head">🐾 宠物资料 <span class="pet-edit-link" onclick="togglePetEditPanel()">✏️ 修改资料</span></div>
       <div class="pet-profile-mini">
         <img class="pet-avatar" src="${escapeHtml(avatar)}" alt=""/>
         <div class="pet-profile-meta">
-          <div class="pet-profile-name">${escapeHtml(pet.name)} ${pet.gender ? '<span style="font-size:13px;color:var(--text-secondary);font-weight:500;">· ' + escapeHtml(pet.gender) + '</span>' : ''}</div>
-          <div class="pet-profile-sub">${escapeHtml(pet.breed || '未知品种')} · ${pet.birthday ? getPetAge(pet.birthday) : '生日未设置'}</div>
+          <div class="pet-profile-name">${escapeHtml(pet.name)}${pet.gender ? '<span style="font-size:13px;color:var(--text-secondary);font-weight:500;"> · ' + escapeHtml(pet.gender) + '</span>' : ''}</div>
+          <div class="pet-profile-sub">${escapeHtml(pet.breed || '未知品种')} · ${pet.birthday ? getPetAge(pet.birthday) : '生日未设置'} · ${escapeHtml(homeTxt)}</div>
+          ${bdHtml}
           <div class="pet-profile-stat">
-            <span>⚖️ 体重 <b>${pet.weight ? pet.weight + 'kg' : '未记录'}</b></span>
-            <span>💊 健康 <b>${petHealthRecords.filter(r => r.petId === pet.id).length}</b></span>
+            <span>⚖️ 体重 <b>${latest ? petGram(latest.weight) + ' g' : '未记录'}</b></span>
+            <span>💊 生病 <b>${petHealthRecords.filter(r => r.petId === pet.id).length}</b></span>
+            <span>🛁 洗护 <b>${petGroomingRecords.filter(r => r.petId === pet.id).length}</b></span>
             <span>🥫 储粮 <b>${foods.length}</b></span>
           </div>
+        </div>
+      </div>
+      <div class="pet-edit-panel" id="petEditPanel">
+        <div class="pet-edit-note">生日留空会自动按「到家时间」计算；体重以 <b>g（克）</b> 为单位，保存后会同步写入体重趋势。</div>
+        <div class="pet-form-avatar" style="margin-bottom:12px;">
+          <img id="petProfileAvatar" src="${escapeHtml(avatar)}" alt="" onclick="document.getElementById('petProfileAvatarInput').click()" style="cursor:pointer;"/>
+          <div>
+            <input type="file" id="petProfileAvatarInput" accept="image/*" onchange="onPetAvatarChange(event)"/>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('petProfileAvatarInput').click()">📷 上传头像</button>
+          </div>
+        </div>
+        <div class="pet-form-grid">
+          <div class="pet-form-row"><label>名字 *</label><input id="petProfileName" type="text" value="${escapeHtml(pet.name||'')}"/></div>
+          <div class="pet-form-row"><label>品种</label><input id="petProfileBreed" type="text" value="${escapeHtml(pet.breed||'')}"/></div>
+          <div class="pet-form-row"><label>到家时间</label><input id="petProfileHomeDate" type="date" value="${escapeHtml(pet.homeDate||'')}"/></div>
+          <div class="pet-form-row"><label>生日</label><input id="petProfileBirthday" type="date" value="${escapeHtml(pet.birthday||'')}"/></div>
+          <div class="pet-form-row"><label>性别</label><select id="petProfileGender">
+            <option value="">未知</option>
+            <option value="弟弟"${pet.gender==='弟弟'?' selected':''}>弟弟</option>
+            <option value="妹妹"${pet.gender==='妹妹'?' selected':''}>妹妹</option>
+          </select></div>
+          <div class="pet-form-row"><label>当前体重（g）</label><input id="petProfileWeight" type="number" min="0" step="1" value="${pet.weight ? petGram(pet.weight) : ''}"/></div>
+        </div>
+        <div class="pet-form-row" style="margin-top:12px;"><label>备注</label><textarea id="petProfileNote">${escapeHtml(pet.note||'')}</textarea></div>
+        <div class="btn-group" style="margin-top:12px;">
+          <button class="btn btn-primary btn-sm" onclick="savePetProfile()">💾 保存资料</button>
+          <button class="btn btn-outline btn-sm" onclick="togglePetEditPanel(false)">取消</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteActivePet()">🗑️ 删除这只宠物</button>
         </div>
       </div>
     </div>
@@ -12925,25 +13059,26 @@ function renderPetDashboard() {
         <div class="pet-progress-bar"><div class="pet-progress-fill" style="width:${pct}%"></div></div>
         <div class="pet-progress-text"><span>${doneCount}/${totalCount} 完成</span><span>${pct}%</span></div>
       </div>
-      <div style="margin-top:10px; font-size:12.5px; color:var(--text-secondary);">切换到「每日」页添加今日任务</div>
+      <div style="margin-top:10px; font-size:12.5px; color:var(--text-secondary);">到「日常打卡」页勾选今天的任务</div>
     </div>
     <div class="pet-dash-card">
       <div class="pet-dash-head">⚖️ 最新体重</div>
       <div class="pet-dash-body">
-        <div style="font-size:26px; font-weight:800; color:var(--primary);">${latestWeight ? latestWeight.weight + ' <span style="font-size:13px; color:var(--text-secondary); font-weight:500;">kg</span>' : '<span style="font-size:13px; color:var(--text-secondary);">未记录</span>'}</div>
-        ${prevWeight && latestWeight ? `<div style="font-size:12.5px; color:var(--text-secondary);">较上次 ${(latestWeight.weight - prevWeight.weight) > 0 ? '+' : ''}${(latestWeight.weight - prevWeight.weight).toFixed(2)} kg</div>` : ''}
+        <div style="font-size:26px; font-weight:800; color:var(--primary);">${latest ? petGram(latest.weight) + ' <span style="font-size:13px; color:var(--text-secondary); font-weight:500;">g</span>' : '<span style="font-size:13px; color:var(--text-secondary);">未记录</span>'}</div>
+        ${prev && latest ? `<div style="font-size:12.5px; color:var(--text-secondary);">较上次 ${(petGram(latest.weight) - petGram(prev.weight)) > 0 ? '+' : ''}${petGram(latest.weight) - petGram(prev.weight)} g</div>` : ''}
       </div>
     </div>
     <div class="pet-dash-card">
       <div class="pet-dash-head">🥫 储粮预警</div>
       <div class="pet-dash-body">
         <div style="font-size:26px; font-weight:800; color:${expired.length ? 'var(--danger)' : 'var(--accent)'}">${expiring.length + expired.length} <span style="font-size:13px; color:var(--text-secondary); font-weight:500;">项</span></div>
-        <div style="font-size:12.5px; color:var(--text-secondary);">${expired.length ? expired.length + '项已过期' : '30天内到期'}</div>
+        <div style="font-size:12.5px; color:var(--text-secondary);">${expired.length ? expired.length + '项已过期 · ' : ''}30天内到期</div>
       </div>
     </div>
     ${weightHtml}
     ${recHtml}
   `;
+
   if(weights.length >= 2) {
     requestAnimationFrame(() => { setTimeout(() => drawPetWeightChart('petWeightChart', weights.slice().reverse()), 60); });
   }
@@ -12952,57 +13087,69 @@ function renderPetDashboard() {
 function drawPetWeightChart(canvasId, data) {
   const { c, ctx, w, h } = resizeCanvas(canvasId);
   if(!ctx || w <= 0 || h <= 0) return;
-  const pad = { top:24, right:16, bottom:28, left:36 };
+  const pad = { top:26, right:18, bottom:30, left:44 };
   const cw = w - pad.left - pad.right;
   const ch = h - pad.top - pad.bottom;
-  const vals = data.map(d => parseFloat(d.weight) || 0);
+  const vals = data.map(d => petGram(d.weight));
   const minV = Math.min(...vals), maxV = Math.max(...vals);
-  const range = maxV - minV || 1;
+  const range = (maxV - minV) || (maxV || 1);
   const n = data.length;
+  const LINE = '#FF9AA2';
+  const px = i => pad.left + cw * i / Math.max(1, n - 1);
+  const py = v => pad.top + ch - ch * ((v - minV) / range);
 
-  ctx.clearRect(0,0,w,h);
-  // grid
-  ctx.strokeStyle = 'rgba(0,0,0,.06)'; ctx.lineWidth = 1;
-  for(let i=0;i<=4;i++){ const y = pad.top + ch*i/4; ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(w-pad.right,y); ctx.stroke(); }
-  // line
-  ctx.strokeStyle = 'var(--primary)'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.clearRect(0, 0, w, h);
+  // 网格 + Y 轴刻度
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for(let i = 0; i <= 4; i++) {
+    const y = pad.top + ch * i / 4;
+    ctx.strokeStyle = 'rgba(0,0,0,.05)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+    ctx.fillStyle = '#B7A99B';
+    ctx.fillText(Math.round(maxV - range * i / 4) + 'g', pad.left - 6, y);
+  }
+  // 面积
   ctx.beginPath();
-  data.forEach((d,i) => {
-    const x = pad.left + cw * i / Math.max(1, n-1);
-    const y = pad.top + ch - ch * ((parseFloat(d.weight)-minV) / range);
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  });
-  ctx.stroke();
-  // fill area
-  ctx.fillStyle = 'rgba(129,199,132,.12)';
-  ctx.beginPath();
-  data.forEach((d,i) => { const x = pad.left + cw * i / Math.max(1, n-1); const y = pad.top + ch - ch * ((parseFloat(d.weight)-minV) / range); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
-  ctx.lineTo(pad.left + cw, pad.top + ch);
-  ctx.lineTo(pad.left, pad.top + ch);
+  data.forEach((d, i) => { const x = px(i), y = py(petGram(d.weight)); if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+  ctx.lineTo(px(n - 1), pad.top + ch);
+  ctx.lineTo(px(0), pad.top + ch);
   ctx.closePath();
+  ctx.fillStyle = 'rgba(255,154,162,.14)';
   ctx.fill();
-  // points & labels
-  ctx.fillStyle = 'var(--text-secondary)'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
-  data.forEach((d,i) => {
-    const x = pad.left + cw * i / Math.max(1, n-1);
-    const y = pad.top + ch - ch * ((parseFloat(d.weight)-minV) / range);
-    ctx.beginPath(); ctx.fillStyle = '#fff'; ctx.arc(x,y,5,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.fillStyle = 'var(--primary)'; ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle = 'var(--text)'; ctx.fillText(d.weight+'', x, y - 10);
-    if(n <= 7) ctx.fillStyle = 'var(--text-secondary)'; ctx.fillText(d.date.slice(5), x, pad.top + ch + 16);
+  // 折线
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  data.forEach((d, i) => { const x = px(i), y = py(petGram(d.weight)); if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+  ctx.stroke();
+  // 点 + 数值 + 日期
+  ctx.textAlign = 'center';
+  data.forEach((d, i) => {
+    const x = px(i), y = py(petGram(d.weight));
+    ctx.beginPath(); ctx.fillStyle = '#fff'; ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.fillStyle = LINE; ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#6B5B4B';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(petGram(d.weight) + 'g', x, y - 11);
+    if(n <= 8) {
+      ctx.fillStyle = '#B7A99B';
+      ctx.font = '10px sans-serif';
+      ctx.fillText((d.date || '').slice(5).replace('-', '/'), x, pad.top + ch + 16);
+    }
   });
+  ctx.textBaseline = 'alphabetic';
 }
 
-function renderPetProfile() {
-  const pet = getActivePet();
-  if(!pet) return;
-  document.getElementById('petProfileName').value = pet.name || '';
-  document.getElementById('petProfileBreed').value = pet.breed || '';
-  document.getElementById('petProfileBirthday').value = pet.birthday || '';
-  document.getElementById('petProfileGender').value = pet.gender || '';
-  document.getElementById('petProfileWeight').value = pet.weight || '';
-  document.getElementById('petProfileNote').value = pet.note || '';
-  document.getElementById('petProfileAvatar').src = pet.avatarBase64 || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+function togglePetEditPanel(show) {
+  const p = document.getElementById('petEditPanel');
+  if(!p) return;
+  const will = (typeof show === 'boolean') ? show : !p.classList.contains('show');
+  p.classList.toggle('show', will);
 }
 
 function onPetAvatarChange(e) {
@@ -13014,15 +13161,15 @@ function onPetAvatarChange(e) {
     img.onload = () => {
       const maxW = 400;
       const scale = Math.min(1, maxW / Math.max(img.width, img.height));
-      const cw = Math.round(img.width * scale), ch = Math.round(img.height * scale);
-      const canvas = document.createElement('canvas'); canvas.width = cw; canvas.height = ch;
-      const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, cw, ch);
+      const cw = Math.round(img.width * scale), chh = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas'); canvas.width = cw; canvas.height = chh;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, cw, chh);
       let base64 = canvas.toDataURL('image/jpeg', 0.85);
-      // 限制 200KB
       let q = 0.85;
-      while(base64.length > 200*1024 && q > 0.3) { q -= 0.05; base64 = canvas.toDataURL('image/jpeg', q); }
-      if(base64.length > 200*1024) { showToast('图片过大，请换一张小图'); return; }
-      document.getElementById('petProfileAvatar').src = base64;
+      while(base64.length > 200 * 1024 && q > 0.3) { q -= 0.05; base64 = canvas.toDataURL('image/jpeg', q); }
+      if(base64.length > 200 * 1024) { showToast('图片过大，请换一张小图'); return; }
+      const el = document.getElementById('petProfileAvatar');
+      if(el) el.src = base64;
     };
     img.src = ev.target.result;
   };
@@ -13032,26 +13179,30 @@ function onPetAvatarChange(e) {
 function savePetProfile() {
   const pet = getActivePet();
   if(!pet) return;
-  pet.name = document.getElementById('petProfileName').value.trim();
-  pet.breed = document.getElementById('petProfileBreed').value.trim();
-  pet.birthday = document.getElementById('petProfileBirthday').value;
-  pet.gender = document.getElementById('petProfileGender').value;
-  pet.weight = parseFloat(document.getElementById('petProfileWeight').value) || 0;
-  pet.note = document.getElementById('petProfileNote').value.trim();
-  pet.avatarBase64 = document.getElementById('petProfileAvatar').src || '';
-  if(!pet.name) { showToast('名字不能为空'); return; }
+  const name = (document.getElementById('petProfileName').value || '').trim();
+  if(!name) { showToast('名字不能为空'); return; }
+  pet.name = name;
+  pet.breed = (document.getElementById('petProfileBreed').value || '').trim();
+  pet.homeDate = document.getElementById('petProfileHomeDate').value || '';
+  pet.birthday = document.getElementById('petProfileBirthday').value || pet.homeDate || '';
+  pet.gender = document.getElementById('petProfileGender').value || '';
+  pet.weight = petGram(document.getElementById('petProfileWeight').value);
+  pet.weightUnit = 'g';
+  pet.note = (document.getElementById('petProfileNote').value || '').trim();
+  const av = document.getElementById('petProfileAvatar').src || '';
+  if(av && av.indexOf('data:image') === 0) pet.avatarBase64 = av;
   pet.updatedAt = nowStr();
-  // 保存当前体重到体重记录
   if(pet.weight > 0) {
-    const today = PET_TODAY;
-    const existing = petWeightRecords.find(r => r.petId === pet.id && r.date === today);
-    if(existing) existing.weight = pet.weight;
-    else petWeightRecords.push({ id: genPetRecordId(), petId: pet.id, date: today, weight: pet.weight, note: '档案更新' });
+    const ex = petWeightRecords.find(r => r.petId === pet.id && r.date === PET_TODAY);
+    if(ex) { ex.weight = pet.weight; ex.unit = 'g'; }
+    else petWeightRecords.push({ id: genPetRecordId(), petId: pet.id, date: PET_TODAY, weight: pet.weight, unit:'g', note:'资料更新' });
     savePetWeights();
   }
   savePets();
   renderPetSwitchBar();
-  showToast('✅ 档案已保存');
+  renderPetDashboard();
+  togglePetEditPanel(true);
+  showToast('✅ 资料已保存');
 }
 
 function deleteActivePet() {
@@ -13071,81 +13222,138 @@ function deleteActivePet() {
   }, { danger: true });
 }
 
+/* ============ 生病记录 ============ */
 function renderPetHealth() {
   const list = document.getElementById('petHealthList');
   const pet = getActivePet();
   if(!list || !pet) return;
   const records = petHealthRecords.filter(r => r.petId === pet.id).sort((a,b) => new Date(b.date) - new Date(a.date));
-  if(!records.length) { list.innerHTML = '<div class="empty-state"><p>暂无健康记录</p></div>'; return; }
-  list.innerHTML = records.map(h => `
-    <div class="pet-list-item">
-      <div class="pet-list-head"><div><div class="pet-list-title">${escapeHtml(h.title || h.type)}</div><div class="pet-list-meta">${escapeHtml(h.date)} · ${escapeHtml(h.type)}</div></div><div class="pet-list-actions"><button class="btn btn-sm btn-outline" onclick="editPetHealth('${h.id}')">编辑</button><button class="btn btn-sm btn-danger" onclick="deletePetHealth('${h.id}')">删除</button></div></div>
-      ${h.desc ? `<div class="pet-list-body">${escapeHtml(h.desc)}</div>` : ''}
-      ${h.vet ? `<div class="pet-list-tags"><span class="pet-tag">🏥 ${escapeHtml(h.vet)}</span></div>` : ''}
-      ${h.cost ? `<div class="pet-list-tags"><span class="pet-tag">💰 ¥${h.cost}</span></div>` : ''}
-    </div>
-  `).join('');
+  if(!records.length) { list.innerHTML = '<div class="empty-state"><p>暂无生病记录</p></div>'; return; }
+  list.innerHTML = records.map(h => {
+    const icon = PET_HEALTH_ICONS[h.type] || '📌';
+    const fields = [`<div class="pet-timeline-field"><span>类型</span><b>${escapeHtml(h.type || '其他')}</b></div>`];
+    if(h.status) fields.push(`<div class="pet-timeline-field"><span>状态</span><b>${escapeHtml(h.status)}</b></div>`);
+    if(h.vet) fields.push(`<div class="pet-timeline-field"><span>医院 / 医生</span><b>${escapeHtml(h.vet)}</b></div>`);
+    if(h.medicine) fields.push(`<div class="pet-timeline-field"><span>用药</span><b>${escapeHtml(h.medicine)}</b></div>`);
+    if(h.cost) fields.push(`<div class="pet-timeline-field"><span>费用</span><b>¥${escapeHtml(h.cost)}</b></div>`);
+    if(h.nextDate) fields.push(`<div class="pet-timeline-field"><span>复诊日期</span><b>${escapeHtml(h.nextDate)}</b></div>`);
+    return `
+    <div class="pet-timeline-card">
+      <div class="pet-timeline-left"><div class="pet-timeline-icon">${icon}</div><div class="pet-timeline-bar"></div></div>
+      <div class="pet-timeline-main">
+        <div class="pet-timeline-head">
+          <div class="pet-timeline-title">${escapeHtml(h.title || h.type || '未命名')}</div>
+          <div class="pet-timeline-date">${escapeHtml(h.date || '')}</div>
+        </div>
+        <div class="pet-timeline-fields">${fields.join('')}</div>
+        ${h.desc ? `<div class="pet-timeline-note">${escapeHtml(h.desc)}</div>` : ''}
+        <div class="btn-group" style="margin-top:10px;">
+          <button class="btn btn-sm btn-outline" onclick="openPetHealthModal('${h.id}')">✏️ 编辑</button>
+          <button class="btn btn-sm btn-danger" onclick="deletePetHealth('${h.id}')">🗑️ 删除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 function openPetHealthModal(id) {
   const editing = id ? petHealthRecords.find(h => h.id === id) : null;
   const fields = [
-    { key:'date', label:'日期', type:'date', value: editing ? editing.date : todayStr },
+    { key:'date', label:'日期', type:'date', value: editing ? editing.date : PET_TODAY },
     { key:'type', label:'类型', type:'select', options:[{value:'生病',text:'生病'},{value:'疫苗',text:'疫苗'},{value:'体检',text:'体检'},{value:'绝育',text:'绝育'},{value:'驱虫',text:'驱虫'},{value:'其他',text:'其他'}], value: editing ? editing.type : '生病' },
     { key:'title', label:'标题', value: editing ? editing.title || '' : '' },
-    { key:'desc', label:'详细情况', type:'textarea', value: editing ? editing.desc || '' : '' },
-    { key:'vet', label:'医院/医生', value: editing ? editing.vet || '' : '' },
-    { key:'cost', label:'费用（元）', value: editing ? editing.cost || '' : '' }
+    { key:'status', label:'状态', type:'select', options:[{value:'治疗中',text:'治疗中'},{value:'观察中',text:'观察中'},{value:'已康复',text:'已康复'},{value:'',text:'未填写'}], value: editing ? editing.status || '治疗中' : '治疗中' },
+    { key:'desc', label:'症状 / 详细情况', type:'textarea', value: editing ? editing.desc || '' : '' },
+    { key:'medicine', label:'用药', value: editing ? editing.medicine || '' : '' },
+    { key:'vet', label:'医院 / 医生', value: editing ? editing.vet || '' : '' },
+    { key:'cost', label:'费用（元）', value: editing ? editing.cost || '' : '' },
+    { key:'nextDate', label:'复诊日期', type:'date', value: editing ? editing.nextDate || '' : '' }
   ];
-  showAppPrompt({ title: editing ? '编辑健康记录' : '添加健康记录', fields }, (vals) => {
+  showAppPrompt({ title: editing ? '编辑生病记录' : '添加生病记录', fields }, (vals) => {
     if(!vals || !vals.date) return;
-    const payload = { id: editing ? editing.id : genPetRecordId(), petId: getActivePet().id, date: vals.date, type: vals.type || '其他', title: vals.title || vals.type, desc: vals.desc || '', vet: vals.vet || '', cost: vals.cost || '' };
+    const payload = { id: editing ? editing.id : genPetRecordId(), petId: getActivePet().id, date: vals.date, type: vals.type || '生病', title: vals.title || vals.type, status: vals.status || '', desc: vals.desc || '', medicine: vals.medicine || '', vet: vals.vet || '', cost: vals.cost || '', nextDate: vals.nextDate || '' };
     if(editing) { const idx = petHealthRecords.findIndex(h => h.id === editing.id); if(idx >= 0) petHealthRecords[idx] = payload; }
     else petHealthRecords.push(payload);
     savePetHealths();
     renderPetHealth();
+    showToast(editing ? '✅ 已更新' : '✅ 已添加');
   });
 }
-function editPetHealth(id) { openPetHealthModal(id); }
 function deletePetHealth(id) {
-  showConfirm('确定删除这条健康记录吗？', () => { petHealthRecords = petHealthRecords.filter(h => h.id !== id); savePetHealths(); renderPetHealth(); }, { danger:true });
+  showConfirm('确定删除这条生病记录吗？', () => { petHealthRecords = petHealthRecords.filter(h => h.id !== id); savePetHealths(); renderPetHealth(); }, { danger:true });
 }
 
+/* ============ 洗护驱虫 ============ */
 function renderPetGrooming() {
   const list = document.getElementById('petGroomingList');
   const pet = getActivePet();
   if(!list || !pet) return;
   const records = petGroomingRecords.filter(r => r.petId === pet.id).sort((a,b) => new Date(b.date) - new Date(a.date));
-  if(!records.length) { list.innerHTML = '<div class="empty-state"><p>暂无洗护记录</p></div>'; return; }
-  list.innerHTML = records.map(g => `
-    <div class="pet-list-item">
-      <div class="pet-list-head"><div><div class="pet-list-title">${escapeHtml(g.type)}</div><div class="pet-list-meta">${escapeHtml(g.date)}</div></div><div class="pet-list-actions"><button class="btn btn-sm btn-outline" onclick="editPetGrooming('${g.id}')">编辑</button><button class="btn btn-sm btn-danger" onclick="deletePetGrooming('${g.id}')">删除</button></div></div>
-      ${g.item ? `<div class="pet-list-body">用品：${escapeHtml(g.item)}</div>` : ''}
-      ${g.note ? `<div class="pet-list-body">${escapeHtml(g.note)}</div>` : ''}
-      ${g.cost ? `<div class="pet-list-tags"><span class="pet-tag">💰 ¥${g.cost}</span></div>` : ''}
-    </div>
-  `).join('');
+  if(!records.length) { list.innerHTML = '<div class="empty-state"><p>暂无洗护驱虫记录</p></div>'; return; }
+  list.innerHTML = records.map(g => {
+    const icon = PET_GROOM_ICONS[g.type] || '🧴';
+    const fields = [`<div class="pet-timeline-field"><span>项目</span><b>${escapeHtml(g.type || '其他')}</b></div>`];
+    if(g.item) fields.push(`<div class="pet-timeline-field"><span>用品</span><b>${escapeHtml(g.item)}</b></div>`);
+    if(g.cost) fields.push(`<div class="pet-timeline-field"><span>费用</span><b>¥${escapeHtml(g.cost)}</b></div>`);
+    if(g.nextDate) fields.push(`<div class="pet-timeline-field"><span>下次提醒</span><b>${escapeHtml(g.nextDate)}</b></div>`);
+    const nd = daysUntil(g.nextDate);
+    if(g.nextDate && nd !== null && nd >= 0 && nd <= 7) {
+      fields.push(`<div class="pet-timeline-field"><span>提醒</span><b style="color:var(--accent);">${nd === 0 ? '今天该做啦' : nd + '天后'}</b></div>`);
+    }
+    return `
+    <div class="pet-timeline-card">
+      <div class="pet-timeline-left"><div class="pet-timeline-icon">${icon}</div><div class="pet-timeline-bar"></div></div>
+      <div class="pet-timeline-main">
+        <div class="pet-timeline-head">
+          <div class="pet-timeline-title">${escapeHtml(g.type || '洗护')}</div>
+          <div class="pet-timeline-date">${escapeHtml(g.date || '')}</div>
+        </div>
+        <div class="pet-timeline-fields">${fields.join('')}</div>
+        ${g.note ? `<div class="pet-timeline-note">${escapeHtml(g.note)}</div>` : ''}
+        <div class="btn-group" style="margin-top:10px;">
+          <button class="btn btn-sm btn-outline" onclick="openPetGroomingModal('${g.id}')">✏️ 编辑</button>
+          <button class="btn btn-sm btn-danger" onclick="deletePetGrooming('${g.id}')">🗑️ 删除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 function openPetGroomingModal(id) {
   const editing = id ? petGroomingRecords.find(g => g.id === id) : null;
   const fields = [
-    { key:'date', label:'日期', type:'date', value: editing ? editing.date : todayStr },
-    { key:'type', label:'类型', type:'select', options:[{value:'洗澡',text:'洗澡'},{value:'剪毛',text:'剪毛'},{value:'剪指甲',text:'剪指甲'},{value:'驱虫',text:'驱虫'},{value:'刷牙',text:'刷牙'},{value:'耳朵清洁',text:'耳朵清洁'},{value:'其他',text:'其他'}], value: editing ? editing.type : '洗澡' },
+    { key:'date', label:'日期', type:'date', value: editing ? editing.date : PET_TODAY },
+    { key:'type', label:'项目', type:'select', options:[{value:'洗澡',text:'洗澡'},{value:'剪毛',text:'剪毛'},{value:'剪指甲',text:'剪指甲'},{value:'驱虫',text:'驱虫'},{value:'刷牙',text:'刷牙'},{value:'耳朵清洁',text:'耳朵清洁'},{value:'其他',text:'其他'}], value: editing ? editing.type : '洗澡' },
     { key:'item', label:'用品', value: editing ? editing.item || '' : '' },
     { key:'note', label:'备注', type:'textarea', value: editing ? editing.note || '' : '' },
-    { key:'cost', label:'费用（元）', value: editing ? editing.cost || '' : '' }
+    { key:'cost', label:'费用（元）', value: editing ? editing.cost || '' : '' },
+    { key:'nextDate', label:'下次提醒日期', type:'date', value: editing ? editing.nextDate || '' : '' }
   ];
-  showAppPrompt({ title: editing ? '编辑洗护记录' : '添加洗护记录', fields }, (vals) => {
+  showAppPrompt({ title: editing ? '编辑洗护驱虫记录' : '添加洗护驱虫记录', fields }, (vals) => {
     if(!vals || !vals.date) return;
-    const payload = { id: editing ? editing.id : genPetRecordId(), petId: getActivePet().id, date: vals.date, type: vals.type || '其他', item: vals.item || '', note: vals.note || '', cost: vals.cost || '' };
+    const payload = { id: editing ? editing.id : genPetRecordId(), petId: getActivePet().id, date: vals.date, type: vals.type || '其他', item: vals.item || '', note: vals.note || '', cost: vals.cost || '', nextDate: vals.nextDate || '' };
     if(editing) { const idx = petGroomingRecords.findIndex(g => g.id === editing.id); if(idx >= 0) petGroomingRecords[idx] = payload; }
     else petGroomingRecords.push(payload);
     savePetGroomings();
     renderPetGrooming();
+    showToast(editing ? '✅ 已更新' : '✅ 已添加');
   });
 }
-function editPetGrooming(id) { openPetGroomingModal(id); }
 function deletePetGrooming(id) {
   showConfirm('确定删除这条洗护记录吗？', () => { petGroomingRecords = petGroomingRecords.filter(g => g.id !== id); savePetGroomings(); renderPetGrooming(); }, { danger:true });
+}
+
+/* ============ 日常打卡 ============ */
+function getPetDailyRecord(date, create) {
+  const pet = getActivePet();
+  if(!pet) return null;
+  let rec = petDailyRecords.find(r => r.petId === pet.id && r.date === date);
+  if(!rec && create) {
+    // 继承最近一次记录里用户自定义的任务（内置的三个每天都重置）
+    const earlier = petDailyRecords.filter(r => r.petId === pet.id && r.date < date).sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+    const custom = earlier ? (earlier.tasks || []).filter(t => PET_DEFAULT_TASKS.indexOf(t.name) === -1).map(t => ({ name: t.name, done: false })) : [];
+    rec = { id: genPetRecordId(), petId: pet.id, date: date, tasks: PET_DEFAULT_TASKS.map(n => ({ name: n, done: false })).concat(custom), weight: '', food: '', memo: '' };
+    petDailyRecords.push(rec);
+  }
+  return rec;
 }
 
 function renderPetDaily() {
@@ -13154,38 +13362,32 @@ function renderPetDaily() {
   const dateInput = document.getElementById('petDailyDate');
   if(!dateInput.value) dateInput.value = PET_TODAY;
   const date = dateInput.value || PET_TODAY;
-  let rec = petDailyRecords.find(r => r.petId === pet.id && r.date === date);
-  if(!rec) {
-    // 继承昨天任务模板
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
-    const yestStr = formatDate(yesterday);
-    const yest = petDailyRecords.find(r => r.petId === pet.id && r.date === yestStr);
-    rec = { id: genPetRecordId(), petId: pet.id, date: date, tasks: yest ? JSON.parse(JSON.stringify(yest.tasks || [])) : [], weight:'', food:'', memo:'' };
-  }
-  // 绑定到 DOM 用于保存
+  const rec = getPetDailyRecord(date, true);
+  if(!rec) return;
+  savePetDailies();
   document.getElementById('petDailyTasks').dataset.recordId = rec.id;
   document.getElementById('petDailyWeight').value = rec.weight || '';
   document.getElementById('petDailyFood').value = rec.food || '';
   document.getElementById('petDailyMemo').value = rec.memo || '';
   const container = document.getElementById('petDailyTasks');
-  if(!rec.tasks.length) { container.innerHTML = '<div class="empty-state" style="padding:12px 0;"><p style="font-size:13px;">点击「添加任务」新建今日护理清单</p></div>'; return; }
   container.innerHTML = rec.tasks.map((t,i) => `
     <div class="pet-task-item">
       <div class="pet-task-check ${t.done?'done':''}" onclick="togglePetDailyTask(${i})">${t.done?'✓':''}</div>
+      <div class="pet-task-icon">${PET_TASK_ICONS[t.name] || '🐾'}</div>
       <div class="pet-task-name ${t.done?'done':''}">${escapeHtml(t.name)}</div>
       <div class="pet-task-del" onclick="deletePetDailyTask(${i})">×</div>
     </div>
   `).join('');
 }
+
 function addPetDailyTask() {
-  showAppPrompt({ title:'添加任务', fields:[{key:'name',label:'任务名称',value:''}] }, (vals) => {
+  showAppPrompt({ title:'添加自定义任务', fields:[{key:'name',label:'任务名称',value:''}] }, (vals) => {
     if(!vals || !vals.name) return;
     const container = document.getElementById('petDailyTasks');
     const recId = container.dataset.recordId;
-    const pet = getActivePet();
     const date = document.getElementById('petDailyDate').value || PET_TODAY;
-    let rec = petDailyRecords.find(r => r.id === recId);
-    if(!rec) { rec = { id: recId, petId: pet.id, date: date, tasks:[], weight:'', food:'', memo:'' }; petDailyRecords.push(rec); }
+    const rec = petDailyRecords.find(r => r.id === recId) || getPetDailyRecord(date, true);
+    if(!rec) return;
     rec.tasks.push({ name: vals.name.trim(), done: false });
     savePetDailies();
     renderPetDaily();
@@ -13193,8 +13395,7 @@ function addPetDailyTask() {
 }
 function togglePetDailyTask(idx) {
   const container = document.getElementById('petDailyTasks');
-  const recId = container.dataset.recordId;
-  const rec = petDailyRecords.find(r => r.id === recId);
+  const rec = petDailyRecords.find(r => r.id === container.dataset.recordId);
   if(!rec || !rec.tasks[idx]) return;
   rec.tasks[idx].done = !rec.tasks[idx].done;
   savePetDailies();
@@ -13202,54 +13403,75 @@ function togglePetDailyTask(idx) {
 }
 function deletePetDailyTask(idx) {
   const container = document.getElementById('petDailyTasks');
-  const recId = container.dataset.recordId;
-  const rec = petDailyRecords.find(r => r.id === recId);
-  if(!rec) return;
+  const rec = petDailyRecords.find(r => r.id === container.dataset.recordId);
+  if(!rec || !rec.tasks[idx]) return;
   rec.tasks.splice(idx, 1);
   savePetDailies();
   renderPetDaily();
 }
-function savePetDaily() {
-  const container = document.getElementById('petDailyTasks');
-  const recId = container.dataset.recordId;
+/* 填写即自动保存（体重 / 食量 / 备忘） */
+function autoSavePetDaily() {
   const pet = getActivePet();
-  const date = document.getElementById('petDailyDate').value || PET_TODAY;
-  let rec = petDailyRecords.find(r => r.id === recId);
-  if(!rec) { rec = { id: recId || genPetRecordId(), petId: pet.id, date: date, tasks:[], weight:'', food:'', memo:'' }; petDailyRecords.push(rec); }
-  rec.weight = document.getElementById('petDailyWeight').value;
-  rec.food = document.getElementById('petDailyFood').value;
-  rec.memo = document.getElementById('petDailyMemo').value;
+  if(!pet) return;
+  const date = (document.getElementById('petDailyDate').value || PET_TODAY);
+  const container = document.getElementById('petDailyTasks');
+  let rec = container && container.dataset.recordId ? petDailyRecords.find(r => r.id === container.dataset.recordId) : null;
+  if(!rec) rec = getPetDailyRecord(date, true);
+  if(!rec) return;
   rec.date = date;
-  if(rec.weight && !petWeightRecords.find(w => w.petId === pet.id && w.date === date)) {
-    petWeightRecords.push({ id: genPetRecordId(), petId: pet.id, date: date, weight: parseFloat(rec.weight)||0, note: '每日记录' });
+  rec.weight = document.getElementById('petDailyWeight').value || '';
+  rec.food = document.getElementById('petDailyFood').value || '';
+  rec.memo = document.getElementById('petDailyMemo').value || '';
+  const w = petGram(rec.weight);
+  if(w > 0) {
+    const ex = petWeightRecords.find(r => r.petId === pet.id && r.date === date);
+    if(ex) { ex.weight = w; ex.unit = 'g'; ex.note = '日常打卡'; }
+    else petWeightRecords.push({ id: genPetRecordId(), petId: pet.id, date: date, weight: w, unit:'g', note:'日常打卡' });
     savePetWeights();
   }
   savePetDailies();
-  showToast('✅ 今日记录已保存');
 }
 
+/* ============ 储粮 ============ */
 function renderPetFood() {
   const list = document.getElementById('petFoodList');
   const pet = getActivePet();
   if(!list || !pet) return;
-  const foods = petFoodRecords.filter(r => r.petId === pet.id);
+  const foods = petFoodRecords.filter(r => r.petId === pet.id).sort((a,b) => {
+    const da = daysUntil(a.expireDate) ?? 9999, db = daysUntil(b.expireDate) ?? 9999;
+    return da - db;
+  });
   if(!foods.length) { list.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><p>暂无储粮记录</p></div>'; return; }
   list.innerHTML = foods.map(f => {
     const d = daysUntil(f.expireDate);
     let tag = '';
     if(d !== null) {
-      if(d < 0) tag = '<span class="pet-tag danger">已过期</span>';
-      else if(d <= 30) tag = `<span class="pet-tag warn">${d}天后到期</span>`;
-      else tag = `<span class="pet-tag">${d}天后到期</span>`;
+      if(d < 0) tag = '<span class="pet-tag danger">已过期 ' + Math.abs(d) + ' 天</span>';
+      else if(d <= 30) tag = `<span class="pet-tag warn">${d} 天后到期</span>`;
+      else tag = `<span class="pet-tag">${d} 天后到期</span>`;
     }
+    const fields = [`<div class="pet-timeline-field"><span>类型</span><b>${escapeHtml(f.type || '未分类')}</b></div>`];
+    if(f.amount || f.unit) fields.push(`<div class="pet-timeline-field"><span>规格</span><b>${escapeHtml((f.amount||'') + (f.unit||''))}</b></div>`);
+    fields.push(`<div class="pet-timeline-field"><span>购买日期</span><b>${escapeHtml(f.buyDate || '未记录')}</b></div>`);
+    fields.push(`<div class="pet-timeline-field"><span>到期日期</span><b>${escapeHtml(f.expireDate || '未设置')}</b></div>`);
+    if(f.location) fields.push(`<div class="pet-timeline-field"><span>存放位置</span><b>${escapeHtml(f.location)}</b></div>`);
     return `
-    <div class="pet-list-item">
-      <div class="pet-list-head"><div><div class="pet-list-title">${escapeHtml(f.name)}</div><div class="pet-list-meta">${escapeHtml(f.type || '未分类')} · ${escapeHtml(f.buyDate || '未记录购买')}</div></div><div class="pet-list-actions"><button class="btn btn-sm btn-outline" onclick="editPetFood('${f.id}')">编辑</button><button class="btn btn-sm btn-danger" onclick="deletePetFood('${f.id}')">删除</button></div></div>
-      <div class="pet-list-body">${escapeHtml(f.amount || '')} ${escapeHtml(f.unit || '')} ${f.location ? '· 存放：' + escapeHtml(f.location) : ''}</div>
-      <div class="pet-list-tags">${tag}<span class="pet-tag">到期 ${escapeHtml(f.expireDate || '未设置')}</span></div>
-      ${f.note ? `<div class="pet-list-body" style="margin-top:6px; color:var(--text-secondary);">${escapeHtml(f.note)}</div>` : ''}
-    </div>
-  `}).join('');
+    <div class="pet-timeline-card">
+      <div class="pet-timeline-left"><div class="pet-timeline-icon">🥫</div><div class="pet-timeline-bar"></div></div>
+      <div class="pet-timeline-main">
+        <div class="pet-timeline-head">
+          <div class="pet-timeline-title">${escapeHtml(f.name)}</div>
+          <div class="pet-timeline-date">${tag}</div>
+        </div>
+        <div class="pet-timeline-fields">${fields.join('')}</div>
+        ${f.note ? `<div class="pet-timeline-note">${escapeHtml(f.note)}</div>` : ''}
+        <div class="btn-group" style="margin-top:10px;">
+          <button class="btn btn-sm btn-outline" onclick="openPetFoodModal('${f.id}')">✏️ 编辑</button>
+          <button class="btn btn-sm btn-danger" onclick="deletePetFood('${f.id}')">🗑️ 删除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 function openPetFoodModal(id) {
   const editing = id ? petFoodRecords.find(f => f.id === id) : null;
@@ -13258,7 +13480,7 @@ function openPetFoodModal(id) {
     { key:'type', label:'类型', value: editing ? editing.type || '' : '' },
     { key:'amount', label:'规格/数量', value: editing ? editing.amount || '' : '' },
     { key:'unit', label:'单位', value: editing ? editing.unit || '' : '' },
-    { key:'buyDate', label:'购买日期', type:'date', value: editing ? editing.buyDate : '' },
+    { key:'buyDate', label:'购买日期', type:'date', value: editing ? editing.buyDate : PET_TODAY },
     { key:'expireDate', label:'到期日期', type:'date', value: editing ? editing.expireDate : '' },
     { key:'location', label:'存放位置', value: editing ? editing.location || '' : '' },
     { key:'note', label:'备注', type:'textarea', value: editing ? editing.note || '' : '' }
@@ -13270,9 +13492,9 @@ function openPetFoodModal(id) {
     else petFoodRecords.push(payload);
     savePetFoods();
     renderPetFood();
+    showToast(editing ? '✅ 已更新' : '✅ 已添加');
   });
 }
-function editPetFood(id) { openPetFoodModal(id); }
 function deletePetFood(id) {
   showConfirm('确定删除这条储粮记录吗？', () => { petFoodRecords = petFoodRecords.filter(f => f.id !== id); savePetFoods(); renderPetFood(); }, { danger:true });
 }
