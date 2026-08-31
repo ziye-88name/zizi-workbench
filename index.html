@@ -3131,7 +3131,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260871</div>
+<div class="splash-ver">v2.0.20260872</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -17431,6 +17431,8 @@ function loadFlowData(){
   editBoard = JSON.parse(localStorage.getItem('parrot_edit_board_v1') || '[]');
   pendingPublish = JSON.parse(localStorage.getItem('parrot_pending_publish_v1') || '[]');
   published = JSON.parse(localStorage.getItem('parrot_published_v1') || '[]');
+  // 历史遗留：清理选题/脚本/排期等已删除、但搞钱概览仍在显示的孤儿数据
+  try { cleanupOrphanFlowItems(); } catch(e){}
 }
 function saveFlow(){ localStorage.setItem('parrot_flow_items_v1', JSON.stringify(flowItems)); onLocalDataChange(); }
 function saveIdeas(){ localStorage.setItem('parrot_ideas_v1', JSON.stringify(ideas)); onLocalDataChange(); }
@@ -17451,19 +17453,31 @@ function touchFlow(flowId, patch){
   return it;
 }
 function getFlow(flowId){ return flowItems.find(x=>x.flowId===flowId); }
+// 搞钱概览（flowItems）与支线流联动：flowId 只要在任一环节还存在，就保留
+function isFlowReferenced(flowId){
+  if(topicCats.some(c => c.items.some(x => x.flowId === flowId))) return true;
+  if(scriptCats.some(c => c.items.some(x => x.flowId === flowId))) return true;
+  if(shootSchedules.some(x => x.flowId === flowId)) return true;
+  if(editBoard.some(x => x.flowId === flowId)) return true;
+  if(pendingPublish.some(x => x.flowId === flowId)) return true;
+  if(published.some(x => x.flowId === flowId)) return true;
+  if(ideas.some(x => x.flowId === flowId)) return true;
+  return false;
+}
 // 当某 flowId 从所有支线流环节中消失时，同步从搞钱概览（flowItems）中清理
 function cleanupFlowItem(flowId){
-  const inTopic = topicCats.some(c => c.items.some(x => x.flowId === flowId));
-  const inScript = scriptCats.some(c => c.items.some(x => x.flowId === flowId));
-  const inShoot = shootSchedules.some(x => x.flowId === flowId);
-  const inEdit = editBoard.some(x => x.flowId === flowId);
-  const inPending = pendingPublish.some(x => x.flowId === flowId);
-  const inPublished = published.some(x => x.flowId === flowId);
-  if(!inTopic && !inScript && !inShoot && !inEdit && !inPending && !inPublished){
-    const before = flowItems.length;
-    flowItems = flowItems.filter(x => x.flowId !== flowId);
-    if(flowItems.length !== before) saveFlow();
-  }
+  if(isFlowReferenced(flowId)) return;
+  const before = flowItems.length;
+  flowItems = flowItems.filter(x => x.flowId !== flowId);
+  if(flowItems.length !== before) saveFlow();
+}
+// 一次性清理历史遗留的孤儿数据（选题/脚本/排期等已删，但搞钱概览列表与看板还在显示）
+function cleanupOrphanFlowItems(){
+  if(!flowItems.length) return 0;
+  const before = flowItems.length;
+  flowItems = flowItems.filter(it => isFlowReferenced(it.flowId));
+  if(flowItems.length !== before){ saveFlow(); }
+  return before - flowItems.length;
 }
 function flowTitle(flowId, fallback){
   const it = getFlow(flowId);
@@ -17506,6 +17520,7 @@ function jumpToFlow(flowId){
   }, 60);
 }
 function renderMoneyOverviewList(){
+  try { cleanupOrphanFlowItems(); } catch(e){}
   const box = document.getElementById('moneyOverviewBody');
   const mob = document.getElementById('moneyOverviewMobileList');
   if(!box || !mob) return;
@@ -17536,6 +17551,7 @@ function renderMoneyOverviewList(){
   }).join('');
 }
 function renderMoneyOverviewBoard(){
+  try { cleanupOrphanFlowItems(); } catch(e){}
   const box = document.getElementById('moBoard'); if(!box) return;
   box.innerHTML = FLOW_STATUS.map(s=>{
     const items = flowItems.filter(x=>x.status===s.key);
@@ -17627,7 +17643,10 @@ function editIdea(flowId){
 function deleteIdea(flowId){
   showConfirm('确认删除这条灵感？', ()=>{
     ideas = ideas.filter(x=>x.flowId!==flowId);
-    saveIdeas(); renderIdeaList();
+    saveIdeas();
+    cleanupFlowItem(flowId);
+    renderIdeaList();
+    renderMoneyOverviewList(); renderMoneyOverviewBoard();
   });
 }
 // 养鸟知识库 / 爆款视频 绑定灵感（供那两个模块调用）
