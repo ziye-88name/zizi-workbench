@@ -2943,8 +2943,53 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .pet-food-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:14px; }
 
 /* 每日 / 日常打卡 */
-.pet-daily-top { display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; margin-bottom:14px; }
-.pet-daily-top input { padding:10px 12px; border:2px solid var(--border); border-radius:12px; font-family:inherit; font-size:14px; }
+/* 日常打卡日历 */
+.pet-cal { background:linear-gradient(160deg,#FFFFFF 0%,#FFFDF9 100%); border:1px solid rgba(222,210,198,.5); border-radius:18px; padding:14px; box-shadow:0 4px 14px rgba(120,90,70,.05); }
+.pet-cal-head { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.pet-cal-title { font-size:15px; font-weight:800; color:var(--text); min-width:104px; text-align:center; }
+.pet-cal-nav { width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); font-size:13px; transition:all .18s; }
+.pet-cal-nav:hover { border-color:var(--primary); color:var(--primary); transform:translateY(-1px); }
+.pet-cal-today { margin-left:auto; font-size:12px; padding:5px 12px; border-radius:999px; border:1px solid var(--primary); color:var(--primary); background:#fff; cursor:pointer; font-weight:700; font-family:inherit; transition:all .18s; }
+.pet-cal-today:hover { background:var(--primary); color:#fff; }
+.pet-cal-week { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px; }
+.pet-cal-week span { text-align:center; font-size:11.5px; color:var(--text-secondary); font-weight:700; }
+.pet-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.pet-cal-cell { position:relative; aspect-ratio:1/1; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; border:1.5px solid transparent; transition:all .18s; background:transparent; }
+.pet-cal-cell:hover { background:var(--bg); }
+.pet-cal-cell.pad { cursor:default; pointer-events:none; }
+.pet-cal-cell .dnum { font-size:13px; font-weight:600; color:var(--text); line-height:1; }
+.pet-cal-cell.is-today { border-color:var(--primary); }
+.pet-cal-cell.is-today .dnum { color:var(--primary); font-weight:800; }
+.pet-cal-cell.selected { background:linear-gradient(135deg,#81C784 0%,#66BB6A 100%); box-shadow:0 4px 10px rgba(129,199,132,.32); border-color:transparent; }
+.pet-cal-cell.selected .dnum { color:#fff; font-weight:800; }
+.pet-cal-cell.future { opacity:.42; }
+.pet-cal-marks { display:flex; gap:2px; height:9px; align-items:center; }
+.pet-cal-marks i { font-size:8px; font-style:normal; line-height:1; }
+.pet-cal-cell.selected .pet-cal-marks i { filter:brightness(0) invert(1); }
+.pet-cal-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; padding-top:10px; border-top:1px dashed var(--border); font-size:11.5px; color:var(--text-secondary); }
+.pet-cal-legend span { display:inline-flex; align-items:center; gap:4px; }
+
+/* 提醒预警 */
+.pet-alert-summary { display:flex; align-items:baseline; gap:8px; margin-bottom:12px; }
+.pet-alert-num { font-size:30px; font-weight:800; line-height:1; }
+.pet-alert-num.idle { color:var(--primary); }
+.pet-alert-num.warn { color:#EF6C00; }
+.pet-alert-num.danger { color:var(--danger); }
+.pet-alert-sub { font-size:12.5px; color:var(--text-secondary); }
+.pet-alert-list { display:flex; flex-direction:column; gap:8px; }
+.pet-alert-item { display:flex; align-items:center; gap:10px; background:var(--bg); border-radius:12px; padding:10px 12px; }
+.pet-alert-item.warn { background:#FFF8E1; }
+.pet-alert-item.danger { background:#FFEBEE; }
+.pet-alert-icon { width:30px; height:30px; border-radius:9px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.pet-alert-main { flex:1; min-width:0; }
+.pet-alert-name { font-size:13.5px; font-weight:700; color:var(--text); }
+.pet-alert-meta { font-size:11.5px; color:var(--text-secondary); margin-top:2px; }
+.pet-alert-days { font-size:13px; font-weight:800; white-space:nowrap; }
+.pet-alert-days.warn { color:#EF6C00; }
+.pet-alert-days.danger { color:var(--danger); }
+.pet-alert-empty { text-align:center; padding:16px 0; color:var(--text-secondary); font-size:13px; }
+.pet-timeline-badge { display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; background:#E8F5E9; color:#388E3C; }
+
 .pet-task-list { display:flex; flex-direction:column; gap:8px; }
 .pet-task-item { display:flex; align-items:center; gap:10px; background:#fff; border-radius:12px; padding:10px 12px; border:1px solid var(--border); }
 .pet-task-check { width:22px; height:22px; border-radius:6px; border:2px solid var(--border); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
@@ -2972,6 +3017,12 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   .pet-timeline-fields { grid-template-columns:1fr; }
   .pet-timeline-head { flex-direction:column; }
   .pet-weight-item { gap:8px; }
+  .pet-cal { padding:12px; }
+  .pet-cal-cell { border-radius:9px; }
+  .pet-cal-cell .dnum { font-size:12px; }
+  .pet-cal-grid, .pet-cal-week { gap:3px; }
+  .pet-alert-item { gap:8px; }
+  .pet-alert-days { font-size:12px; }
 }
 
 </style>
@@ -2985,7 +3036,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260865</div>
+<div class="splash-ver">v2.0.20260866</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3604,13 +3655,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   <div class="pet-tab-panel" id="petTabDaily">
     <div class="card">
       <div class="card-title">✅ 日常打卡</div>
-      <div class="pet-daily-top">
-        <div class="pet-form-row" style="margin:0;">
-          <label>日期</label>
-          <input id="petDailyDate" onchange="renderPetDaily()" type="date"/>
-        </div>
-      </div>
-      <div style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">勾选后自动保存，任务每日自动重置</div>
+      <div class="pet-cal" id="petDailyCalendar"></div>
+      <div style="font-size:13px; color:var(--text-secondary); margin:12px 0 10px;">勾选后自动保存，任务每日自动重置 · 当前查看：<b id="petDailyDateLabel" style="color:var(--primary);"></b></div>
       <div class="pet-task-list" id="petDailyTasks"></div>
       <div class="btn-group" style="margin-top:12px;">
         <button class="btn btn-outline btn-sm" onclick="addPetDailyTask()">➕ 添加自定义任务</button>
@@ -12759,18 +12805,28 @@ let currentPetTab = 'dashboard';
 function genPetId() { return 'pet_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6); }
 function genPetRecordId() { return 'pr_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6); }
 
-/* 老数据单位迁移：kg → g */
+/* 老数据迁移：体重 kg → g；旧 birthday 字段 → birthDate（出生日期） */
 function migratePetUnits() {
   let changed = false;
   pets.forEach(p => {
     if(p.weightUnit !== 'g') { p.weight = Math.round((parseFloat(p.weight)||0) * 1000); p.weightUnit = 'g'; changed = true; }
+    if(p.birthDate === undefined) {
+      p.birthDate = p.birthday || '';
+      p.birthday = '';
+      changed = true;
+    }
   });
   petWeightRecords.forEach(r => {
     if(r.unit !== 'g') { r.weight = Math.round((parseFloat(r.weight)||0) * 1000); r.unit = 'g'; changed = true; }
   });
+  // 生病记录：旧 nextDate（复诊）→ recoveryDate（康复时间）
+  petHealthRecords.forEach(r => {
+    if(r.recoveryDate === undefined) { r.recoveryDate = r.nextDate || ''; r.nextDate = ''; changed = true; }
+  });
   if(changed) {
     try { localStorage.setItem(PETS_KEY, JSON.stringify(pets)); } catch(e){}
     try { localStorage.setItem(PET_WEIGHT_KEY, JSON.stringify(petWeightRecords)); } catch(e){}
+    try { localStorage.setItem(PET_HEALTH_KEY, JSON.stringify(petHealthRecords)); } catch(e){}
   }
 }
 
@@ -12821,10 +12877,17 @@ function daysUntil(dateStr) {
   const today0 = new Date(); today0.setHours(0,0,0,0);
   return Math.floor((d.getTime() - today0.getTime()) / 86400000);
 }
-/* 距离下一次生日还有几天（按自然日，每天自动变化） */
-function getDaysUntilBirthday(birthday) {
-  if(!birthday) return null;
-  const b = new Date(birthday + 'T00:00:00');
+/* 相邻两个日期相差几天（date → 当天记 0 天） */
+function petDaysBetween(fromStr, toStr) {
+  if(!fromStr || !toStr) return null;
+  const a = new Date(fromStr + 'T00:00:00'), b = new Date(toStr + 'T00:00:00');
+  if(isNaN(a.getTime()) || isNaN(b.getTime())) return null;
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+/* 距离下一次生日还有几天：只按「到家时间」的月日算，按自然日每天变化 */
+function getDaysUntilBirthday(homeDate) {
+  if(!homeDate) return null;
+  const b = new Date(homeDate + 'T00:00:00');
   if(isNaN(b.getTime())) return null;
   const now = new Date();
   const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -12890,8 +12953,8 @@ function openAddPetModal() {
   const fields = [
     { key:'name', label:'名字 *', value:'' },
     { key:'breed', label:'品种', value:'' },
-    { key:'homeDate', label:'到家时间', type:'date', value:PET_TODAY },
-    { key:'birthday', label:'生日（留空则按到家时间计算）', type:'date', value:'' },
+    { key:'homeDate', label:'到家时间（生日按这个算）', type:'date', value:PET_TODAY },
+    { key:'birthDate', label:'出生日期（算年龄用）', type:'date', value:'' },
     { key:'gender', label:'性别', type:'select', options:[{value:'',text:'未知'},{value:'弟弟',text:'弟弟'},{value:'妹妹',text:'妹妹'}], value:'' },
     { key:'weight', label:'当前体重（g）', value:'' },
     { key:'note', label:'备注', type:'textarea', value:'' }
@@ -12900,7 +12963,7 @@ function openAddPetModal() {
     if(!vals || !vals.name) { showToast('请填写名字'); return; }
     const id = genPetId();
     const homeDate = vals.homeDate || '';
-    pets.push({ id, name:vals.name.trim(), breed:vals.breed||'', homeDate: homeDate, birthday: vals.birthday || homeDate, gender: vals.gender||'', weight: petGram(vals.weight), weightUnit:'g', note: vals.note||'', avatarBase64:'', createdAt: nowStr(), updatedAt: nowStr() });
+    pets.push({ id, name:vals.name.trim(), breed:vals.breed||'', homeDate: homeDate, birthDate: vals.birthDate || '', birthday: '', gender: vals.gender||'', weight: petGram(vals.weight), weightUnit:'g', note: vals.note||'', avatarBase64:'', createdAt: nowStr(), updatedAt: nowStr() });
     activePetId = id;
     savePets();
     saveActivePet();
@@ -12914,6 +12977,50 @@ function openAddPetModal() {
     renderPets();
     showToast('✅ 已添加宠物');
   });
+}
+
+/* ============ 提醒预警 ============
+   规则：
+   1. 洗护驱虫：按「项目类型」分组，只取该类型日期最新的一条记录，用它的「下次提醒时间」计算，
+      提前 7 天（含当天）进入预警；已经做过的（最新那条没有下次提醒时间 / 时间更晚）旧提醒会自动作废。
+   2. 储粮：到期日期提前 15 天（含当天）进入预警，已过期也会继续提醒。
+*/
+const PET_ALERT_GROOM_DAYS = 7;
+const PET_ALERT_FOOD_DAYS = 15;
+function getPetAlerts(pet) {
+  if(!pet) return [];
+  const list = [];
+  // 洗护驱虫：每种项目只认最新一条
+  const latestByType = {};
+  petGroomingRecords.filter(r => r.petId === pet.id).forEach(r => {
+    const t = r.type || '其他';
+    if(!latestByType[t] || (r.date || '') > (latestByType[t].date || '')) latestByType[t] = r;
+  });
+  Object.keys(latestByType).forEach(t => {
+    const r = latestByType[t];
+    if(!r.nextDate) return;
+    const d = daysUntil(r.nextDate);
+    if(d === null || d > PET_ALERT_GROOM_DAYS) return;
+    list.push({
+      kind:'groom', icon: PET_GROOM_ICONS[t] || '🧴', name: t,
+      meta: '洗护驱虫 · 上次 ' + (r.date || ''),
+      date: r.nextDate, days: d,
+      text: d < 0 ? ('已逾期 ' + Math.abs(d) + ' 天') : (d === 0 ? '今天该做' : '还有 ' + d + ' 天')
+    });
+  });
+  // 储粮：到期前 15 天
+  petFoodRecords.filter(r => r.petId === pet.id && r.expireDate).forEach(f => {
+    const d = daysUntil(f.expireDate);
+    if(d === null || d > PET_ALERT_FOOD_DAYS) return;
+    list.push({
+      kind:'food', icon:'🥫', name: f.name,
+      meta: '储粮到期' + (f.amount || f.unit ? ' · ' + (f.amount||'') + (f.unit||'') : '') + (f.location ? ' · ' + f.location : ''),
+      date: f.expireDate, days: d,
+      text: d < 0 ? ('已过期 ' + Math.abs(d) + ' 天') : (d === 0 ? '今天到期' : '还有 ' + d + ' 天到期')
+    });
+  });
+  list.sort((a,b) => a.days - b.days);
+  return list;
 }
 
 /* ============ 仪表板 ============ */
@@ -12966,10 +13073,11 @@ function renderPetDashboard() {
   const totalCount = tasks.length;
   const pct = totalCount ? Math.round(doneCount / totalCount * 100) : 0;
 
-  /* --- 储粮预警 --- */
+  /* --- 储粮 --- */
   const foods = petFoodRecords.filter(r => r.petId === pet.id);
-  const expiring = foods.filter(f => { const d = daysUntil(f.expireDate); return d !== null && d >= 0 && d <= 30; });
-  const expired = foods.filter(f => { const d = daysUntil(f.expireDate); return d !== null && d < 0; });
+
+  /* --- 提醒预警（洗护 7 天内 + 储粮 15 天内） --- */
+  const alerts = getPetAlerts(pet);
 
   /* --- 最近记录 --- */
   const recentHealth = petHealthRecords.filter(r => r.petId === pet.id).sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,2);
@@ -12982,7 +13090,9 @@ function renderPetDashboard() {
     return `<div class="pet-rec-item"><div class="pet-rec-left"><div class="pet-rec-icon">${icon}</div><div><div class="pet-rec-title">${escapeHtml(title)}</div><div class="pet-rec-sub">${escapeHtml(sub||'')}</div></div></div><div class="pet-rec-date">${escapeHtml(date||'')}</div></div>`;
   }
   if(recentHealth.length || recentGrooming.length || recentFood.length || recentMemo.length) {
-    recHtml = '<div class="pet-dash-card pet-dash-full"><div class="pet-dash-head">📋 最近记录</div><div class="pet-rec-list">';
+    recHtml = '<div class="pet-dash-card pet-dash-full"><div class="pet-dash-head">📋 最近记录</div>';
+    recHtml += '<div style="font-size:11.5px;color:var(--text-secondary);margin:-4px 0 10px;">取自「日常打卡的备忘 + 生病记录 + 洗护驱虫 + 储粮」，每类各显示最新的 2 条</div>';
+    recHtml += '<div class="pet-rec-list">';
     recentMemo.forEach(m => recHtml += recItem('📝', '日常备忘', String(m.memo).slice(0,24), m.date));
     recentHealth.forEach(h => recHtml += recItem(PET_HEALTH_ICONS[h.type] || '💊', h.title || h.type, h.desc ? String(h.desc).slice(0,24) : (h.type || ''), h.date));
     recentGrooming.forEach(g => recHtml += recItem(PET_GROOM_ICONS[g.type] || '🛁', g.type, g.item ? '用品：' + String(g.item).slice(0,20) : '', g.date));
@@ -12994,15 +13104,39 @@ function renderPetDashboard() {
     recHtml += '</div></div>';
   }
 
-  /* --- 生日倒计时 --- */
-  const bday = pet.birthday || pet.homeDate || '';
-  const bdDays = getDaysUntilBirthday(bday);
+  /* --- 到家倒计时（生日只按「到家时间」的月日算） --- */
+  const anchor = pet.homeDate || '';
+  const bdDays = getDaysUntilBirthday(anchor);
   let bdHtml = '';
   if(bdDays !== null) {
-    bdHtml = `<div class="pet-birthday-count">🎂 距离下次生日还有 <b>${bdDays}</b> 天${bday ? '（' + bday.slice(5).replace('-','月') + '日）' : ''}</div>`;
+    bdHtml = `<div class="pet-birthday-count">🎂 距离下次生日还有 <b>${bdDays}</b> 天（按到家时间 ${anchor.slice(5).replace('-','月')}日）</div>`;
   } else {
-    bdHtml = `<div class="pet-birthday-count">🎂 到家和生日还没填，点「修改资料」补上</div>`;
+    bdHtml = `<div class="pet-birthday-count">🎂 还没填「到家时间」，点「修改资料」补上</div>`;
   }
+
+  /* --- 提醒预警板块 --- */
+  const alertCount = alerts.length;
+  const alertLevel = !alertCount ? 'idle' : (alerts.some(a => a.days < 0 || a.days <= 3) ? 'danger' : 'warn');
+  let alertHtml = '<div class="pet-dash-card pet-dash-full"><div class="pet-dash-head">⚠️ 提醒预警</div>';
+  alertHtml += `<div class="pet-alert-summary"><div class="pet-alert-num ${alertLevel}">${alertCount}</div><div class="pet-alert-sub">${alertCount ? '项需要你处理（洗护驱虫 7 天内 · 储粮 15 天内到期）' : '暂无待处理事项，一切都安排得很好 🎉'}</div></div>`;
+  if(alertCount) {
+    alertHtml += '<div class="pet-alert-list">';
+    alerts.forEach(a => {
+      const cls = a.days < 0 ? 'danger' : 'warn';
+      alertHtml += `<div class="pet-alert-item ${cls}">
+        <div class="pet-alert-icon">${a.icon}</div>
+        <div class="pet-alert-main">
+          <div class="pet-alert-name">${escapeHtml(a.name)}</div>
+          <div class="pet-alert-meta">${escapeHtml(a.meta)} · ${escapeHtml(a.date)}</div>
+        </div>
+        <div class="pet-alert-days ${cls}">${escapeHtml(a.text)}</div>
+      </div>`;
+    });
+    alertHtml += '</div>';
+  } else {
+    alertHtml += '<div class="pet-alert-empty">洗护驱虫到点 / 储粮快到期时会出现在这里</div>';
+  }
+  alertHtml += '</div>';
 
   const avatar = pet.avatarBase64 || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
   const homeTxt = pet.homeDate ? `到家 ${pet.homeDate}` : '到家时间未设置';
@@ -13014,7 +13148,7 @@ function renderPetDashboard() {
         <img class="pet-avatar" src="${escapeHtml(avatar)}" alt=""/>
         <div class="pet-profile-meta">
           <div class="pet-profile-name">${escapeHtml(pet.name)}${pet.gender ? '<span style="font-size:13px;color:var(--text-secondary);font-weight:500;"> · ' + escapeHtml(pet.gender) + '</span>' : ''}</div>
-          <div class="pet-profile-sub">${escapeHtml(pet.breed || '未知品种')} · ${pet.birthday ? getPetAge(pet.birthday) : '生日未设置'} · ${escapeHtml(homeTxt)}</div>
+          <div class="pet-profile-sub">${escapeHtml(pet.breed || '未知品种')} · ${pet.birthDate ? getPetAge(pet.birthDate) : '年龄未知'} · ${escapeHtml(homeTxt)}</div>
           ${bdHtml}
           <div class="pet-profile-stat">
             <span>⚖️ 体重 <b>${latest ? petGram(latest.weight) + ' g' : '未记录'}</b></span>
@@ -13025,7 +13159,7 @@ function renderPetDashboard() {
         </div>
       </div>
       <div class="pet-edit-panel" id="petEditPanel">
-        <div class="pet-edit-note">生日留空会自动按「到家时间」计算；体重以 <b>g（克）</b> 为单位，保存后会同步写入体重趋势。</div>
+        <div class="pet-edit-note">生日倒计时<u>只按「到家时间」的月日</u>计算；「出生日期」仅用于算年龄。体重以 <b>g（克）</b> 为单位，保存后会同步写入体重趋势。</div>
         <div class="pet-form-avatar" style="margin-bottom:12px;">
           <img id="petProfileAvatar" src="${escapeHtml(avatar)}" alt="" onclick="document.getElementById('petProfileAvatarInput').click()" style="cursor:pointer;"/>
           <div>
@@ -13036,8 +13170,8 @@ function renderPetDashboard() {
         <div class="pet-form-grid">
           <div class="pet-form-row"><label>名字 *</label><input id="petProfileName" type="text" value="${escapeHtml(pet.name||'')}"/></div>
           <div class="pet-form-row"><label>品种</label><input id="petProfileBreed" type="text" value="${escapeHtml(pet.breed||'')}"/></div>
-          <div class="pet-form-row"><label>到家时间</label><input id="petProfileHomeDate" type="date" value="${escapeHtml(pet.homeDate||'')}"/></div>
-          <div class="pet-form-row"><label>生日</label><input id="petProfileBirthday" type="date" value="${escapeHtml(pet.birthday||'')}"/></div>
+          <div class="pet-form-row"><label>到家时间（生日按这个算）</label><input id="petProfileHomeDate" type="date" value="${escapeHtml(pet.homeDate||'')}"/></div>
+          <div class="pet-form-row"><label>出生日期（算年龄用）</label><input id="petProfileBirthDate" type="date" value="${escapeHtml(pet.birthDate||'')}"/></div>
           <div class="pet-form-row"><label>性别</label><select id="petProfileGender">
             <option value="">未知</option>
             <option value="弟弟"${pet.gender==='弟弟'?' selected':''}>弟弟</option>
@@ -13068,13 +13202,7 @@ function renderPetDashboard() {
         ${prev && latest ? `<div style="font-size:12.5px; color:var(--text-secondary);">较上次 ${(petGram(latest.weight) - petGram(prev.weight)) > 0 ? '+' : ''}${petGram(latest.weight) - petGram(prev.weight)} g</div>` : ''}
       </div>
     </div>
-    <div class="pet-dash-card">
-      <div class="pet-dash-head">🥫 储粮预警</div>
-      <div class="pet-dash-body">
-        <div style="font-size:26px; font-weight:800; color:${expired.length ? 'var(--danger)' : 'var(--accent)'}">${expiring.length + expired.length} <span style="font-size:13px; color:var(--text-secondary); font-weight:500;">项</span></div>
-        <div style="font-size:12.5px; color:var(--text-secondary);">${expired.length ? expired.length + '项已过期 · ' : ''}30天内到期</div>
-      </div>
-    </div>
+    ${alertHtml}
     ${weightHtml}
     ${recHtml}
   `;
@@ -13184,7 +13312,8 @@ function savePetProfile() {
   pet.name = name;
   pet.breed = (document.getElementById('petProfileBreed').value || '').trim();
   pet.homeDate = document.getElementById('petProfileHomeDate').value || '';
-  pet.birthday = document.getElementById('petProfileBirthday').value || pet.homeDate || '';
+  pet.birthDate = document.getElementById('petProfileBirthDate').value || '';
+  pet.birthday = '';
   pet.gender = document.getElementById('petProfileGender').value || '';
   pet.weight = petGram(document.getElementById('petProfileWeight').value);
   pet.weightUnit = 'g';
@@ -13236,7 +13365,12 @@ function renderPetHealth() {
     if(h.vet) fields.push(`<div class="pet-timeline-field"><span>医院 / 医生</span><b>${escapeHtml(h.vet)}</b></div>`);
     if(h.medicine) fields.push(`<div class="pet-timeline-field"><span>用药</span><b>${escapeHtml(h.medicine)}</b></div>`);
     if(h.cost) fields.push(`<div class="pet-timeline-field"><span>费用</span><b>¥${escapeHtml(h.cost)}</b></div>`);
-    if(h.nextDate) fields.push(`<div class="pet-timeline-field"><span>复诊日期</span><b>${escapeHtml(h.nextDate)}</b></div>`);
+    if(h.recoveryDate) fields.push(`<div class="pet-timeline-field"><span>康复时间</span><b>${escapeHtml(h.recoveryDate)}</b></div>`);
+    // 自动计算康复用时
+    const used = h.recoveryDate ? petDaysBetween(h.date, h.recoveryDate) : null;
+    const usedBadge = used === null ? '' :
+      (used < 0 ? '<span class="pet-timeline-badge" style="background:#FFEBEE;color:var(--danger);">⚠️ 康复时间早于发病</span>'
+                : `<span class="pet-timeline-badge">🕒 用时 ${used} 天${used === 0 ? '（当天康复）' : ''}</span>`);
     return `
     <div class="pet-timeline-card">
       <div class="pet-timeline-left"><div class="pet-timeline-icon">${icon}</div><div class="pet-timeline-bar"></div></div>
@@ -13245,6 +13379,7 @@ function renderPetHealth() {
           <div class="pet-timeline-title">${escapeHtml(h.title || h.type || '未命名')}</div>
           <div class="pet-timeline-date">${escapeHtml(h.date || '')}</div>
         </div>
+        ${usedBadge ? `<div style="margin-top:8px;">${usedBadge}</div>` : ''}
         <div class="pet-timeline-fields">${fields.join('')}</div>
         ${h.desc ? `<div class="pet-timeline-note">${escapeHtml(h.desc)}</div>` : ''}
         <div class="btn-group" style="margin-top:10px;">
@@ -13266,11 +13401,11 @@ function openPetHealthModal(id) {
     { key:'medicine', label:'用药', value: editing ? editing.medicine || '' : '' },
     { key:'vet', label:'医院 / 医生', value: editing ? editing.vet || '' : '' },
     { key:'cost', label:'费用（元）', value: editing ? editing.cost || '' : '' },
-    { key:'nextDate', label:'复诊日期', type:'date', value: editing ? editing.nextDate || '' : '' }
+    { key:'recoveryDate', label:'康复时间（留空表示还没好）', type:'date', value: editing ? editing.recoveryDate || '' : '' }
   ];
   showAppPrompt({ title: editing ? '编辑生病记录' : '添加生病记录', fields }, (vals) => {
     if(!vals || !vals.date) return;
-    const payload = { id: editing ? editing.id : genPetRecordId(), petId: getActivePet().id, date: vals.date, type: vals.type || '生病', title: vals.title || vals.type, status: vals.status || '', desc: vals.desc || '', medicine: vals.medicine || '', vet: vals.vet || '', cost: vals.cost || '', nextDate: vals.nextDate || '' };
+    const payload = { id: editing ? editing.id : genPetRecordId(), petId: getActivePet().id, date: vals.date, type: vals.type || '生病', title: vals.title || vals.type, status: vals.status || '', desc: vals.desc || '', medicine: vals.medicine || '', vet: vals.vet || '', cost: vals.cost || '', recoveryDate: vals.recoveryDate || '' };
     if(editing) { const idx = petHealthRecords.findIndex(h => h.id === editing.id); if(idx >= 0) petHealthRecords[idx] = payload; }
     else petHealthRecords.push(payload);
     savePetHealths();
@@ -13342,6 +13477,83 @@ function deletePetGrooming(id) {
 }
 
 /* ============ 日常打卡 ============ */
+let currentPetDate = PET_TODAY;
+let petCalMonth = PET_TODAY.slice(0, 7); // YYYY-MM
+
+/* 某天在日历上的标记 */
+function getPetDayMarks(pet, dateStr) {
+  const marks = [];
+  if(petWeightRecords.some(r => r.petId === pet.id && r.date === dateStr)) marks.push('⚖️');
+  const rec = petDailyRecords.find(r => r.petId === pet.id && r.date === dateStr);
+  if(rec) {
+    const tasks = rec.tasks || [];
+    if(tasks.length && tasks.every(t => t.done)) marks.push('✅');
+    if(rec.memo && String(rec.memo).trim()) marks.push('📝');
+  }
+  return marks;
+}
+
+function renderPetDailyCalendar() {
+  const box = document.getElementById('petDailyCalendar');
+  const pet = getActivePet();
+  if(!box || !pet) return;
+  const [y, m] = petCalMonth.split('-').map(Number);
+  const first = new Date(y, m - 1, 1);
+  const startPad = (first.getDay() + 6) % 7; // 周一为第一列
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const todayStr2 = PET_TODAY;
+
+  let html = `<div class="pet-cal-head">
+    <button class="pet-cal-nav" onclick="shiftPetCalMonth(-1)">‹</button>
+    <div class="pet-cal-title">${y} 年 ${m} 月</div>
+    <button class="pet-cal-nav" onclick="shiftPetCalMonth(1)">›</button>
+    <button class="pet-cal-today" onclick="goPetCalToday()">回到今天</button>
+  </div>
+  <div class="pet-cal-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+  <div class="pet-cal-grid">`;
+
+  for(let i = 0; i < startPad; i++) html += '<div class="pet-cal-cell pad"></div>';
+  for(let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const marks = getPetDayMarks(pet, ds);
+    const cls = ['pet-cal-cell'];
+    if(ds === todayStr2) cls.push('is-today');
+    if(ds === currentPetDate) cls.push('selected');
+    if(ds > todayStr2) cls.push('future');
+    html += `<div class="${cls.join(' ')}" onclick="selectPetCalDate('${ds}')" title="${escapeHtml(ds)}">
+      <div class="dnum">${d}</div>
+      <div class="pet-cal-marks">${marks.slice(0,3).map(k => `<i>${k}</i>`).join('')}</div>
+    </div>`;
+  }
+  html += '</div>';
+  html += `<div class="pet-cal-legend">
+    <span><i style="font-style:normal;">⚖️</i> 有体重记录</span>
+    <span><i style="font-style:normal;">✅</i> 任务全完成</span>
+    <span><i style="font-style:normal;">📝</i> 有备忘</span>
+  </div>`;
+  box.innerHTML = html;
+
+  const lbl = document.getElementById('petDailyDateLabel');
+  if(lbl) lbl.textContent = currentPetDate + '（' + petWeekday(currentPetDate) + '）';
+}
+
+function shiftPetCalMonth(delta) {
+  const [y, m] = petCalMonth.split('-').map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  petCalMonth = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  renderPetDailyCalendar();
+}
+function goPetCalToday() {
+  currentPetDate = PET_TODAY;
+  petCalMonth = PET_TODAY.slice(0, 7);
+  renderPetDaily();
+}
+function selectPetCalDate(ds) {
+  currentPetDate = ds;
+  petCalMonth = ds.slice(0, 7);
+  renderPetDaily();
+}
+
 function getPetDailyRecord(date, create) {
   const pet = getActivePet();
   if(!pet) return null;
@@ -13359,14 +13571,15 @@ function getPetDailyRecord(date, create) {
 function renderPetDaily() {
   const pet = getActivePet();
   if(!pet) return;
-  const dateInput = document.getElementById('petDailyDate');
-  if(!dateInput.value) dateInput.value = PET_TODAY;
-  const date = dateInput.value || PET_TODAY;
+  const date = currentPetDate || PET_TODAY;
   const rec = getPetDailyRecord(date, true);
   if(!rec) return;
   savePetDailies();
+  renderPetDailyCalendar();
   document.getElementById('petDailyTasks').dataset.recordId = rec.id;
-  document.getElementById('petDailyWeight').value = rec.weight || '';
+  // 体重优先取打卡记录，其次回填体重趋势里同一天的数值（日历上有 ⚖️ 标记的日子）
+  const wRec = petWeightRecords.find(r => r.petId === pet.id && r.date === date);
+  document.getElementById('petDailyWeight').value = rec.weight || (wRec ? String(petGram(wRec.weight)) : '');
   document.getElementById('petDailyFood').value = rec.food || '';
   document.getElementById('petDailyMemo').value = rec.memo || '';
   const container = document.getElementById('petDailyTasks');
@@ -13385,7 +13598,7 @@ function addPetDailyTask() {
     if(!vals || !vals.name) return;
     const container = document.getElementById('petDailyTasks');
     const recId = container.dataset.recordId;
-    const date = document.getElementById('petDailyDate').value || PET_TODAY;
+    const date = currentPetDate || PET_TODAY;
     const rec = petDailyRecords.find(r => r.id === recId) || getPetDailyRecord(date, true);
     if(!rec) return;
     rec.tasks.push({ name: vals.name.trim(), done: false });
@@ -13413,7 +13626,7 @@ function deletePetDailyTask(idx) {
 function autoSavePetDaily() {
   const pet = getActivePet();
   if(!pet) return;
-  const date = (document.getElementById('petDailyDate').value || PET_TODAY);
+  const date = currentPetDate || PET_TODAY;
   const container = document.getElementById('petDailyTasks');
   let rec = container && container.dataset.recordId ? petDailyRecords.find(r => r.id === container.dataset.recordId) : null;
   if(!rec) rec = getPetDailyRecord(date, true);
@@ -13430,6 +13643,7 @@ function autoSavePetDaily() {
     savePetWeights();
   }
   savePetDailies();
+  renderPetDailyCalendar(); // 只刷新日历标记，输入框不会失焦
 }
 
 /* ============ 储粮 ============ */
