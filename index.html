@@ -2886,6 +2886,64 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 @media (max-width:767px){
   .copy-actions { flex-direction:row; }
 }
+/* ===== 人生清单 ===== */
+.ll-wrap { padding:4px 2px 20px; }
+.ll-hero { background:linear-gradient(135deg,var(--bird-lavender) 0%,var(--bird-pink) 55%,var(--bird-peach) 100%); border-radius:var(--radius); padding:20px 22px; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; box-shadow:var(--shadow-soft); margin-bottom:16px; position:relative; overflow:hidden; }
+.ll-hero::after { content:'✨'; position:absolute; right:10px; bottom:-26px; font-size:104px; opacity:.16; transform:rotate(-12deg); pointer-events:none; }
+.ll-hero-left { z-index:1; }
+.ll-hero-title { font-size:20px; font-weight:800; color:#5b4a5f; }
+.ll-hero-sub { font-size:12.5px; color:#7a6a7e; margin-top:5px; }
+.ll-hero-stat { display:flex; align-items:center; gap:14px; z-index:1; }
+.ll-ring { width:74px; height:74px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:conic-gradient(var(--primary) var(--llp,0%), rgba(255,255,255,.55) 0); flex-shrink:0; position:relative; }
+.ll-ring::before { content:''; position:absolute; inset:7px; border-radius:50%; background:rgba(255,255,255,.93); }
+.ll-ring-in { position:relative; font-size:16px; font-weight:800; color:var(--primary-dark); }
+.ll-prog-text { font-size:13px; color:#6a5a6e; line-height:1.7; }
+.ll-prog-text b { font-size:19px; color:var(--primary-dark); }
+.ll-prog-text .ll-sub { display:block; font-size:11.5px; opacity:.82; }
+.ll-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+.ll-tab { display:flex; align-items:center; gap:5px; padding:7px 14px; border-radius:20px; background:var(--bg); border:1px solid var(--border); cursor:pointer; font-size:13px; color:var(--text-secondary); transition:all .16s; user-select:none; }
+.ll-tab:hover { background:rgba(129,199,132,.12); border-color:var(--primary); }
+.ll-tab.active { background:var(--primary-light); color:var(--primary); border-color:var(--primary); font-weight:700; }
+.ll-tab .ll-count { font-size:11px; opacity:.85; }
+.ll-tab-add { background:transparent; border:1px dashed var(--border); }
+.ll-tab-add:hover { border-color:var(--primary); color:var(--primary); background:rgba(129,199,132,.08); }
+.ll-tab-del { opacity:0; font-size:11px; padding:1px 3px; border-radius:4px; transition:opacity .16s; }
+.ll-tab:hover .ll-tab-del { opacity:.5; }
+.ll-tab-del:hover { opacity:1 !important; background:rgba(239,83,80,.12); }
+.ll-toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+.ll-hide { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary); cursor:pointer; user-select:none; }
+.ll-hide input { accent-color:var(--primary); cursor:pointer; }
+.ll-spacer { flex:1; }
+.ll-list { display:flex; flex-direction:column; gap:9px; min-height:120px; }
+.ll-group-title { font-size:13px; font-weight:700; color:var(--text-secondary); margin:8px 0 2px; display:flex; align-items:center; gap:6px; }
+.ll-group-title span { font-weight:400; opacity:.85; }
+.ll-item { display:flex; align-items:flex-start; gap:11px; background:var(--bg); border:1px solid var(--border); border-radius:14px; padding:11px 13px; transition:box-shadow .16s, background .2s, border-color .2s; }
+.ll-item:hover { box-shadow:var(--shadow-soft); }
+.ll-item.done { background:var(--primary-light); border-color:var(--primary-soft); }
+.ll-check { width:21px; height:21px; border-radius:50%; border:2px solid var(--gray); background:#fff; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; transition:all .18s; margin-top:1px; }
+.ll-check:hover { border-color:var(--primary); }
+.ll-item.done .ll-check { background:var(--primary); border-color:var(--primary); }
+.ll-main { flex:1; min-width:0; }
+.ll-text { font-size:14px; line-height:1.55; color:var(--text); word-break:break-word; }
+.ll-item.done .ll-text { text-decoration:line-through; color:var(--text-secondary); }
+.ll-note { font-size:12px; color:var(--text-secondary); margin-top:3px; white-space:pre-wrap; word-break:break-word; }
+.ll-meta { font-size:11px; color:var(--primary-dark); margin-top:4px; }
+.ll-actions { display:flex; gap:4px; flex-shrink:0; opacity:.4; transition:opacity .16s; }
+.ll-item:hover .ll-actions { opacity:1; }
+.ll-icon-btn { border:none; background:transparent; cursor:pointer; font-size:13px; padding:3px 5px; border-radius:6px; line-height:1; }
+.ll-icon-btn:hover { background:rgba(0,0,0,.06); }
+.ll-empty { text-align:center; padding:44px 20px; color:var(--text-secondary); font-size:13.5px; }
+.ll-empty .ll-empty-emoji { font-size:40px; display:block; margin-bottom:10px; opacity:.6; }
+.ll-add { margin-top:14px; width:100%; }
+@media (max-width:767px){
+  .ll-hero { padding:16px; gap:12px; }
+  .ll-hero-title { font-size:17px; }
+  .ll-ring { width:62px; height:62px; }
+  .ll-ring-in { font-size:14px; }
+  .ll-prog-text b { font-size:17px; }
+  .ll-actions { opacity:1; }
+  .ll-text { font-size:13.5px; }
+}
 /* 拖拽通用样式 */
 .sf-drag { cursor:grab; }
 .sf-drag.dragging { opacity:.35; transform:scale(.97); cursor:grabbing; }
@@ -3131,7 +3189,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260872</div>
+<div class="splash-ver">v2.0.20260873</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3210,6 +3268,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 </div>
 </div>
 <div class="menu-item" data-panel="pets"><div class="menu-icon">🐾</div><span>我的小宠</span></div>
+<div class="menu-item" data-panel="lifeList"><div class="menu-icon">✨</div><span>人生清单</span></div>
 <div class="menu-item" data-panel="contentReview"><div class="menu-icon">📝</div><span>内容复盘</span></div>
 <div class="menu-item" data-panel="settings"><div class="menu-icon">⚙️</div><span>设置</span></div>
 </div>
@@ -3809,6 +3868,32 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   </div>
 </div>
 <!-- 内容复盘 - 日历模式 -->
+<!-- 人生清单 -->
+<div class="panel" id="panel-lifeList">
+<div class="ll-wrap">
+  <div class="ll-hero">
+    <div class="ll-hero-left">
+      <div class="ll-hero-title">✨ 我的人生清单</div>
+      <div class="ll-hero-sub">把想做的事写下来，然后一件一件划掉它 🌿</div>
+    </div>
+    <div class="ll-hero-stat">
+      <div class="ll-ring" id="llRing"><span class="ll-ring-in" id="llPctText">0%</span></div>
+      <div class="ll-prog-text">
+        已完成 <b id="llDoneCount">0</b> / <span id="llTotalCount">0</span> 件
+        <span class="ll-sub" id="llRemainText">慢慢来，一件一件来就好</span>
+      </div>
+    </div>
+  </div>
+  <div class="ll-tabs" id="llTabs"></div>
+  <div class="ll-toolbar">
+    <label class="ll-hide"><input type="checkbox" id="llHideDoneChk" onchange="toggleLifeHideDone()"> 隐藏已完成</label>
+    <span class="ll-spacer"></span>
+    <button class="btn btn-danger" onclick="clearLifeCat()">🗑 清空当前分类</button>
+  </div>
+  <div class="ll-list" id="llList"></div>
+  <button class="btn btn-primary ll-add" onclick="openLifeItemModal()">＋ 添加一条清单</button>
+</div>
+</div>
 <div class="panel" id="panel-contentReview">
 <div class="btn-group">
 <button class="btn btn-primary" onclick="saveReviewEntry()">💾 保存当日复盘</button>
@@ -5274,7 +5359,7 @@ document.getElementById('dateDisplay').textContent = todayStr;
 document.getElementById('sidebarDate').textContent = todayStr;
 
 // ===================== 菜单切换 =====================
-const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, moneyOverview:{text:'搞钱概览',icon:'💡'}, sideFlow:{text:'我的支线流',icon:'🌊'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, pets:{text:'我的小宠',icon:'🐾'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
+const menuLabels = { home:{text:'首页',icon:'🏠'}, myGoals:{text:'我的目标',icon:'🎯'}, dailyTask:{text:'今日任务',icon:'📋'}, moneyOverview:{text:'搞钱概览',icon:'💡'}, sideFlow:{text:'我的支线流',icon:'🌊'}, products:{text:'我的选品',icon:'🛒'}, liveScript:{text:'我的直播话术',icon:'🎙️'}, pets:{text:'我的小宠',icon:'🐾'}, lifeList:{text:'人生清单',icon:'✨'}, contentReview:{text:'内容复盘',icon:'📝'}, expense:{text:'岁岁花销记',icon:'💰'}, gold:{text:'金攒攒',icon:'🥇'}, travel:{text:'逃离计划',icon:'🧳'}, settings:{text:'设置',icon:'⚙️'} };
 
 // 菜单分组展开/收起（持久化）
 const MENU_GROUP_KEY = 'parrot_menu_groups_collapsed';
@@ -5317,6 +5402,7 @@ document.querySelectorAll('.menu-item').forEach(item => {
     if(pid==='moneyOverview') { renderMoneyOverviewList(); renderMoneyOverviewBoard(); initMoneyOverviewResize(); }
     if(pid==='sideFlow') { renderSideFlowActive(); }
     if(pid==='pets') { renderPets(); }
+    if(pid==='lifeList') { ensureLifeListReady(); }
     if(window.innerWidth<=767) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
   });
 });
@@ -16675,6 +16761,263 @@ function buildTravelBasemaps(L) {
     'Esri 卫星': createTileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { ...opts, attribution: '© Esri', maxZoom: 18 })
   });
   return make;
+}
+
+// ===================== 人生清单 =====================
+const LL_KEY = 'parrot_life_list_v1';
+// 预置清单：用户截图补充后可继续追加/替换（分类与条目都支持增删改）
+const LL_SEED = [
+  { name:'旅行清单', icon:'🧳', items:[
+    '去一次海边看日出','在山顶看一次日落','去一趟西藏/拉萨','出国旅行一次','一个人旅行一次',
+    '和家人来一次长途旅行','住一晚能看到星空的民宿','坐一次卧铺火车','爬一次名山（泰山/黄山/华山）',
+    '去一次沙漠','看一场流星雨','在古镇慢慢住上三天','坐一次热气球','去看一次花海（樱花/油菜花/薰衣草）',
+    '去一座陌生城市随便走走','泡一次真正的温泉','环湖或环岛走一次','去看一次演唱会/音乐节',
+    '露营看一次银河','打卡一次雪景'
+  ]},
+  { name:'健康清单', icon:'💪', items:[
+    '早睡早起坚持 30 天','学会游泳','跑完一次 5 公里','完成一次半程马拉松','坚持运动 100 天',
+    '做一次全面体检','练出马甲线','学会一整套拉伸动作','戒掉熬夜','每天喝够 8 杯水坚持一个月',
+    '学会心肺复苏（CPR）','体重管理到目标值','一年不喝奶茶','学会冥想放松','跑一次越野/徒步 20 公里'
+  ]},
+  { name:'成长清单', icon:'📚', items:[
+    '读完 50 本书','学会一样乐器','掌握一门外语的日常对话','考下一个证书','学会剪辑视频',
+    '学会 10 道拿手菜','学会摄影构图','坚持写日记一整年','坚持记账一整年','公开演讲一次',
+    '学会画画/手绘','考取驾照','完成一次 100 天挑战','学会时间管理','学会一支完整的舞蹈'
+  ]},
+  { name:'关系清单', icon:'❤️', items:[
+    '给爸妈做一顿饭','带父母去旅行一次','给朋友写一封手写信','主动联系好久没见的人',
+    '和家人拍一组正式合影','和喜欢的人一起看日落','认真说一次「我爱你」','陪长辈聊一整天',
+    '给未来的自己写封信','帮助一个陌生人','和朋友来一次深夜长谈','学会好好表达情绪不冷战'
+  ]},
+  { name:'仪式感清单', icon:'🎉', items:[
+    '给自己办一次生日会','每年拍一组写真','写一份年终总结','做一本相册/手账',
+    '跨年倒数一次','给自己买一束花','重新布置自己的房间','记录 100 件小确幸',
+    '写一封感谢信','在特别的日子给自己买礼物','拍一支年度 vlog','每年立一次新年计划'
+  ]},
+  { name:'美食清单', icon:'🍜', items:[
+    '吃一次米其林','去一次深夜路边摊','学会烘焙（面包/蛋糕）','学会冲一杯好咖啡',
+    '吃一次地道的地方菜（川/粤/湘/日料）','自己做一次火锅','学会调一杯鸡尾酒',
+    '尝够 30 种没吃过的水果','和朋友去一次野餐','学会包饺子','一个人吃一顿正式的饭','学会做一道家乡菜'
+  ]},
+  { name:'挑战清单', icon:'🎯', items:[
+    '蹦极一次','潜水一次','跳伞一次','坐一次过山车','去一次鬼屋','露营一次',
+    '看一场线下脱口秀','参加一次跑步比赛','尝试一次直播','摆一次地摊','做一次志愿者','在街头表演一次'
+  ]},
+  { name:'财务清单', icon:'💰', items:[
+    '存下第一个 1 万元','存下第一个 10 万元','记账坚持一整年','拥有一份副业收入',
+    '还清所有欠款','给父母一笔钱','买一件真正喜欢的大件','建立 6 个月应急基金',
+    '学会基金定投','来一次说走就走的旅行'
+  ]}
+];
+let lifeListData = { version:1, cats:[], items:[] };
+let llActiveCat = 'all';
+let llHideDone = false;
+
+function llGenId(){ return 'll' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function llBuildSeed(){
+  const cats = [], items = [];
+  LL_SEED.forEach((c, ci) => {
+    const cid = 'c' + (ci + 1);
+    cats.push({ id: cid, name: c.name, icon: c.icon, sort: ci });
+    (c.items || []).forEach(t => {
+      items.push({ id: llGenId(), catId: cid, text: t, note:'', done:false, doneAt:'', createdAt: nowStr() });
+    });
+  });
+  return { version:1, cats, items };
+}
+function loadLifeList(){
+  const raw = localStorage.getItem(LL_KEY);
+  let ok = false;
+  if (raw) {
+    try {
+      const d = JSON.parse(raw);
+      lifeListData = { version:1, cats: Array.isArray(d.cats) ? d.cats : [], items: Array.isArray(d.items) ? d.items : [] };
+      ok = lifeListData.cats.length > 0 || lifeListData.items.length > 0;
+    } catch (e) { lifeListData = { version:1, cats:[], items:[] }; }
+  }
+  if (!ok) { lifeListData = llBuildSeed(); saveLifeList(); }
+}
+function saveLifeList(){
+  localStorage.setItem(LL_KEY, JSON.stringify(lifeListData));
+  if (typeof onLocalDataChange === 'function') onLocalDataChange();
+}
+function llCats(){ return (lifeListData.cats || []).slice().sort((a,b) => (a.sort||0) - (b.sort||0)); }
+function llItems(){ return lifeListData.items || []; }
+function llStat(catId){
+  const arr = catId === 'all' ? llItems() : llItems().filter(i => i.catId === catId);
+  return { total: arr.length, done: arr.filter(i => i.done).length };
+}
+function ensureLifeListReady(){ loadLifeList(); renderLifeList(); }
+function switchLifeCat(catId){ llActiveCat = catId; renderLifeList(); }
+function toggleLifeHideDone(){
+  const el = document.getElementById('llHideDoneChk');
+  llHideDone = el ? !!el.checked : !llHideDone;
+  renderLifeList();
+}
+function renderLifeList(){
+  const tabsEl = document.getElementById('llTabs');
+  const listEl = document.getElementById('llList');
+  if (!tabsEl || !listEl) return;
+  const all = llStat('all');
+  const pct = all.total ? Math.round(all.done / all.total * 100) : 0;
+  const ring = document.getElementById('llRing');
+  if (ring) ring.style.setProperty('--llp', pct + '%');
+  const setTxt = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  setTxt('llPctText', pct + '%');
+  setTxt('llDoneCount', all.done);
+  setTxt('llTotalCount', all.total);
+  const remain = all.total - all.done;
+  setTxt('llRemainText', all.total ? (remain ? ('还剩 ' + remain + ' 件，慢慢来') : '全部完成啦，你超棒 🎉') : '慢慢来，一件一件来就好');
+
+  let th = `<div class="ll-tab ${llActiveCat==='all'?'active':''}" onclick="switchLifeCat('all')">🌟 全部 <span class="ll-count">${all.done}/${all.total}</span></div>`;
+  llCats().forEach(c => {
+    const s = llStat(c.id);
+    th += `<div class="ll-tab ${llActiveCat===c.id?'active':''}" onclick="switchLifeCat('${c.id}')" ondblclick="renameLifeCat('${c.id}')" title="双击可重命名">${escapeHtml(c.icon||'✨')} ${escapeHtml(c.name)} <span class="ll-count">${s.done}/${s.total}</span><span class="ll-tab-del" onclick="event.stopPropagation();deleteLifeCat('${c.id}')" title="删除分类">✕</span></div>`;
+  });
+  th += `<div class="ll-tab ll-tab-add" onclick="openLifeCatModal()">＋ 新分类</div>`;
+  tabsEl.innerHTML = th;
+
+  const cats = llActiveCat === 'all' ? llCats() : llCats().filter(c => c.id === llActiveCat);
+  let lh = '';
+  cats.forEach(c => {
+    let arr = llItems().filter(i => i.catId === c.id);
+    const totalInCat = arr.length;
+    if (llHideDone) arr = arr.filter(i => !i.done);
+    if (llActiveCat === 'all') {
+      const s = llStat(c.id);
+      lh += `<div class="ll-group-title">${escapeHtml(c.icon||'✨')} ${escapeHtml(c.name)} <span>(${s.done}/${s.total})</span></div>`;
+      if (!arr.length) lh += `<div class="ll-note" style="padding:2px 2px 8px;">${totalInCat ? '该分类已全部完成 🎉' : '这个分类还没有清单'}</div>`;
+    }
+    arr.forEach(it => {
+      lh += `<div class="ll-item ${it.done?'done':''}">
+        <div class="ll-check" onclick="toggleLifeItem('${it.id}')" title="${it.done?'取消完成':'标记为完成'}">${it.done?'✓':''}</div>
+        <div class="ll-main">
+          <div class="ll-text">${escapeHtml(it.text)}</div>
+          ${it.note ? `<div class="ll-note">${escapeHtml(it.note)}</div>` : ''}
+          ${(it.done && it.doneAt) ? `<div class="ll-meta">✅ ${escapeHtml(it.doneAt)} 完成</div>` : ''}
+        </div>
+        <div class="ll-actions">
+          <button class="ll-icon-btn" title="编辑" onclick="openLifeItemModal('${it.id}')">✏️</button>
+          <button class="ll-icon-btn" title="删除" onclick="deleteLifeItem('${it.id}')">🗑</button>
+        </div>
+      </div>`;
+    });
+  });
+  if (llActiveCat !== 'all' && !llItems().filter(i => i.catId === llActiveCat).length) {
+    lh = `<div class="ll-empty"><span class="ll-empty-emoji">🗒️</span>这个分类还没有清单，点下面「＋ 添加一条清单」写下第一件想做的事吧</div>`;
+  }
+  if (!lh) lh = `<div class="ll-empty"><span class="ll-empty-emoji">🗒️</span>还没有清单，点下面「＋ 添加一条清单」写下第一件想做的事吧</div>`;
+  listEl.innerHTML = lh;
+}
+function toggleLifeItem(id){
+  const it = llItems().find(x => x.id === id);
+  if (!it) return;
+  it.done = !it.done;
+  it.doneAt = it.done ? formatDate(new Date()) : '';
+  saveLifeList(); renderLifeList();
+  if (it.done && typeof showToast === 'function') showToast('🎉 又完成一件，你真棒！');
+}
+function openLifeItemModal(id){
+  loadLifeList();
+  const it = id ? llItems().find(x => x.id === id) : null;
+  const cats = llCats();
+  if (!cats.length) { if (typeof showToast === 'function') showToast('请先添加一个分类'); return; }
+  const defCat = it ? it.catId : (llActiveCat !== 'all' ? llActiveCat : cats[0].id);
+  showAppPrompt({
+    title: it ? '✏️ 编辑清单' : '✨ 添加清单',
+    fields: [
+      { key:'text',  label:'想做的事', type:'textarea', placeholder:'例：去一次海边看日出', value: it ? it.text : '' },
+      { key:'catId', label:'归属分类', type:'select', value: defCat, options: cats.map(c => ({ value:c.id, text:(c.icon||'✨') + ' ' + c.name })) },
+      { key:'note',  label:'备注（可留空）', placeholder:'例：想和谁一起 / 大概什么时候去', value: it ? (it.note||'') : '' }
+    ]
+  }, v => {
+    if (!v) return;
+    const text = (v.text || '').trim();
+    if (!text) { if (typeof showToast === 'function') showToast('内容不能为空'); return; }
+    if (it) { it.text = text; it.catId = v.catId; it.note = (v.note||'').trim(); }
+    else {
+      lifeListData.items.push({ id: llGenId(), catId: v.catId, text: text, note: (v.note||'').trim(), done:false, doneAt:'', createdAt: nowStr() });
+    }
+    saveLifeList(); renderLifeList();
+    if (typeof showToast === 'function') showToast(it ? '已更新' : '已添加');
+  });
+}
+function deleteLifeItem(id){
+  const it = llItems().find(x => x.id === id);
+  if (!it) return;
+  showConfirm('确定删除「' + it.text + '」吗？', () => {
+    lifeListData.items = llItems().filter(x => x.id !== id);
+    saveLifeList(); renderLifeList();
+    if (typeof showToast === 'function') showToast('已删除');
+  }, { danger:true });
+}
+function openLifeCatModal(){
+  showAppPrompt({ title:'🗂 新建分类', label:'分类名称', placeholder:'例：想去的地方' }, v => {
+    const name = (v || '').trim();
+    if (!name) return;
+    const cats = lifeListData.cats;
+    cats.push({ id: llGenId(), name: name, icon:'✨', sort: cats.length });
+    llActiveCat = cats[cats.length - 1].id;
+    saveLifeList(); renderLifeList();
+    if (typeof showToast === 'function') showToast('分类已添加');
+  });
+}
+function renameLifeCat(cid){
+  const c = lifeListData.cats.find(x => x.id === cid);
+  if (!c) return;
+  showAppPrompt({
+    title:'✏️ 重命名分类',
+    fields:[
+      { key:'name', label:'分类名称', value: c.name },
+      { key:'icon', label:'图标（一个 emoji）', value: c.icon || '✨' }
+    ]
+  }, v => {
+    if (!v) return;
+    const name = (v.name || '').trim();
+    if (!name) { if (typeof showToast === 'function') showToast('分类名不能为空'); return; }
+    c.name = name;
+    c.icon = (v.icon || '').trim() || '✨';
+    saveLifeList(); renderLifeList();
+  });
+}
+function deleteLifeCat(cid){
+  const c = lifeListData.cats.find(x => x.id === cid);
+  if (!c) return;
+  const n = llItems().filter(i => i.catId === cid).length;
+  showConfirm('删除分类「' + c.name + '」？' + (n ? ('该分类下 ' + n + ' 条清单也会一并删除。') : ''), () => {
+    lifeListData.cats = lifeListData.cats.filter(x => x.id !== cid);
+    lifeListData.items = llItems().filter(i => i.catId !== cid);
+    if (llActiveCat === cid) llActiveCat = 'all';
+    saveLifeList(); renderLifeList();
+    if (typeof showToast === 'function') showToast('分类已删除');
+  }, { danger:true });
+}
+function clearLifeCat(){
+  const catId = llActiveCat;
+  if (catId === 'all') {
+    showConfirm('清空全部清单？所有分类下的清单都会被删除（分类保留）。', () => {
+      lifeListData.items = [];
+      saveLifeList(); renderLifeList();
+      if (typeof showToast === 'function') showToast('已清空全部清单');
+    }, { danger:true });
+    return;
+  }
+  const c = lifeListData.cats.find(x => x.id === catId);
+  if (!c) return;
+  const n = llItems().filter(i => i.catId === catId).length;
+  if (!n) { if (typeof showToast === 'function') showToast('该分类下暂无清单'); return; }
+  showConfirm('清空「' + c.name + '」下的 ' + n + ' 条清单？', () => {
+    lifeListData.items = llItems().filter(i => i.catId !== catId);
+    saveLifeList(); renderLifeList();
+    if (typeof showToast === 'function') showToast('已清空该分类');
+  }, { danger:true });
+}
+if (typeof registerDataReloader === 'function') {
+  registerDataReloader(() => {
+    loadLifeList();
+    const p = document.getElementById('panel-lifeList');
+    if (p && p.classList.contains('active')) renderLifeList();
+  });
 }
 
 function loadTravelData() {
