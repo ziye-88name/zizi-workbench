@@ -3202,7 +3202,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260878</div>
+<div class="splash-ver">v2.0.20260879</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -5092,6 +5092,16 @@ function applyCloudData(data) {
   const cloudUpdatedAt = (data && typeof data._updated_at_ms === 'number') ? data._updated_at_ms : 0;
   if(cloudUpdatedAt && cloudLastPullTs && cloudUpdatedAt <= cloudLastPullTs) {
     console.warn('云端快照不比上次拉取的新(云端' + cloudUpdatedAt + ' <= 上次' + cloudLastPullTs + ')，跳过覆盖');
+    return;
+  }
+  // 关键修复：云端快照不比本机最后一次改动(localLastChange)新时，说明本机数据更新。
+  // 直接用云端覆盖会把用户刚做的操作冲掉——典型表现：脚本库新建的分类 + 其下脚本，
+  // 切到别的 tab 后又被陈旧云端覆盖、退回第一个分类（甚至整个新分类消失）。
+  // 此时保留本机，并把本机最新状态推上去让云端追上，而不是用陈旧云端覆盖本地。
+  // 这是标准的 last-writer-wins：以毫秒时间戳更晚的一方为准，避免“失败推送/陈旧快照”回退本地。
+  if(cloudUpdatedAt && localLastChange && cloudUpdatedAt <= localLastChange) {
+    console.warn('云端快照不比本机最新改动新(云端' + cloudUpdatedAt + ' <= 本机' + localLastChange + ')，保留本机并推上去');
+    if(!localPendingPush && !SYNC_BUSY) pushToCloud(false);
     return;
   }
   Object.keys(data || {}).forEach(k => {
