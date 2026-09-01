@@ -2979,6 +2979,11 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .se-foot { display:flex; gap:10px; justify-content:flex-end; align-items:center; padding-top:4px; flex-wrap:wrap; }
 .se-foot .se-tip { margin-right:auto; font-size:12px; color:var(--text-secondary); }
 .se-stat { font-size:12px; color:var(--text-secondary); margin-top:4px; }
+/* 选题库顶部「已写过脚本」归档区 */
+.topic-done-block { background:rgba(129,199,132,0.07); border:1px dashed var(--primary); }
+.topic-done-block > .mo-cat-head { background:transparent; }
+.topic-done-block .mo-cat-name { color:var(--primary); font-weight:800; }
+.topic-done-block .mo-card { background:#fff; }
 .se-linked { font-size:14px; font-weight:700; color:var(--primary); padding:8px 12px; background:rgba(129,199,132,0.10); border:1px dashed var(--primary); border-radius:10px; line-height:1.4; word-break:break-word; }
 .se-linked.empty { color:var(--text-secondary); font-weight:400; background:transparent; border-color:var(--border); }
 .cal-item { display:flex; gap:10px; align-items:center; background:var(--bg); border-radius:10px; padding:8px 12px; font-size:13px; }
@@ -3204,7 +3209,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260880</div>
+<div class="splash-ver">v2.0.20260881</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -18282,25 +18287,32 @@ function deleteTopicItem(catId, flowId){
     showToast('🗑 选题已删除');
   }, { title:'删除选题' });
 }
-let _topicHiddenByScript = 0; // 已因「写过脚本」自动隐藏的选题数（用于提示）
-function renderTopicBoard(){
-  const box = document.getElementById('topicBoard'); if(!box) return;
-  if(!topicCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
-  _topicHiddenByScript = 0;
-  const cards = topicCats.map(cat=>{
-    // 已关联脚本（脚本库里存在同 flowId）的选题不再出现在选题库，避免与脚本库重复
-    const visItems = (cat.items || []).filter(it => !getScriptByFlowId(it.flowId));
-    _topicHiddenByScript += (cat.items.length - visItems.length);
-    const body = visItems.map(it=>`<div class="mo-card sf-drag" draggable="true" ondragstart="sfDragStart(event,'topic','${cat.id}','${it.flowId}')" ondragend="sfDragEnd(event)">
+// 选题卡片 HTML（draggable 控制是否可拖拽；已写过脚本的选题归入顶部归档区，不可拖拽）
+function topicCardHtml(catId, it, draggable){
+  const dragAttr = draggable
+    ? `draggable="true" ondragstart="sfDragStart(event,'topic','${catId}','${it.flowId}')" ondragend="sfDragEnd(event)"`
+    : '';
+  const dragCls = draggable ? ' sf-drag' : '';
+  return `<div class="mo-card${dragCls}" ${dragAttr}>
         <div class="mo-card-prio prio-${(it.prio||'P2').toLowerCase()}">${it.prio||'P2'}</div>
-        <div class="mo-card-title" onclick="openTopicItemEditor('${cat.id}','${it.flowId}')">${escapeHtml(it.title)}</div>
+        <div class="mo-card-title" onclick="openTopicItemEditor('${catId}','${it.flowId}')">${escapeHtml(it.title)}</div>
         ${it.audience?`<div class="mo-card-sub">👤 ${escapeHtml(it.audience)}</div>`:''}
         ${it.pain?`<div class="mo-card-sub">💢 ${escapeHtml(it.pain)}</div>`:''}
         <div class="mo-card-actions">
           <button class="btn btn-outline btn-sm" onclick="topicToScript('${it.flowId}')">写脚本</button>
-          <button class="btn btn-outline btn-sm" onclick="deleteTopicItem('${cat.id}','${it.flowId}')">✕</button>
+          <button class="btn btn-outline btn-sm" onclick="deleteTopicItem('${catId}','${it.flowId}')">✕</button>
         </div>
-      </div>`).join('') || '<div class="mo-empty">暂无选题</div>';
+      </div>`;
+}
+function renderTopicBoard(){
+  const box = document.getElementById('topicBoard'); if(!box) return;
+  if(!topicCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
+  // 已写过脚本（脚本库里存在同 flowId）的选题单独汇总到顶部「✍️ 已写过脚本」区，不混入普通分类
+  const done = [];
+  const cards = topicCats.map(cat=>{
+    const visItems = (cat.items || []).filter(it => !getScriptByFlowId(it.flowId));
+    (cat.items || []).forEach(it => { if(getScriptByFlowId(it.flowId)) done.push({ catId:cat.id, it }); });
+    const body = visItems.map(it => topicCardHtml(cat.id, it, true)).join('') || '<div class="mo-empty">暂无选题</div>';
     return `
     <div class="mo-cat sf-cat-drop" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'topic','${cat.id}')">
       <div class="mo-cat-head"><span class="mo-cat-name" ondblclick="renameSFCat('topic','${cat.id}')" title="双击可修改分类名">${escapeHtml(cat.name)}</span><span class="mo-cat-count">${visItems.length}</span>
@@ -18310,10 +18322,12 @@ function renderTopicBoard(){
       <div class="mo-cat-body" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'topic','${cat.id}')">${body}</div>
     </div>`;
   }).join('');
-  const hint = _topicHiddenByScript > 0
-    ? `<div class="mo-filter-hint" style="margin:0 0 12px;">已自动隐藏 ${_topicHiddenByScript} 条「已写过脚本」的选题（进度在「✍️ 脚本创作」里查看）</div>`
-    : '';
-  box.innerHTML = hint + cards;
+  const doneBlock = done.length ? `
+    <div class="mo-cat topic-done-block">
+      <div class="mo-cat-head"><span class="mo-cat-name">✍️ 已写过脚本（${done.length}）</span><span class="mo-cat-count">${done.length}</span></div>
+      <div class="mo-cat-body">${done.map(d => topicCardHtml(d.catId, d.it, false)).join('')}</div>
+    </div>` : '';
+  box.innerHTML = doneBlock + cards;
 }
 
 // ============ 脚本库 ============
