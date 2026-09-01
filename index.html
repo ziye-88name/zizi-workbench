@@ -3202,7 +3202,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260877</div>
+<div class="splash-ver">v2.0.20260878</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -5109,11 +5109,8 @@ function applyCloudData(data) {
     }
   });
   if(skippedCorrupt > 0) console.warn('云端同步已跳过 ' + skippedCorrupt + ' 个含乱码的 key，未覆盖本地数据。请在本机用干净数据重新推送以修复云端。');
-  if(changed) reloadAllData();
-  // 同步回填后，若当前在首页则刷新首页（否则首屏/切换前渲染的空数据会一直停留，直到手动切换面板）
-  if(changed && document.getElementById('panel-home') && document.getElementById('panel-home').classList.contains('active')) {
-    renderHome();
-  }
+  if(changed) reloadAllDataGuarded();
+  // 注：首页刷新已并入 reloadAllDataGuarded（在空闲且无可才执行），避免在用户操作时强制重建 DOM 吞掉点击
 }
 
 async function manualSync() {
@@ -5278,6 +5275,46 @@ function onLocalDataChange() {
     clearTimeout(window._syncDebounce);
     window._syncDebounce = setTimeout(() => pushToCloud(false), 2000);
   }
+}
+
+// ============ 操作可靠性保护 ============
+// 记录用户最近一次交互时刻：用于判断“用户正在操作”，期间不要重建 DOM（避免点击落在被替换的按钮上被吞掉）
+let _lastUserActivityTs = Date.now();
+['pointerdown', 'keydown', 'input', 'change', 'click'].forEach(function(ev){
+  document.addEventListener(ev, function(){ _lastUserActivityTs = Date.now(); }, true);
+});
+function userInteractingNow(){ return Date.now() - _lastUserActivityTs < 1400; }
+// 是否有任意遮罩/弹窗处于打开状态（确认框、输入弹窗、其它 modal）
+function anyOverlayOpen(){
+  const masks = document.querySelectorAll('.modal-mask');
+  for(let i = 0; i < masks.length; i++){
+    if(getComputedStyle(masks[i]).display !== 'none') return true;
+  }
+  const ap = document.getElementById('appPromptModal');
+  if(ap && ap.classList.contains('show')) return true;
+  return false;
+}
+// 同步云回填（applyCloudData）触发的全量刷新：若用户正在操作或有弹窗打开，则延后到空闲后执行，
+// 避免周期性（每30秒）的云端拉取重建整个 DOM，导致用户正在点击的按钮被替换、点击被丢弃（“点了没反应”）。
+// 数据已先写入 localStorage，不会丢失，只是 UI 刷新延后。
+let _syncReloadTimer = null;
+function reloadAllDataGuarded(){
+  const doIt = function(){
+    reloadAllData();
+    const home = document.getElementById('panel-home');
+    if(home && home.classList.contains('active')) renderHome();
+  };
+  if(anyOverlayOpen() || userInteractingNow()){
+    if(!_syncReloadTimer){
+      _syncReloadTimer = setInterval(function(){
+        if(!anyOverlayOpen() && !userInteractingNow()){
+          clearInterval(_syncReloadTimer); _syncReloadTimer = null; doIt();
+        }
+      }, 800);
+    }
+    return;
+  }
+  doIt();
 }
 
 // 重新加载所有数据到内存并刷新UI
@@ -9013,7 +9050,24 @@ function showConfirm(msg, onYes, opts) {
   document.getElementById('confirmModal').classList.add('open');
 }
 function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); _confirmCb = null; }
-function doConfirm() { const cb = _confirmCb; closeConfirm(); if(cb) cb(); }
+// 确认按钮：先执行回调，成功关闭弹窗；失败则保留弹窗并提示，绝不静默“点了没反应”。
+// 加 _confirmBusy 防止快速双击/Enter+点击导致同一次确认被重复触发。
+let _confirmBusy = false;
+function doConfirm() {
+  if(_confirmBusy) return;
+  const cb = _confirmCb;
+  if(!cb) { closeConfirm(); return; }
+  _confirmBusy = true;
+  try {
+    cb();
+    closeConfirm();
+  } catch(err) {
+    console.error('确认操作执行失败：', err);
+    showToast('❌ 操作失败，请重试');
+  } finally {
+    _confirmBusy = false;
+  }
+}
 
 // 通用输入弹窗（替代浏览器原生 prompt，与 kitty-modal 样式统一）
 // 支持两种调用方式：
@@ -9068,6 +9122,7 @@ function showAppPrompt(opts, callback) {
 }
 function closeAppPrompt(ok) {
   const modal = document.getElementById('appPromptModal');
+  if(!modal.classList.contains('show')) return; // 防止 Enter+点击 双重触发
   modal.classList.remove('show');
   const cb = _appPromptCb;
   const multi = _appPromptMulti;
@@ -9076,20 +9131,21 @@ function closeAppPrompt(ok) {
   _appPromptMulti = false;
   _appPromptFieldKeys = [];
   if(!cb) return;
-  if(!ok){ cb(null); return; }
+  if(!ok){ try { cb(null); } catch(e){} return; }
+  let vals = null;
   if(!multi){
     const area = document.getElementById('appPromptSingleArea');
-    if(area && area.style.display !== 'none'){ cb(area.value); }
-    else { cb(document.getElementById('appPromptSingleInput').value); }
+    vals = (area && area.style.display !== 'none') ? area.value : document.getElementById('appPromptSingleInput').value;
   } else {
-    const vals = {};
+    vals = {};
     document.querySelectorAll('#appPromptForm .kitty-field').forEach((fld, idx)=>{
       const el = fld.querySelector('input, textarea, select');
       const key = keys[idx];
       if(key) vals[key] = el ? el.value : '';
     });
-    cb(vals);
   }
+  try { cb(vals); }
+  catch(err){ console.error('弹窗保存失败：', err); showToast('❌ 保存失败，请重试'); }
 }
 
 // ===================== 头脑风暴（飞书式脑图） =====================
