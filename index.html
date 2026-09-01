@@ -4901,9 +4901,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   <p class="travel-hint">📍 展示当前计划已标记景点 · 搜索并点选景点即可在地图标记 ★（也可点击地图打点）</p>
 </div>
 <div id="travelPlanContent">
-  <div class="travel-summary-cards" id="travelSummaryCards"></div>
   <div class="travel-timeline" id="travelTimeline"></div>
-  <div id="travelBudget"></div>
 </div>
 </div>
 </div>
@@ -17640,9 +17638,7 @@ function renderTravelPlans() {
 
   const plan = plans.find(p => p.id === travelPlanSelectedId);
   if (plan) {
-    renderTravelSummaryCards(plan);
     renderTravelTimeline(plan);
-    renderTravelBudget(plan);
     if (!document.getElementById('travelMapWrap').classList.contains('collapsed')) {
       showPlanOnMap(travelPlanSelectedId);
     }
@@ -17668,31 +17664,6 @@ function toggleTravelMap() {
   if (!wrap.classList.contains('collapsed')) {
     setTimeout(() => { invalidateTravelMaps(); showPlanOnMap(travelPlanSelectedId); }, 120);
   }
-}
-
-function renderTravelSummaryCards(plan) {
-  const box = document.getElementById('travelSummaryCards');
-  if (!box) return;
-  const t = plan.transport || { status: '待确认', note: '确认出发时间' };
-  const h = plan.hotel || { status: '待确认', note: '优先选择地铁沿线' };
-  box.innerHTML = `
-    <div class="travel-summary-card transport" onclick="openPlanInfoEditor('${plan.id}')">
-      <div class="sum-icon">🚆</div>
-      <div class="sum-main">
-        <div class="sum-title">往返交通</div>
-        <div class="sum-status">${escapeHtml(t.status || '待确认')}</div>
-        <div class="sum-note">${escapeHtml(t.note || '确认出发时间')}</div>
-      </div>
-    </div>
-    <div class="travel-summary-card hotel" onclick="openPlanInfoEditor('${plan.id}')">
-      <div class="sum-icon">🛏️</div>
-      <div class="sum-main">
-        <div class="sum-title">住宿</div>
-        <div class="sum-status">${escapeHtml(h.status || '待确认')}</div>
-        <div class="sum-note">${escapeHtml(h.note || '优先选择地铁沿线')}</div>
-      </div>
-    </div>
-  `;
 }
 
 function renderTravelTimeline(plan) {
@@ -17741,51 +17712,6 @@ function renderTravelTimelineItem(plan, it) {
     </div>`;
 }
 
-function renderTravelBudget(plan) {
-  const box = document.getElementById('travelBudget');
-  if (!box) return;
-  const bud = computeTravelBudget(plan);
-  const total = plan.budgetTotal || 0;
-  const pct = total > 0 ? Math.min(100, Math.round((bud.total / total) * 100)) : 0;
-  box.innerHTML = `
-    <div class="travel-budget-card" onclick="openPlanInfoEditor('${plan.id}')">
-      <div class="tb-head">
-        <div class="tb-icon">💰</div>
-        <div>
-          <div class="tb-title">旅行预算</div>
-          <div class="tb-total">${total > 0 ? `预算 ¥${total} · 已花费 ¥${bud.total}（${pct}%）` : '点击设置总预算并查看花费分类'}</div>
-        </div>
-      </div>
-      ${total > 0 ? `<div class="tb-bar"><div class="tb-bar-inner" style="width:${pct}%"></div></div>` : ''}
-      <div class="tb-rows">
-        <div class="tb-row"><span class="tb-label">🚆 交通</span><span class="tb-val">¥${bud.transport}</span></div>
-        <div class="tb-row"><span class="tb-label">🛏️ 住宿</span><span class="tb-val">¥${bud.hotel}</span></div>
-        <div class="tb-row"><span class="tb-label">🍜 美食</span><span class="tb-val">¥${bud.food}</span></div>
-        <div class="tb-row"><span class="tb-label">🎫 其他</span><span class="tb-val">¥${bud.other}</span></div>
-      </div>
-    </div>
-  `;
-}
-
-function computeTravelBudget(plan) {
-  const out = { transport: 0, hotel: 0, food: 0, other: 0, total: 0 };
-  (plan.itinerary || []).forEach(it => {
-    const cost = extractCost(it.note || '') + extractCost(it.place || '');
-    const type = it.type || '其他';
-    if (type === '交通') out.transport += cost;
-    else if (type === '住宿') out.hotel += cost;
-    else if (type === '美食') out.food += cost;
-    else out.other += cost;
-  });
-  out.total = out.transport + out.hotel + out.food + out.other;
-  return out;
-}
-
-function extractCost(str) {
-  const m = str.match(/(?:¥|￥|\$|€|£)\s*(\d+(?:\.\d{1,2})?)/);
-  return m ? Math.round(parseFloat(m[1]) * 100) / 100 : 0;
-}
-
 function openPlanDetailToDate(planId, date) {
   openPlanDetail(planId);
   travelDetailActiveDate = date;
@@ -17798,32 +17724,6 @@ function openPlanDetailItem(planId, itemId) {
   openPlanDetail(planId);
   travelDetailEditingItemId = itemId;
   renderItineraryEditor();
-}
-
-function openPlanInfoEditor(planId) {
-  const plan = (travelData.plans || []).find(p => p.id === planId);
-  if (!plan) return;
-  editingPlanId = planId;
-  const t = plan.transport || { status: '待确认', note: '确认出发时间' };
-  const h = plan.hotel || { status: '待确认', note: '优先选择地铁沿线' };
-  showAppPrompt({
-    title: '编辑行程信息',
-    fields: [
-      { key: 'transportStatus', label: '交通状态', value: t.status || '待确认', placeholder: '如：待确认 / 已订高铁' },
-      { key: 'transportNote', label: '交通备注', value: t.note || '', placeholder: '出发时间 / 车次 / 机场' },
-      { key: 'hotelStatus', label: '住宿状态', value: h.status || '待确认', placeholder: '如：待确认 / 已订酒店' },
-      { key: 'hotelNote', label: '住宿备注', value: h.note || '', placeholder: '酒店位置 / 房型' },
-      { key: 'budgetTotal', label: '总预算', value: String(plan.budgetTotal || ''), placeholder: '如：3000' }
-    ]
-  }, vals => {
-    if (!vals) return;
-    plan.transport = { status: (vals.transportStatus || '').trim() || '待确认', note: (vals.transportNote || '').trim() };
-    plan.hotel = { status: (vals.hotelStatus || '').trim() || '待确认', note: (vals.hotelNote || '').trim() };
-    plan.budgetTotal = parseFloat(vals.budgetTotal) || 0;
-    saveTravelData();
-    renderTravelPlans();
-    showToast('✅ 行程信息已保存');
-  });
 }
 
 function selectPlanOnMap(planId) {
@@ -17964,10 +17864,7 @@ function savePlan() {
   const plan = {
     id: editingPlanId || 'pl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
     title, destination: dest, destLat, destLng, start, end,
-    itinerary: old && Array.isArray(old.itinerary) ? old.itinerary : generateItinerary(start, end),
-    transport: old && old.transport ? old.transport : { status: '待确认', note: '确认出发时间' },
-    hotel: old && old.hotel ? old.hotel : { status: '待确认', note: '优先选择地铁沿线' },
-    budgetTotal: old && old.budgetTotal ? old.budgetTotal : 0
+    itinerary: old && Array.isArray(old.itinerary) ? old.itinerary : generateItinerary(start, end)
   };
   if (editingPlanId) {
     const idx = travelData.plans.findIndex(p => p.id === editingPlanId);
