@@ -3202,7 +3202,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <h1 class="splash-greeting">嗨，紫叶吖<span class="splash-ribbon">🎀</span></h1>
 <p class="splash-quote" id="splashQuote"></p>
 <button class="splash-btn" onclick="enterWorkbench()">进入工作台 →</button>
-<div class="splash-ver">v2.0.20260875</div>
+<div class="splash-ver">v2.0.20260876</div>
 </div>
 <div class="splash-footer">每天进步一点点</div>
 </div>
@@ -3861,7 +3861,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
             <button class="btn btn-outline btn-sm" onclick="addPetDailyTask()">➕ 添加自定义任务</button>
           </div>
           <div class="pet-form-grid" style="margin-top:16px;">
-            <div class="pet-form-row"><label>今日体重（g）</label><input id="petDailyWeight" min="0" step="1" type="number" oninput="autoSavePetDaily()"/></div>
+            <div class="pet-form-row"><label>今日体重（g，可填小数）</label><input id="petDailyWeight" min="0" step="0.1" type="number" oninput="autoSavePetDaily()"/></div>
             <div class="pet-form-row"><label>今日食量</label><input id="petDailyFood" placeholder="如：主食 50g + 零食 10g" type="text" oninput="autoSavePetDaily()"/></div>
           </div>
           <div class="pet-form-row" style="margin-top:12px;"><label>备忘</label><textarea id="petDailyMemo" placeholder="今天有什么特别的…" oninput="autoSavePetDaily()"></textarea></div>
@@ -13117,7 +13117,12 @@ function savePetGroomings() { localStorage.setItem(PET_GROOMING_KEY, JSON.string
 function savePetFoods() { localStorage.setItem(PET_FOOD_KEY, JSON.stringify(petFoodRecords)); onLocalDataChange(); }
 
 function getActivePet() { return pets.find(p => p.id === activePetId) || pets[0] || null; }
-function petGram(v) { return Math.round(parseFloat(v) || 0); }
+// 体重统一以 g（克）为单位，保留一位小数（鸟类体重基数小，小数有意义）
+function petGram(v) { return Math.round((parseFloat(v) || 0) * 10) / 10; }
+// 显示用：固定一位小数，避免 45.0 显示成 45
+function petGramText(v) { return petGram(v).toFixed(1); }
+// 两次体重差值，同样保留一位小数（规避浮点运算误差）
+function petGramDiff(a, b) { return Math.round((petGram(a) - petGram(b)) * 10) / 10; }
 function petWeekday(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   return isNaN(d.getTime()) ? '' : PET_WEEK[d.getDay()];
@@ -13222,7 +13227,7 @@ function openAddPetModal() {
     { key:'homeDate', label:'到家时间（生日按这个算）', type:'date', value:PET_TODAY },
     { key:'birthDate', label:'出生日期（算年龄用）', type:'date', value:'' },
     { key:'gender', label:'性别', type:'select', options:[{value:'',text:'未知'},{value:'弟弟',text:'弟弟'},{value:'妹妹',text:'妹妹'}], value:'' },
-    { key:'weight', label:'当前体重（g）', value:'' },
+    { key:'weight', label:'当前体重（g，可填小数，如 45.3）', value:'' },
     { key:'note', label:'备注', type:'textarea', value:'' }
   ];
   showAppPrompt({ title:'添加宠物', fields }, (vals) => {
@@ -13290,6 +13295,27 @@ function getPetAlerts(pet) {
 }
 
 /* ============ 仪表板 ============ */
+// 仪表盘「最新体重」卡片内容，体重统一保留一位小数
+function petWeightDashInner(latest, diff) {
+  return `
+    <div style="font-size:26px; font-weight:800; color:var(--primary);">${latest ? petGramText(latest.weight) + ' <span style="font-size:13px; color:var(--text-secondary); font-weight:500;">g</span>' : '<span style="font-size:13px; color:var(--text-secondary);">未记录</span>'}</div>
+    ${(diff !== null && diff !== undefined) ? `<div style="font-size:12.5px; color:var(--text-secondary);">较上次 ${diff > 0 ? '+' : ''}${diff.toFixed(1)} g</div>` : ''}
+  `;
+}
+// 打卡填完体重后局部刷新，避免整块重渲染导致输入框失焦
+function updatePetWeightDashCard() {
+  const card = document.getElementById('petWeightDashCard');
+  if(!card) return;
+  const pet = getActivePet(); if(!pet) return;
+  const weights = petWeightRecords.filter(r => r.petId === pet.id).sort((a,b) => new Date(b.date) - new Date(a.date));
+  const latest = weights[0], prev = weights[1];
+  const diff = (latest && prev) ? petGramDiff(latest.weight, prev.weight) : null;
+  const body = card.querySelector('.pet-dash-body');
+  if(body) body.innerHTML = petWeightDashInner(latest, diff);
+  const statEl = document.getElementById('petProfileStatWeight');
+  if(statEl) statEl.textContent = latest ? (petGramText(latest.weight) + ' g') : '未记录';
+}
+
 function renderPetDashboard() {
   const dash = document.getElementById('petDashboard');
   const pet = getActivePet();
@@ -13298,6 +13324,8 @@ function renderPetDashboard() {
   const weights = petWeightRecords.filter(r => r.petId === pet.id).sort((a,b) => new Date(b.date) - new Date(a.date));
   const latest = weights[0];
   const prev = weights[1];
+  // 仪表盘「最新体重」较上次的增减（保留一位小数）
+  const latestDiff = (latest && prev) ? petGramDiff(latest.weight, prev.weight) : null;
 
   /* --- 体重趋势 + 数据明细 --- */
   let weightHtml = '<div class="pet-dash-card pet-dash-full"><div class="pet-dash-head">⚖️ 体重趋势</div>';
@@ -13317,15 +13345,15 @@ function renderPetDashboard() {
       const older = weights[i+1];
       let chg = '<div class="pet-weight-change">—</div>';
       if(older) {
-        const diff = petGram(w.weight) - petGram(older.weight);
+        const diff = petGramDiff(w.weight, older.weight);
         chg = diff === 0
           ? '<div class="pet-weight-change">持平</div>'
-          : `<div class="pet-weight-change ${diff > 0 ? 'up' : 'down'}">${diff > 0 ? '↑' : '↓'} ${Math.abs(diff)} g</div>`;
+          : `<div class="pet-weight-change ${diff > 0 ? 'up' : 'down'}">${diff > 0 ? '↑' : '↓'} ${Math.abs(diff).toFixed(1)} g</div>`;
       }
       const md = (w.date || '').slice(5).replace('-', '/');
       weightHtml += `<div class="pet-weight-item">
         <div class="pet-weight-date"><div class="d">${escapeHtml(md)}</div><div class="m">${escapeHtml(petWeekday(w.date))}</div></div>
-        <div class="pet-weight-value">${petGram(w.weight)} g</div>
+        <div class="pet-weight-value">${petGramText(w.weight)} g</div>
         ${chg}
       </div>`;
     });
@@ -13417,7 +13445,7 @@ function renderPetDashboard() {
           <div class="pet-profile-sub">${escapeHtml(pet.breed || '未知品种')} · ${pet.birthDate ? getPetAge(pet.birthDate) : '年龄未知'} · ${escapeHtml(homeTxt)}</div>
           ${bdHtml}
           <div class="pet-profile-stat">
-            <span>⚖️ 体重 <b>${latest ? petGram(latest.weight) + ' g' : '未记录'}</b></span>
+            <span>⚖️ 体重 <b id="petProfileStatWeight">${latest ? petGramText(latest.weight) + ' g' : '未记录'}</b></span>
             <span>💊 生病 <b>${petHealthRecords.filter(r => r.petId === pet.id).length}</b></span>
             <span>🛁 洗护 <b>${petGroomingRecords.filter(r => r.petId === pet.id).length}</b></span>
             <span>🥫 储粮 <b>${foods.length}</b></span>
@@ -13425,7 +13453,7 @@ function renderPetDashboard() {
         </div>
       </div>
       <div class="pet-edit-panel" id="petEditPanel">
-        <div class="pet-edit-note">生日倒计时<u>只按「到家时间」的月日</u>计算；「出生日期」仅用于算年龄。体重以 <b>g（克）</b> 为单位，保存后会同步写入体重趋势。</div>
+        <div class="pet-edit-note">生日倒计时<u>只按「到家时间」的月日</u>计算；「出生日期」仅用于算年龄。体重以 <b>g（克）</b> 为单位，保留一位小数，保存后会同步写入体重趋势。</div>
         <div class="pet-form-avatar" style="margin-bottom:12px;">
           <img id="petProfileAvatar" src="${escapeHtml(avatar)}" alt="" onclick="document.getElementById('petProfileAvatarInput').click()" style="cursor:pointer;"/>
           <div>
@@ -13443,7 +13471,7 @@ function renderPetDashboard() {
             <option value="弟弟"${pet.gender==='弟弟'?' selected':''}>弟弟</option>
             <option value="妹妹"${pet.gender==='妹妹'?' selected':''}>妹妹</option>
           </select></div>
-          <div class="pet-form-row"><label>当前体重（g）</label><input id="petProfileWeight" type="number" min="0" step="1" value="${pet.weight ? petGram(pet.weight) : ''}"/></div>
+          <div class="pet-form-row"><label>当前体重（g）</label><input id="petProfileWeight" type="number" min="0" step="0.1" value="${pet.weight ? petGramText(pet.weight) : ''}"/></div>
         </div>
         <div class="pet-form-row" style="margin-top:12px;"><label>备注</label><textarea id="petProfileNote">${escapeHtml(pet.note||'')}</textarea></div>
         <div class="btn-group" style="margin-top:12px;">
@@ -13461,12 +13489,9 @@ function renderPetDashboard() {
       </div>
       <div style="margin-top:10px; font-size:12.5px; color:var(--text-secondary);">到「日常打卡」页勾选今天的任务</div>
     </div>
-    <div class="pet-dash-card">
+    <div class="pet-dash-card" id="petWeightDashCard">
       <div class="pet-dash-head">⚖️ 最新体重</div>
-      <div class="pet-dash-body">
-        <div style="font-size:26px; font-weight:800; color:var(--primary);">${latest ? petGram(latest.weight) + ' <span style="font-size:13px; color:var(--text-secondary); font-weight:500;">g</span>' : '<span style="font-size:13px; color:var(--text-secondary);">未记录</span>'}</div>
-        ${prev && latest ? `<div style="font-size:12.5px; color:var(--text-secondary);">较上次 ${(petGram(latest.weight) - petGram(prev.weight)) > 0 ? '+' : ''}${petGram(latest.weight) - petGram(prev.weight)} g</div>` : ''}
-      </div>
+      <div class="pet-dash-body">${petWeightDashInner(latest, latestDiff)}</div>
     </div>
     ${alertHtml}
     ${weightHtml}
@@ -13503,7 +13528,7 @@ function drawPetWeightChart(canvasId, data) {
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
     ctx.fillStyle = '#B7A99B';
-    ctx.fillText(Math.round(maxV - range * i / 4) + 'g', pad.left - 6, y);
+    ctx.fillText(petGramText(maxV - range * i / 4) + 'g', pad.left - 6, y);
   }
   // 面积
   ctx.beginPath();
@@ -13529,7 +13554,7 @@ function drawPetWeightChart(canvasId, data) {
     ctx.beginPath(); ctx.fillStyle = LINE; ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#6B5B4B';
     ctx.font = '11px sans-serif';
-    ctx.fillText(petGram(d.weight) + 'g', x, y - 11);
+    ctx.fillText(petGramText(d.weight) + 'g', x, y - 11);
     if(n <= 8) {
       ctx.fillStyle = '#B7A99B';
       ctx.font = '10px sans-serif';
@@ -13845,7 +13870,7 @@ function renderPetDaily() {
   document.getElementById('petDailyTasks').dataset.recordId = rec.id;
   // 体重优先取打卡记录，其次回填体重趋势里同一天的数值（日历上有 ⚖️ 标记的日子）
   const wRec = petWeightRecords.find(r => r.petId === pet.id && r.date === date);
-  document.getElementById('petDailyWeight').value = rec.weight || (wRec ? String(petGram(wRec.weight)) : '');
+  document.getElementById('petDailyWeight').value = rec.weight || (wRec ? String(petGramText(wRec.weight)) : '');
   document.getElementById('petDailyFood').value = rec.food || '';
   document.getElementById('petDailyMemo').value = rec.memo || '';
   const container = document.getElementById('petDailyTasks');
@@ -13910,6 +13935,7 @@ function autoSavePetDaily() {
   }
   savePetDailies();
   renderPetDailyCalendar(); // 只刷新日历标记，输入框不会失焦
+  updatePetWeightDashCard(); // 同步仪表盘「最新体重」（局部刷新，同样不会失焦）
 }
 
 /* ============ 储粮 ============ */
