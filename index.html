@@ -1919,6 +1919,67 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   text-align: center; padding: 28px 16px; color: var(--text-secondary); font-size: 13px;
 }
 
+/* 吃的打卡清单 */
+.travel-food-checklist {
+  position: relative; z-index: 1;
+  background: var(--card); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+  padding: 16px; margin-top: 14px; margin-bottom: 16px;
+  border: 1px dashed #FFD9A8;
+}
+.fc-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+}
+.fc-title {
+  font-size: 15px; font-weight: 800; color: var(--text);
+}
+.fc-count {
+  font-size: 12px; font-weight: 700; color: #E08A2B;
+  background: #FFF4E2; padding: 3px 10px; border-radius: 999px;
+}
+.fc-add {
+  display: flex; gap: 8px; margin-bottom: 12px;
+}
+.fc-input {
+  flex: 1; min-width: 0;
+  border: 1px solid var(--border, #eee); border-radius: 10px;
+  padding: 9px 12px; font-size: 13px; font-family: inherit;
+  background: var(--bg, #fafafa); color: var(--text);
+  outline: none;
+}
+.fc-input:focus { border-color: #FFB45E; }
+.fc-add-btn { white-space: nowrap; padding: 8px 14px; }
+.fc-list { display: flex; flex-direction: column; gap: 8px; }
+.fc-empty {
+  text-align: center; padding: 14px; color: var(--text-secondary); font-size: 13px;
+}
+.fc-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg, #fafafa); border-radius: 10px; padding: 9px 10px;
+  transition: background .15s;
+}
+.fc-item:hover { background: #f3f3f3; }
+.fc-item.fc-done { opacity: .72; }
+.fc-check {
+  border: none; background: transparent; cursor: pointer;
+  font-size: 18px; line-height: 1; padding: 2px; flex-shrink: 0;
+}
+.fc-body { flex: 1; min-width: 0; cursor: pointer; }
+.fc-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.fc-item.fc-done .fc-name { text-decoration: line-through; color: var(--text-secondary); }
+.fc-tick {
+  font-size: 10px; font-weight: 700; color: #2FA86A;
+  background: #E5F7EE; padding: 1px 6px; border-radius: 999px; margin-left: 6px;
+  text-decoration: none;
+}
+.fc-note { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.fc-del {
+  border: none; background: transparent; cursor: pointer;
+  color: var(--text-secondary); font-size: 14px; padding: 4px 6px; flex-shrink: 0;
+  border-radius: 8px;
+}
+.fc-del:hover { background: #ffe5e5; color: #E25555; }
+
 /* 旅行预算 */
 .travel-budget-card {
   position: relative; z-index: 1;
@@ -4902,6 +4963,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 </div>
 <div id="travelPlanContent">
   <div class="travel-timeline" id="travelTimeline"></div>
+  <div class="travel-food-checklist" id="travelFoodChecklist"></div>
 </div>
 </div>
 </div>
@@ -17658,6 +17720,7 @@ function renderTravelPlans() {
   const plan = plans.find(p => p.id === travelPlanSelectedId);
   if (plan) {
     renderTravelTimeline(plan);
+    renderTravelFoodChecklist(plan);
     if (!document.getElementById('travelMapWrap').classList.contains('collapsed')) {
       showPlanOnMap(travelPlanSelectedId);
     }
@@ -17729,6 +17792,90 @@ function renderTravelTimelineItem(plan, it) {
         </div>
       </div>
     </div>`;
+}
+
+function renderTravelFoodChecklist(plan) {
+  const box = document.getElementById('travelFoodChecklist');
+  if (!box) return;
+  const list = Array.isArray(plan.foodChecklist) ? plan.foodChecklist : [];
+  const done = list.filter(it => it.done).length;
+  const canAdd = (list.length === 0) || true;
+  const itemsHtml = list.length ? list.map(it => `
+    <div class="fc-item ${it.done ? 'fc-done' : ''}" id="fcItem_${it.id}">
+      <button class="fc-check" onclick="toggleFoodChecklistItem('${plan.id}', '${it.id}')" title="${it.done ? '取消打卡' : '打卡'}">${it.done ? '✅' : '⬜'}</button>
+      <div class="fc-body" onclick="renameFoodChecklistItem('${plan.id}', '${it.id}')">
+        <div class="fc-name">${escapeHtml(it.name)}${it.done ? ' <span class="fc-tick">已打卡</span>' : ''}</div>
+        ${it.note ? `<div class="fc-note">${escapeHtml(it.note)}</div>` : ''}
+      </div>
+      <button class="fc-del" onclick="deleteFoodChecklistItem('${plan.id}', '${it.id}')" title="删除">✕</button>
+    </div>`).join('') : '<div class="fc-empty">还没有想吃的，添加你想打卡的美食吧 🍜</div>';
+  box.innerHTML = `
+    <div class="fc-head">
+      <div class="fc-title">🍜 吃的打卡清单</div>
+      <div class="fc-count">${done}/${list.length} 已打卡</div>
+    </div>
+    <div class="fc-add">
+      <input class="fc-input" id="fcNewInput" placeholder="想吃的？自由填写，回车添加…" onkeydown="if(event.key==='Enter')addFoodChecklistItem('${plan.id}')"/>
+      <button class="btn btn-primary fc-add-btn" onclick="addFoodChecklistItem('${plan.id}')">➕ 添加</button>
+    </div>
+    <div class="fc-list">${itemsHtml}</div>`;
+}
+
+function addFoodChecklistItem(planId) {
+  const plan = (travelData.plans || []).find(p => p.id === planId);
+  if (!plan) return;
+  const input = document.getElementById('fcNewInput');
+  const name = input ? input.value.trim() : '';
+  if (!name) { if (input) input.focus(); return; }
+  if (!Array.isArray(plan.foodChecklist)) plan.foodChecklist = [];
+  plan.foodChecklist.push({ id: 'fc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), name, done: false, note: '' });
+  saveTravelData();
+  renderTravelFoodChecklist(plan);
+  const ni = document.getElementById('fcNewInput');
+  if (ni) { ni.focus(); ni.value = ''; }
+}
+
+function toggleFoodChecklistItem(planId, itemId) {
+  const plan = (travelData.plans || []).find(p => p.id === planId);
+  if (!plan || !Array.isArray(plan.foodChecklist)) return;
+  const it = plan.foodChecklist.find(x => x.id === itemId);
+  if (!it) return;
+  it.done = !it.done;
+  saveTravelData();
+  renderTravelFoodChecklist(plan);
+  showToast(it.done ? '✅ 打卡成功！' : '已取消打卡');
+}
+
+function deleteFoodChecklistItem(planId, itemId) {
+  const plan = (travelData.plans || []).find(p => p.id === planId);
+  if (!plan || !Array.isArray(plan.foodChecklist)) return;
+  showConfirm('删除这条打卡项？', () => {
+    plan.foodChecklist = plan.foodChecklist.filter(x => x.id !== itemId);
+    saveTravelData();
+    renderTravelFoodChecklist(plan);
+  });
+}
+
+function renameFoodChecklistItem(planId, itemId) {
+  const plan = (travelData.plans || []).find(p => p.id === planId);
+  if (!plan || !Array.isArray(plan.foodChecklist)) return;
+  const it = plan.foodChecklist.find(x => x.id === itemId);
+  if (!it) return;
+  showAppPrompt({
+    title: '编辑打卡项',
+    fields: [
+      { key: 'name', label: '名称', value: it.name, placeholder: '美食名称' },
+      { key: 'note', label: '备注（可选）', value: it.note || '', placeholder: '如：必点招牌/人均' }
+    ]
+  }, vals => {
+    if (!vals) return;
+    const nm = (vals.name || '').trim();
+    if (!nm) { showToast('名称不能为空'); return; }
+    it.name = nm;
+    it.note = (vals.note || '').trim();
+    saveTravelData();
+    renderTravelFoodChecklist(plan);
+  });
 }
 
 function openPlanDetailToDate(planId, date) {
@@ -17883,7 +18030,8 @@ function savePlan() {
   const plan = {
     id: editingPlanId || 'pl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
     title, destination: dest, destLat, destLng, start, end,
-    itinerary: old && Array.isArray(old.itinerary) ? old.itinerary : generateItinerary(start, end)
+    itinerary: old && Array.isArray(old.itinerary) ? old.itinerary : generateItinerary(start, end),
+    foodChecklist: old && Array.isArray(old.foodChecklist) ? old.foodChecklist : []
   };
   if (editingPlanId) {
     const idx = travelData.plans.findIndex(p => p.id === editingPlanId);
