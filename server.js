@@ -556,10 +556,13 @@ const server = http.createServer(async (req, res) => {
             res.end(JSON.stringify({ error: 'No data for this sync code' }));
             return;
           }
-          // 取 updated_at 最新的一行，避免 merge-duplicates 产生多行时误读旧快照
+          // 取「数据编辑时间(_updated_at_ms)」最新的一行；缺省回退到 updated_at（推送时间）。
+          // 这样 last-writer-wins 以「谁最后编辑」为准，而不是「谁最后推送」，
+          // 避免没改数据的设备一同步就覆盖更新设备（客户端已保证不推送陈旧数据，这里再对齐版本口径）。
+          const verOf = (row) => (row && row.data && typeof row.data._updated_at_ms === 'number') ? row.data._updated_at_ms : (row && row.updated_at ? new Date(row.updated_at).getTime() : 0);
           let newest = arr[0];
           for(const row of arr) {
-            if(new Date(row.updated_at) > new Date(newest.updated_at)) newest = row;
+            if(verOf(row) > verOf(newest)) newest = row;
           }
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify(newest.data));

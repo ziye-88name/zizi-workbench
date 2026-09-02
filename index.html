@@ -5048,6 +5048,10 @@ let SYNC_TIMER = null;
 let SYNC_LAST_PULL = 0;
 // 本地有尚未推送到云的改动时为 true：期间自动拉取不覆盖本地，避免刚新建/修改的任务被云端旧快照冲掉
 let localPendingPush = false;
+// 应用启动阶段标记：初始脚本执行期间（模块 load/seed 默认数据）不应把同步版本号刷新成「现在」，
+// 否则一台刚打开/刷新的设备会谎称自己数据最新，去覆盖其他设备刚更新的数据（用户反馈的同步 bug）。
+// 启动完成后（脚本执行结束）置为 false，之后的用户编辑才会正常推进版本号。
+let _appBooting = true;
 // 本地最后改动时间戳（ms）：用于 pull 时判断云端快照是否比本地新，避免旧快照覆盖新改动
 let localLastChange = parseInt(localStorage.getItem('parrot_sync_lastchange') || '0', 10) || 0;
 function markLocalChange() { localLastChange = Date.now(); localStorage.setItem('parrot_sync_lastchange', String(localLastChange)); }
@@ -5099,7 +5103,11 @@ async function cloudPull(code) {
     });
     if(!resp.ok) return { ok: false, status: resp.status, json: async () => ({}) };
     const arr = await resp.json();
-    const data = (arr && arr[0] && arr[0].data) ? arr[0].data : {};
+    // 取「数据编辑时间(_updated_at_ms)」最新的一行，与后端/本地文件后端保持一致（last-writer-wins 以编辑时间为准）
+    const verOf = (row) => (row && row.data && typeof row.data._updated_at_ms === 'number') ? row.data._updated_at_ms : (row && row.updated_at ? new Date(row.updated_at).getTime() : 0);
+    let best = (arr && arr[0]) ? arr[0] : null;
+    for(const row of (arr || [])) { if(verOf(row) > verOf(best)) best = row; }
+    const data = (best && best.data) ? best.data : {};
     return { ok: true, status: 200, json: async () => data };
   }
   const resp = await fetch(SYNC_API + '/' + code);
@@ -5229,7 +5237,10 @@ async function pushToCloud(showMsg) {
       if(v) allData[k] = v;
     });
     allData._local_ts = localLastChange; // 标记本次快照的最后改动时刻
-    allData._updated_at_ms = Date.now(); // 云端快照版本号，供 pull 做 last-writer-wins
+    // 版本号用「本机最后一次改动的时刻（编辑时间）」而不是推送时刻。
+    // 这样 last-writer-wins 比较的是数据被实际编辑的先后，而不是谁最后点了同步/自动上传。
+    // 否则没改数据的设备一同步就会用更晚的推送时刻把云端更新数据冲掉（用户反馈的 bug）。
+    allData._updated_at_ms = localLastChange || Date.now();
     const resp = await cloudPush(SYNC_ID, allData);
     if(!resp.ok) throw new Error('上传失败: ' + resp.status);
     localPendingPush = false;   // 推送成功，本地改动已上云，后续拉取可正常合并
@@ -5244,12 +5255,9 @@ async function pushToCloud(showMsg) {
 // 拉取数据
 async function pullFromCloud(showMsg) {
   if(!SYNC_ID) throw new Error('无同步码');
-  // 本地尚有未推送改动：先不拉取覆盖，否则会用云端旧快照冲掉刚新建/修改的任务；先确保推送一次
-  if(localPendingPush) {
-    if(showMsg) showToast('☁️ 本地有未同步改动，稍后自动同步');
-    if(!SYNC_BUSY) pushToCloud(false);
-    return;
-  }
+  // 不再因 localPendingPush 提前 return：旧逻辑会让「本地有改动」的设备跳过拉取，
+  // 而真正的冲突保护由 applyCloudData 的「云端版本不比本机编辑时间新则保留本地并推上去」完成，
+  // 这同时保证了 last-writer-wins 以「编辑时间」为准，而不是「谁先点同步」。
   try {
     const resp = await cloudPull(SYNC_ID);
     if(resp.status === 404) throw new Error('该同步码暂无数据');
@@ -5289,7 +5297,7 @@ function applyCloudData(data) {
   // 这是标准的 last-writer-wins：以毫秒时间戳更晚的一方为准，避免“失败推送/陈旧快照”回退本地。
   if(cloudUpdatedAt && localLastChange && cloudUpdatedAt <= localLastChange) {
     console.warn('云端快照不比本机最新改动新(云端' + cloudUpdatedAt + ' <= 本机' + localLastChange + ')，保留本机并推上去');
-    if(!localPendingPush && !SYNC_BUSY) pushToCloud(false);
+    if(!SYNC_BUSY) pushToCloud(false);
     return;
   }
   Object.keys(data || {}).forEach(k => {
@@ -5306,6 +5314,15 @@ function applyCloudData(data) {
       }
     }
   });
+  // 采用云端（更新）快照后，把本机「最后编辑时间」对齐为云端版本号，并取消排队中的上传。
+  // 否则本机随后若有一个更早编辑时间(却滞留在队列里)的 debounce 推送，会用更旧的本地基线按云端版本号回推，
+  // 把刚拉到的更新数据又冲掉——这正是「没改数据的设备一点同步就覆盖更新设备」的回放路径。
+  if(cloudUpdatedAt) {
+    localLastChange = cloudUpdatedAt;
+    localStorage.setItem('parrot_sync_lastchange', String(localLastChange));
+    localPendingPush = false;
+    if(window._syncDebounce) { clearTimeout(window._syncDebounce); window._syncDebounce = null; }
+  }
   if(skippedCorrupt > 0) console.warn('云端同步已跳过 ' + skippedCorrupt + ' 个含乱码的 key，未覆盖本地数据。请在本机用干净数据重新推送以修复云端。');
   if(changed) reloadAllDataGuarded();
   // 注：首页刷新已并入 reloadAllDataGuarded（在空闲且无可才执行），避免在用户操作时强制重建 DOM 吞掉点击
@@ -5315,12 +5332,12 @@ async function manualSync() {
   if(!SYNC_ID) { showToast('请先生成或连接同步码'); return; }
   if(SYNC_BUSY) { showToast('⏳ 同步进行中，请稍候'); return; }
   showToast('⏳ 正在同步…');
-  // 先确保本地改动完整上云，再拉取——await 保证 push 成功后才 pull，避免 pull 用云端旧快照冲掉本地新改动
+  // 只需拉取：applyCloudData 已按「编辑时间」做 last-writer-wins —— 云端更新则采用云端，
+  // 本机更新（编辑时间更晚）则保留本机并自动推上去。绝不在无本地改动时把陈旧数据推上云端覆盖他人。
   try {
-    await pushToCloud(false);
     await pullFromCloud(true);
   } catch(e) {
-    try { await pullFromCloud(true); } catch(e2) { showToast('❌ 同步失败'); }
+    showToast('❌ ' + (e && e.message ? e.message : '同步失败'));
   }
 }
 
@@ -5467,6 +5484,8 @@ function startAutoSync() {
 }
 
 function onLocalDataChange() {
+  // 启动阶段（seed/迁移等程序性写入）不推进同步版本号，也不排队上传，避免「刚打开的设备」误判为最新而覆盖他人
+  if(_appBooting) return;
   markLocalChange();
   if(SYNC_ID) localPendingPush = true;
   if(SYNC_ID && !SYNC_BUSY) {
@@ -19397,6 +19416,9 @@ function deleteScriptEditorItem(){
   try { renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList(); } catch(e){}
   try { renderMoneyOverviewList(); renderMoneyOverviewBoard(); } catch(e){}
 })();
+
+// 启动阶段结束：此后用户编辑才会推进同步版本号、排队上传
+_appBooting = false;
 
 </script>
 <!-- 添加拆解 弹窗 -->
