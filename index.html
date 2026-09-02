@@ -2088,6 +2088,33 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   display: flex; align-items: center; gap: 8px; color: var(--primary-dark);
   font-size: 14px; font-weight: 700; cursor: pointer; margin: 10px 0;
 }
+
+/* 行程快速添加条（一个页面一次性录入，列表按时间排序） */
+.it-quick-add {
+  display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;
+  background: var(--bg); border: 1px dashed var(--primary, #81C784); border-radius: 14px;
+  padding: 12px; margin-bottom: 6px;
+}
+.itqa-field { display: flex; flex-direction: column; gap: 4px; }
+.itqa-field label { font-size: 12px; color: var(--text-secondary); }
+.itqa-date { flex: 0 0 150px; }
+.itqa-time { flex: 0 0 120px; }
+.itqa-place { flex: 1 1 200px; min-width: 160px; }
+.itqa-type { flex: 0 0 110px; }
+.itqa-field select, .itqa-field input {
+  width: 100%; padding: 8px 10px; border: 1.5px solid var(--border, #eee);
+  border-radius: 10px; font-family: inherit; font-size: 14px; box-sizing: border-box;
+  background: #fff; color: var(--text);
+}
+.itqa-field select:focus, .itqa-field input:focus { border-color: var(--primary, #81C784); outline: none; }
+.itqa-add { flex: 0 0 auto; padding: 9px 16px; white-space: nowrap; }
+.it-quick-hint {
+  font-size: 12px; color: var(--text-secondary); padding: 4px 2px 10px;
+}
+.it-day-sep {
+  font-size: 13px; font-weight: 800; color: var(--primary-dark);
+  margin: 14px 0 6px; padding-left: 8px; border-left: 3px solid var(--primary, #81C784);
+}
 .it-form {
   background: #fff; border: 1.5px solid var(--border); border-radius: 14px;
   padding: 12px; margin: 8px 0;
@@ -4452,19 +4479,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <div class="k2-title">攒钱目标</div>
 <div class="k2-subtitle">离心愿更近一步</div>
 </div>
-<div class="k2-h-right">
-<div class="k2-period-wrap" id="savingsPeriodWrap">
-<div class="k2-period-toggle">
-<button class="active" data-type="month" onclick="switchSavingsPeriodType('month')">月</button>
-<button data-type="year" onclick="switchSavingsPeriodType('year')">年</button>
-</div>
-<div class="k2-month-wrap">
-<select class="k2-month savings-period" onchange="onSavingsPeriodChange(this)">
-<option>请选择</option>
-</select>
-</div>
-</div>
-</div>
 </div>
 <div class="k2-hero-card">
 <span class="k2-deco k2-d1">🌟</span>
@@ -4510,17 +4524,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <div class="k2-title-block">
 <div class="k2-title">人情账本</div>
 <div class="k2-subtitle">欠债与人情</div>
-</div>
-<div class="k2-period-wrap">
-<div class="k2-period-toggle">
-<button class="active" data-type="month" onclick="switchSocialPeriodType('month')">月</button>
-<button data-type="year" onclick="switchSocialPeriodType('year')">年</button>
-</div>
-<div class="k2-month-wrap">
-<select class="k2-month social-period" onchange="onSocialPeriodChange(this)">
-<option>请选择</option>
-</select>
-</div>
 </div>
 </div>
 <div class="k2-hero-card">
@@ -16367,11 +16370,9 @@ function renderSavingsGoals() {
     filterBar.innerHTML = types.map(t => `<button class="${currentSavingsTypeFilter===t.k?'active':''}" data-type="${t.k}" onclick="setSavingsTypeFilter('${t.k}')">${t.label}</button>`).join('');
   }
   let all = savingsGoals;
-  // 类型过滤
+  // 类型过滤（小目标/月度目标/长期目标）
   if(currentSavingsTypeFilter !== 'all') all = all.filter(g => (g.type || 'small') === currentSavingsTypeFilter);
-  // 周期过滤：长期目标不受 period 影响（永久显示），其余按 period 过滤
-  if(savingsPeriodType === 'year') all = all.filter(g => (g.type || 'small') === 'long' || (g.period || '').startsWith(savingsPeriod));
-  else all = all.filter(g => (g.type || 'small') === 'long' || (g.period || '') === savingsPeriod);
+  // 注：已移除年月查询，这里展示全部目标（不再按 period 过滤）
   const isOwned = g => {
     const isLong = (g.type || 'small') === 'long';
     const t = isLong ? getLongTermTarget() : (parseFloat(g.target) || 0);
@@ -16885,8 +16886,8 @@ function renderSocialLedger() {
   const listContainer = document.getElementById('socialList');
   const summaryEl = document.getElementById('socialSummary');
   if(!listContainer || !summaryEl) return;
-  const range = getSocialPeriodRange();
-  const list = socialRecords.filter(r => r.date >= range.start && r.date <= range.end && r.type === currentSocialSubTab);
+  // 已移除年月查询，展示该分类下全部记录（不再按日期区间过滤）
+  const list = socialRecords.filter(r => r.type === currentSocialSubTab);
   const unsettled = list.filter(r => r.status !== 'settled');
   const total = unsettled.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
   summaryEl.innerHTML = currentSocialSubTab === 'lend'
@@ -17882,8 +17883,8 @@ function openPlanDetailToDate(planId, date) {
   openPlanDetail(planId);
   travelDetailActiveDate = date;
   renderItineraryEditor();
-  // 直接触发新增
-  setTimeout(() => travelAddItem(date), 80);
+  // 直接进入编辑器并把日期预选好，焦点落到地点输入，方便直接填写
+  setTimeout(() => { const p = document.getElementById('itqa_place'); if (p) p.focus(); }, 80);
 }
 
 function openPlanDetailItem(planId, itemId) {
@@ -18083,29 +18084,40 @@ function renderItineraryEditor() {
   const plan = (travelData.plans || []).find(p => p.id === travelDetailPlanId);
   if (!plan) return;
   const body = document.getElementById('planDetailBody');
-  // 顶部日期 Tab
-  let tabs = travelDetailDates.map(date =>
-    `<div class="travel-itinerary-tab ${date === travelDetailActiveDate ? 'active' : ''}" onclick="travelSwitchDay('${date}')">${travelDateLabel(date)}</div>`
-  ).join('');
-  const items = (plan.itinerary || []).filter(it => it.date === travelDetailActiveDate);
-  items.sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
-
-  let content = '';
-  if (items.length === 0) {
-    content = '<div class="travel-itinerary-empty">这一天还没有安排，点击下方「➕ 添加安排」吧 ✈️</div>';
+  const dateOpts = travelDetailDates.map(d =>
+    `<option value="${d}" ${d === travelDetailActiveDate ? 'selected' : ''}>${travelDateLabel(d)}</option>`).join('');
+  const typeOpts = IT_TYPES.map(t => `<option value="${t}" ${t === '景点' ? 'selected' : ''}>${t}</option>`).join('');
+  let html = `
+    <div class="it-quick-add">
+      <div class="itqa-field itqa-date"><label>日期</label><select id="itqa_date" onchange="travelDetailActiveDate=this.value">${dateOpts}</select></div>
+      <div class="itqa-field itqa-time"><label>时间</label><input type="time" id="itqa_time"></div>
+      <div class="itqa-field itqa-place"><label>地点 *</label><input id="itqa_place" placeholder="如：大理古城 / 必吃餐厅" onkeydown="if(event.key==='Enter')travelQuickAdd()"></div>
+      <div class="itqa-field itqa-type"><label>类型</label><select id="itqa_type">${typeOpts}</select></div>
+      <button class="btn-primary itqa-add" onclick="travelQuickAdd()">➕ 添加</button>
+    </div>
+    <div class="it-quick-hint">选好日期和时间，填地点即可快速添加；列表按时间顺序自动排列 ✨</div>`;
+  const sorted = (plan.itinerary || []).slice().sort((a, b) =>
+    ((a.date || '') + (a.time || '99:99')).localeCompare((b.date || '') + (b.time || '99:99')));
+  if (sorted.length === 0) {
+    html += '<div class="travel-itinerary-empty">还没有安排，在上方填时间 + 地点，点「➕ 添加」即可 ✈️</div>';
   } else {
-    content = items.map(it => renderItineraryItem(plan, it)).join('');
+    let lastDate = null;
+    html += sorted.map(it => {
+      let sep = '';
+      if (it.date !== lastDate) { sep = `<div class="it-day-sep">📅 ${travelDateLabel(it.date)}</div>`; lastDate = it.date; }
+      return sep + renderItineraryItem(plan, it);
+    }).join('');
   }
-  content += `<div class="travel-itinerary-add" onclick="travelAddItem('${travelDetailActiveDate}')">➕ 添加安排</div>`;
-
-  body.innerHTML = `<div class="travel-itinerary-tabs">${tabs}</div><div class="travel-itinerary-content">${content}</div>`;
+  body.innerHTML = html;
 }
 
 function renderItineraryItem(plan, it) {
   if (travelDetailEditingItemId === it.id) {
     const opts = IT_TYPES.map(t => `<option value="${t}" ${it.type === t ? 'selected' : ''}>${t}</option>`).join('');
+    const dateOpts = travelDetailDates.map(d => `<option value="${d}" ${d === it.date ? 'selected' : ''}>${travelDateLabel(d)}</option>`).join('');
     return `<div class="it-form" data-item="${it.id}">
-      <div class="it-form-row" style="display:flex;gap:10px;">
+      <div class="it-form-row" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="flex:0 0 130px"><label>日期</label><select id="it_date_${it.id}">${dateOpts}</select></div>
         <div style="flex:0 0 120px"><label>时间</label><input type="time" id="it_time_${it.id}" value="${it.time || ''}"></div>
         <div style="flex:1"><label>类型</label><select id="it_type_${it.id}">${opts}</select></div>
       </div>
@@ -18165,18 +18177,41 @@ function travelPickImage(itemId, input) {
   reader.readAsDataURL(file);
 }
 function travelCancelEditItem() { travelDetailEditingItemId = null; renderItineraryEditor(); }
-function travelAddItem(date) {
+function travelQuickAdd() {
   const plan = (travelData.plans || []).find(p => p.id === travelDetailPlanId);
   if (!plan) return;
+  const dateEl = document.getElementById('itqa_date');
+  const timeEl = document.getElementById('itqa_time');
+  const placeEl = document.getElementById('itqa_place');
+  const typeEl = document.getElementById('itqa_type');
+  const date = dateEl ? dateEl.value : travelDetailActiveDate;
+  const time = timeEl ? timeEl.value : '';
+  const type = typeEl ? typeEl.value : '景点';
+  const place = placeEl ? placeEl.value.trim() : '';
+  if (!place) { showToast('请填写地点'); if (placeEl) placeEl.focus(); return; }
   if (!plan.itinerary) plan.itinerary = [];
   const newItem = {
     id: 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-    date: date, place: '', type: '景点', note: '', time: '', img: ''
+    date: date, time: time, type: type, place: place, note: '', img: ''
   };
   plan.itinerary.push(newItem);
+  // 若无坐标，尝试从景点库自动定位（便于地图展示）
+  if (!newItem.lat || !newItem.lng) {
+    const sp = TRAVEL_SPOTS.find(s => s.name === place || (s.name && place && place.indexOf(s.name) >= 0));
+    if (sp) { newItem.lat = sp.lat; newItem.lng = sp.lng; }
+  }
   saveTravelData();
-  travelDetailEditingItemId = newItem.id;
   renderItineraryEditor();
+  // 恢复刚才的输入（日期/时间/类型保留），清空地点并聚焦，方便连续添加
+  const d2 = document.getElementById('itqa_date'); if (d2) d2.value = date;
+  const t2 = document.getElementById('itqa_time'); if (t2) t2.value = time;
+  const ty2 = document.getElementById('itqa_type'); if (ty2) ty2.value = type;
+  const p2 = document.getElementById('itqa_place'); if (p2) { p2.value = ''; p2.focus(); }
+  renderTravelPlans();
+  if (travelPlanSelectedId && document.getElementById('travelMapWrap') && !document.getElementById('travelMapWrap').classList.contains('collapsed')) {
+    showPlanOnMap(travelPlanSelectedId);
+  }
+  showToast('✅ 已添加');
 }
 function travelSaveItem(itemId) {
   const plan = (travelData.plans || []).find(p => p.id === travelDetailPlanId);
@@ -18185,6 +18220,8 @@ function travelSaveItem(itemId) {
   if (!it) return;
   const place = document.getElementById('it_place_' + itemId).value.trim();
   if (!place) { showToast('请填写地点'); return; }
+  const dateEl = document.getElementById('it_date_' + itemId);
+  if (dateEl) it.date = dateEl.value;
   it.time = document.getElementById('it_time_' + itemId).value;
   it.type = document.getElementById('it_type_' + itemId).value;
   it.place = place;
