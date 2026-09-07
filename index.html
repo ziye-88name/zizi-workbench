@@ -5150,14 +5150,14 @@ async function cloudPush(code, allData) {
       },
       body: JSON.stringify({ code: code, data: allData, updated_at: new Date().toISOString() })
     });
-    return { ok: resp.ok, status: resp.status };
+    return { ok: resp.ok, status: resp.status, json: async () => resp.json() };
   }
   const resp = await fetch(SYNC_API + '/' + code, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(allData)
   });
-  return { ok: resp.ok, status: resp.status };
+  return { ok: resp.ok, status: resp.status, json: async () => resp.json() };
 }
 
 // 拉取：返回 { ok, status, json:()=>Promise }，与 fetch Response 用法一致
@@ -5255,10 +5255,16 @@ async function createNewSync() {
   localStorage.setItem('parrot_sync_id', SYNC_ID);
   setSyncCodeCookie(SYNC_ID);
   persistSyncHash();
-  await pushToCloud(true);
-  updateSyncUI();
+  updateSyncUI();                        // 立即显示已连接，避免网络抖动时长时间卡在"未连接"
   startAutoSync();
-  showToast('✅ 同步码: ' + SYNC_ID);
+  try {
+    await pushToCloud(true);
+    showToast('✅ 同步码: ' + SYNC_ID);
+  } catch(e) {
+    // push 失败不影响本地 sync id；后台自动同步会继续重试
+    console.error('createNewSync push error', e);
+    showToast('⚠️ 同步码已生成，首次上传稍后自动重试');
+  }
 }
 
 async function connectSync() {
@@ -5307,14 +5313,21 @@ async function pushToCloud(showMsg) {
     // 否则没改数据的设备一同步就会用更晚的推送时刻把云端更新数据冲掉（用户反馈的 bug）。
     allData._updated_at_ms = localLastChange || Date.now();
     const resp = await cloudPush(SYNC_ID, allData);
-    if(!resp.ok) throw new Error('上传失败: ' + resp.status);
+    if(!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      throw new Error('上传失败: ' + resp.status + (errData.detail ? ' (' + errData.detail + ')' : ''));
+    }
     localPendingPush = false;   // 推送成功，本地改动已上云，后续拉取可正常合并
     if(showMsg) showToast('☁️ 数据已上传');
   } catch(e) {
     console.error('push error', e);
-    if(showMsg) showToast('❌ 同步失败，请重试');
+    if(showMsg) {
+      showToast('❌ ' + (e.message || '同步失败，请重试'));
+      throw e; // 让调用者（如 createNewSync）感知失败并做后续处理
+    }
+  } finally {
+    SYNC_BUSY = false;
   }
-  SYNC_BUSY = false;
 }
 
 // 拉取数据
@@ -5325,8 +5338,14 @@ async function pullFromCloud(showMsg) {
   // 这同时保证了 last-writer-wins 以「编辑时间」为准，而不是「谁先点同步」。
   try {
     const resp = await cloudPull(SYNC_ID);
-    if(resp.status === 404) throw new Error('该同步码暂无数据');
-    if(!resp.ok) throw new Error('拉取失败: ' + resp.status);
+    if(resp.status === 404) {
+      const errData = await resp.json().catch(() => ({}));
+      throw new Error(errData.detail || '该同步码暂无数据');
+    }
+    if(!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      throw new Error('拉取失败: ' + resp.status + (errData.detail ? ' (' + errData.detail + ')' : ''));
+    }
     const data = await resp.json();
     if(!data || typeof data !== 'object') throw new Error('数据格式错误');
     applyCloudData(data);

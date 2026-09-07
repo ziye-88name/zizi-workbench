@@ -54,6 +54,28 @@ function readWithRetry(p, enc, tries) {
   throw lastErr;
 }
 
+// 带重试的 fetch：Supabase 间歇性 TLS/网络抖动（ECONNRESET/ETIMEDOWN）时，
+// 立即重试 2 次可显著提高成功率。同步接口对幂等性安全（POST 用 upsert）。
+async function fetchWithRetry(url, options, { retries = 3, delay = 500 } = {}) {
+  let lastErr;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const r = await fetch(url, options);
+      return r;
+    } catch(e) {
+      lastErr = e;
+      // 仅对网络层错误重试；HTTP 4xx/5xx 由调用方处理
+      const isNetworkErr = e && (
+        e.message && /network|socket|ECONNRESET|ETIMEDOUT|ENOTFOUND|fetch failed/i.test(e.message) ||
+        (e.cause && e.cause.code && /ECONNRESET|ETIMEDOUT|ENOTFOUND/i.test(e.cause.code))
+      );
+      if(!isNetworkErr || i === retries) throw e;
+      await new Promise(r => setTimeout(r, delay * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
 // 简单内存缓存，避免频繁请求 Bing
 const searchCache = {};
 const SEARCH_CACHE_TTL = 10 * 60 * 1000; // 10 分钟
@@ -519,12 +541,16 @@ const server = http.createServer(async (req, res) => {
               'Content-Type': 'application/json; charset=utf-8',
               'Prefer': 'resolution=merge-duplicates'
             };
-            const r = await fetch(sbUrl, {
+            const r = await fetchWithRetry(sbUrl, {
               method: 'POST',
               headers: hdrs,
               body: JSON.stringify({ code, data, updated_at: new Date().toISOString() })
             });
-            if(!r.ok) { const t = await r.text(); throw new Error('SB ' + r.status + ' ' + t); }
+            if(!r.ok) {
+              const t = await r.text();
+              // 把 Supabase 的原始错误透传给前端，方便用户排查（401=密钥错，404=表不存在， etc.）
+              throw new Error('SB ' + r.status + ' ' + t.slice(0, 200));
+            }
             res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify({ success: true, backend: 'supabase', time: new Date().toISOString() }));
           } else {
@@ -535,8 +561,10 @@ const server = http.createServer(async (req, res) => {
           }
         } catch(e) {
           console.error('sync save error', e);
-          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ error: 'Invalid JSON / sync failed' }));
+          let msg = (e && e.message) ? String(e.message) : 'Unknown error';
+          if(e && e.cause && e.cause.message) msg += ' (' + e.cause.message + ')';
+          res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: 'sync save failed', detail: msg.slice(0, 400) }));
         }
       });
       return;
@@ -546,10 +574,13 @@ const server = http.createServer(async (req, res) => {
       try {
         if(useSupabase) {
           const sbUrl = SUPABASE_URL.replace(/\/+$/,'') + '/rest/v1/workbench_sync?code=eq.' + encodeURIComponent(code) + '&select=data';
-          const r = await fetch(sbUrl, {
+          const r = await fetchWithRetry(sbUrl, {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
           });
-          if(!r.ok) throw new Error('SB ' + r.status);
+          if(!r.ok) {
+            const t = await r.text();
+            throw new Error('SB ' + r.status + ' ' + t.slice(0, 200));
+          }
           const arr = await r.json();
           if(!Array.isArray(arr) || !arr.length) {
             res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -578,8 +609,11 @@ const server = http.createServer(async (req, res) => {
         }
       } catch(e) {
         console.error('sync load error', e);
+        let msg = (e && e.message) ? String(e.message) : 'Unknown error';
+        // Node fetch 失败时，真正原因通常在 error.cause 里（TLS/ECONNRESET/ETIMEDOUT 等）
+        if(e && e.cause && e.cause.message) msg += ' (' + e.cause.message + ')';
         res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: 'sync load failed' }));
+        res.end(JSON.stringify({ error: 'sync load failed', detail: msg.slice(0, 400) }));
       }
       return;
     }
