@@ -3292,6 +3292,11 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .pet-dash-head .pet-edit-link:hover { text-decoration:underline; }
 .pet-dash-body { display:flex; flex-direction:column; gap:6px; }
 .pet-dash-full { grid-column:1 / -1; }
+.pet-dash-all-hint { font-size:13px; color:var(--text-secondary); background:#fff; border-radius:14px; padding:10px 14px; border:1px solid rgba(222,210,198,.35); box-shadow:0 4px 14px rgba(120,90,70,.05); margin-bottom:4px; }
+.pet-dash-all-pet { margin-bottom:4px; }
+.pet-dash-all-head { cursor:pointer; transition:color .15s; }
+.pet-dash-all-head:hover { color:var(--primary); }
+.pet-dash-all-avatar { width:26px; height:26px; border-radius:50%; object-fit:cover; border:1px solid rgba(129,199,132,.4); background:var(--bg); }
 .pet-profile-mini { display:flex; align-items:flex-start; gap:14px; position:relative; }
 .pet-profile-mini .pet-avatar { width:70px; height:70px; border-radius:50%; object-fit:cover; background:var(--bg); border:2px solid var(--primary-light); }
 .pet-profile-meta { display:flex; flex-direction:column; gap:4px; flex:1; }
@@ -13764,6 +13769,53 @@ function updatePetWeightDashCard() {
   if(statEl) statEl.textContent = latest ? (petGramText(latest.weight) + ' g') : '未记录';
 }
 
+function getPetWeights(petId) {
+  return petWeightRecords.filter(r => r.petId === petId).sort((a,b) => new Date(b.date) - new Date(a.date));
+}
+function petLatestWeightInfo(petId) {
+  const weights = getPetWeights(petId);
+  const latest = weights[0];
+  const prev = weights[1];
+  const diff = (latest && prev) ? petGramDiff(latest.weight, prev.weight) : null;
+  return { latest, diff, weights };
+}
+/* 体重趋势 + 数据明细（单只与全部聚合共用）；canvasId 用于多宠时区分图表 */
+function petWeightSectionHtml(petId, canvasId) {
+  const weights = getPetWeights(petId);
+  let html = '<div class="pet-dash-card pet-dash-full"><div class="pet-dash-head">⚖️ 体重趋势</div>';
+  if(weights.length >= 2) {
+    html += '<div class="pet-chart-wrap"><canvas id="' + canvasId + '" height="180"></canvas></div>';
+  } else if(weights.length === 1) {
+    html += '<div class="empty-state" style="padding:14px 0;"><p>再记录 1 条体重即可生成趋势图</p></div>';
+  } else {
+    html += '<div class="empty-state" style="padding:14px 0;"><p>还没有体重记录，去「日常打卡」填写今日体重</p></div>';
+  }
+  html += '<div style="font-size:12.5px; font-weight:700; color:var(--text-secondary); margin-top:14px;">数据明细</div>';
+  html += '<div class="pet-weight-list">';
+  if(!weights.length) {
+    html += '<div style="font-size:13px; color:var(--text-secondary); padding:4px 2px;">暂无明细</div>';
+  } else {
+    weights.forEach((w, i) => {
+      const older = weights[i+1];
+      let chg = '<div class="pet-weight-change">—</div>';
+      if(older) {
+        const d = petGramDiff(w.weight, older.weight);
+        chg = d === 0
+          ? '<div class="pet-weight-change">持平</div>'
+          : `<div class="pet-weight-change ${d > 0 ? 'up' : 'down'}">${d > 0 ? '↑' : '↓'} ${Math.abs(d).toFixed(1)} g</div>`;
+      }
+      const md = (w.date || '').slice(5).replace('-', '/');
+      html += `<div class="pet-weight-item">
+        <div class="pet-weight-date"><div class="d">${escapeHtml(md)}</div><div class="m">${escapeHtml(petWeekday(w.date))}</div></div>
+        <div class="pet-weight-value">${petGramText(w.weight)} g</div>
+        ${chg}
+      </div>`;
+    });
+  }
+  html += '</div></div>';
+  return html;
+}
+
 function renderPetDashboard() {
   const dash = document.getElementById('petDashboard');
   if(!dash) return;
@@ -13772,51 +13824,40 @@ function renderPetDashboard() {
     dash.innerHTML = '<div class="empty-state"><p>还没有宠物档案</p><button class="btn btn-primary" onclick="openAddPetModal()">➕ 添加第一只宠物</button></div>';
     return;
   }
-  // 全部模式：按宠物并列概览卡，点击进入该宠物完整仪表盘
+  // 全部模式：聚合每只宠物的体重仪表盘（最新体重 + 趋势图 + 明细），点宠物名进入单只完整仪表盘
   if(petsInView.length > 1) {
-    dash.innerHTML = petsInView.map(p => petOverviewCardHtml(p)).join('');
+    let html = '<div class="pet-dash-all-hint">已聚合每只宠物的体重仪表盘（最新体重 + 趋势图 + 数据明细），点宠物名可进入该宠完整仪表盘。</div>';
+    petsInView.forEach(p => {
+      const wi = petLatestWeightInfo(p.id);
+      const avatar = petAvatar(p);
+      html += `<div class="pet-dash-card pet-dash-full pet-dash-all-pet">
+        <div class="pet-dash-head pet-dash-all-head" onclick="switchPet('${p.id}')">
+          <img class="pet-dash-all-avatar" src="${escapeHtml(avatar)}" alt="" onerror="this.style.display='none'"/>
+          <span>${escapeHtml(p.name)} 的体重</span>
+          <span class="pet-edit-link">查看完整仪表盘 ›</span>
+        </div>
+        <div class="pet-dash-body">${petWeightDashInner(wi.latest, wi.diff)}</div>
+      </div>`;
+      html += petWeightSectionHtml(p.id, 'petWeightChart_' + p.id);
+    });
+    dash.innerHTML = html;
+    petsInView.forEach(p => {
+      const weights = getPetWeights(p.id);
+      if(weights.length >= 2) {
+        requestAnimationFrame(() => setTimeout(() => drawPetWeightChart('petWeightChart_' + p.id, weights.slice().reverse()), 60));
+      }
+    });
     return;
   }
   const pet = petsInView[0];
 
-  const weights = petWeightRecords.filter(r => r.petId === pet.id).sort((a,b) => new Date(b.date) - new Date(a.date));
-  const latest = weights[0];
-  const prev = weights[1];
-  // 仪表盘「最新体重」较上次的增减（保留一位小数）
-  const latestDiff = (latest && prev) ? petGramDiff(latest.weight, prev.weight) : null;
+  const wi = petLatestWeightInfo(pet.id);
+  const latest = wi.latest;
+  const latestDiff = wi.diff;
+  const weights = wi.weights;
 
   /* --- 体重趋势 + 数据明细 --- */
-  let weightHtml = '<div class="pet-dash-card pet-dash-full"><div class="pet-dash-head">⚖️ 体重趋势</div>';
-  if(weights.length >= 2) {
-    weightHtml += '<div class="pet-chart-wrap"><canvas id="petWeightChart" height="180"></canvas></div>';
-  } else if(weights.length === 1) {
-    weightHtml += '<div class="empty-state" style="padding:14px 0;"><p>再记录 1 条体重即可生成趋势图</p></div>';
-  } else {
-    weightHtml += '<div class="empty-state" style="padding:14px 0;"><p>还没有体重记录，去「日常打卡」填写今日体重</p></div>';
-  }
-  weightHtml += '<div style="font-size:12.5px; font-weight:700; color:var(--text-secondary); margin-top:14px;">数据明细</div>';
-  weightHtml += '<div class="pet-weight-list">';
-  if(!weights.length) {
-    weightHtml += '<div style="font-size:13px; color:var(--text-secondary); padding:4px 2px;">暂无明细</div>';
-  } else {
-    weights.forEach((w, i) => {
-      const older = weights[i+1];
-      let chg = '<div class="pet-weight-change">—</div>';
-      if(older) {
-        const diff = petGramDiff(w.weight, older.weight);
-        chg = diff === 0
-          ? '<div class="pet-weight-change">持平</div>'
-          : `<div class="pet-weight-change ${diff > 0 ? 'up' : 'down'}">${diff > 0 ? '↑' : '↓'} ${Math.abs(diff).toFixed(1)} g</div>`;
-      }
-      const md = (w.date || '').slice(5).replace('-', '/');
-      weightHtml += `<div class="pet-weight-item">
-        <div class="pet-weight-date"><div class="d">${escapeHtml(md)}</div><div class="m">${escapeHtml(petWeekday(w.date))}</div></div>
-        <div class="pet-weight-value">${petGramText(w.weight)} g</div>
-        ${chg}
-      </div>`;
-    });
-  }
-  weightHtml += '</div></div>';
+  let weightHtml = petWeightSectionHtml(pet.id, 'petWeightChart');
 
   /* --- 今日打卡 --- */
   const todayRec = petDailyRecords.find(r => r.petId === pet.id && r.date === PET_TODAY);
