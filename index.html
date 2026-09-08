@@ -3320,7 +3320,16 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 
 /* 趋势图 + 体重明细 */
 .pet-chart-wrap { position:relative; height:180px; margin-top:6px; }
-.pet-chart-wrap canvas { width:100%; height:100%; }
+.pet-chart-wrap canvas { width:100%; height:100%; cursor:pointer; }
+.pet-chart-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.pet-chart-head .pet-dash-head { margin:0; }
+.pet-range-filter { display:flex; gap:4px; flex-wrap:wrap; }
+.pet-range-btn { font-size:11.5px; padding:3px 9px; border-radius:999px; cursor:pointer; color:var(--text-secondary); background:var(--bg); border:1px solid var(--border); transition:all .15s; user-select:none; white-space:nowrap; }
+.pet-range-btn:hover { color:var(--primary); border-color:var(--primary); }
+.pet-range-btn.active { color:#fff; background:var(--primary); border-color:var(--primary); }
+.pet-chart-tip { position:absolute; transform:translate(-50%,-100%); pointer-events:none; background:rgba(60,45,35,.92); color:#fff; font-size:11.5px; padding:4px 8px; border-radius:8px; white-space:nowrap; display:none; z-index:5; box-shadow:0 4px 10px rgba(0,0,0,.18); }
+.pet-chart-tip b { color:#FFD9C2; }
+.pet-recent-head { font-size:12.5px; font-weight:700; color:var(--text-secondary); margin:14px 0 6px; }
 .pet-weight-list { display:flex; flex-direction:column; gap:8px; margin-top:14px; }
 .pet-weight-item { display:flex; align-items:center; justify-content:space-between; background:var(--bg); border-radius:12px; padding:10px 12px; font-size:13px; }
 .pet-weight-date { display:flex; flex-direction:column; align-items:center; min-width:46px; }
@@ -13779,41 +13788,67 @@ function petLatestWeightInfo(petId) {
   const diff = (latest && prev) ? petGramDiff(latest.weight, prev.weight) : null;
   return { latest, diff, weights };
 }
-/* 体重趋势 + 数据明细（单只与全部聚合共用）；canvasId 用于多宠时区分图表 */
+/* 体重趋势 + 最近体重记录（单只与全部聚合共用）；canvasId 用于多宠时区分图表 */
 function petWeightSectionHtml(petId, canvasId) {
-  const weights = getPetWeights(petId);
-  let html = '<div class="pet-dash-card pet-dash-full"><div class="pet-dash-head">⚖️ 体重趋势</div>';
+  return renderPetWeightCard(petId, canvasId, 0);
+}
+/* 按时间范围筛选后的体重卡（days=0 表示全部） */
+function renderPetWeightCard(petId, canvasId, days) {
+  const durOptions = [[0,'全部'],[30,'近1月'],[90,'近3月'],[182,'近半年'],[365,'近1年']];
+  let weights = getPetWeights(petId); // 最新在前
+  if(days > 0) {
+    const cutoff = new Date(); cutoff.setHours(0,0,0,0); cutoff.setDate(cutoff.getDate() - days);
+    weights = weights.filter(w => { const t = new Date(w.date); return !isNaN(t) && t >= cutoff; });
+  }
+  let html = '<div class="pet-dash-card pet-dash-full" id="petWeightCard_' + canvasId + '">';
+  html += '<div class="pet-chart-head"><div class="pet-dash-head" style="margin:0;">⚖️ 体重趋势</div>';
+  html += '<div class="pet-range-filter">';
+  durOptions.forEach(o => {
+    html += '<span class="pet-range-btn' + (o[0] === days ? ' active' : '') + '" data-days="' + o[0] + '" onclick="applyPetWeightRange(\'' + petId + '\',\'' + canvasId + '\',' + o[0] + ')">' + o[1] + '</span>';
+  });
+  html += '</div></div>';
   if(weights.length >= 2) {
-    html += '<div class="pet-chart-wrap"><canvas id="' + canvasId + '" height="180"></canvas></div>';
+    html += '<div class="pet-chart-wrap"><canvas id="' + canvasId + '" height="180"></canvas><div class="pet-chart-tip" id="' + canvasId + '_tip"></div></div>';
   } else if(weights.length === 1) {
     html += '<div class="empty-state" style="padding:14px 0;"><p>再记录 1 条体重即可生成趋势图</p></div>';
   } else {
     html += '<div class="empty-state" style="padding:14px 0;"><p>还没有体重记录，去「日常打卡」填写今日体重</p></div>';
   }
-  html += '<div style="font-size:12.5px; font-weight:700; color:var(--text-secondary); margin-top:14px;">数据明细</div>';
-  html += '<div class="pet-weight-list">';
-  if(!weights.length) {
-    html += '<div style="font-size:13px; color:var(--text-secondary); padding:4px 2px;">暂无明细</div>';
-  } else {
-    weights.forEach((w, i) => {
-      const older = weights[i+1];
-      let chg = '<div class="pet-weight-change">—</div>';
-      if(older) {
-        const d = petGramDiff(w.weight, older.weight);
-        chg = d === 0
-          ? '<div class="pet-weight-change">持平</div>'
-          : `<div class="pet-weight-change ${d > 0 ? 'up' : 'down'}">${d > 0 ? '↑' : '↓'} ${Math.abs(d).toFixed(1)} g</div>`;
-      }
-      const md = (w.date || '').slice(5).replace('-', '/');
-      html += `<div class="pet-weight-item">
-        <div class="pet-weight-date"><div class="d">${escapeHtml(md)}</div><div class="m">${escapeHtml(petWeekday(w.date))}</div></div>
-        <div class="pet-weight-value">${petGramText(w.weight)} g</div>
-        ${chg}
-      </div>`;
-    });
-  }
-  html += '</div></div>';
+  html += renderPetWeightRecent(weights, 3);
+  html += '</div>';
   return html;
+}
+/* 最近体重记录（紧凑，仅最新 limit 条，不再铺满全部明细） */
+function renderPetWeightRecent(weights, limit) {
+  const list = weights.slice(0, limit);
+  let h = '<div class="pet-recent-head">最近体重记录（最新 ' + list.length + ' 条）</div>';
+  if(!list.length) { h += '<div style="font-size:13px;color:var(--text-secondary);padding:4px 2px;">暂无体重记录</div>'; return h; }
+  h += '<div class="pet-weight-list">';
+  list.forEach((w, i) => {
+    const older = weights[i+1];
+    let chg = '<div class="pet-weight-change">—</div>';
+    if(older) {
+      const d = petGramDiff(w.weight, older.weight);
+      chg = d === 0 ? '<div class="pet-weight-change">持平</div>'
+        : '<div class="pet-weight-change ' + (d > 0 ? 'up' : 'down') + '">' + (d > 0 ? '↑' : '↓') + ' ' + Math.abs(d).toFixed(1) + ' g</div>';
+    }
+    const md = (w.date || '').slice(5).replace('-', '/');
+    h += '<div class="pet-weight-item"><div class="pet-weight-date"><div class="d">' + escapeHtml(md) + '</div><div class="m">' + escapeHtml(petWeekday(w.date)) + '</div></div><div class="pet-weight-value">' + petGramText(w.weight) + ' g</div>' + chg + '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+/* 切换时间范围：重绘趋势图并刷新最近记录 */
+function applyPetWeightRange(petId, canvasId, days) {
+  const card = document.getElementById('petWeightCard_' + canvasId);
+  if(!card) return;
+  card.outerHTML = renderPetWeightCard(petId, canvasId, days);
+  let weights = getPetWeights(petId);
+  if(days > 0) {
+    const cutoff = new Date(); cutoff.setHours(0,0,0,0); cutoff.setDate(cutoff.getDate() - days);
+    weights = weights.filter(w => { const t = new Date(w.date); return !isNaN(t) && t >= cutoff; });
+  }
+  if(weights.length >= 2) requestAnimationFrame(() => setTimeout(() => drawPetWeightChart(canvasId, weights.slice().reverse()), 30));
 }
 
 function renderPetDashboard() {
@@ -13826,7 +13861,7 @@ function renderPetDashboard() {
   }
   // 全部模式：聚合每只宠物的体重仪表盘（最新体重 + 趋势图 + 明细），点宠物名进入单只完整仪表盘
   if(petsInView.length > 1) {
-    let html = '<div class="pet-dash-all-hint">已聚合每只宠物的体重仪表盘（最新体重 + 趋势图 + 数据明细），点宠物名可进入该宠完整仪表盘。</div>';
+    let html = '<div class="pet-dash-all-hint">已聚合每只宠物的体重仪表盘（最新体重 + 趋势图 + 最近记录），点宠物名可进入该宠完整仪表盘；数据多时可用趋势图上方的时间范围筛选。</div>';
     petsInView.forEach(p => {
       const wi = petLatestWeightInfo(p.id);
       const avatar = petAvatar(p);
@@ -14002,7 +14037,7 @@ function renderPetDashboard() {
   }
 }
 
-function drawPetWeightChart(canvasId, data) {
+function drawPetWeightChart(canvasId, data, hi) {
   const { c, ctx, w, h } = resizeCanvas(canvasId);
   if(!ctx || w <= 0 || h <= 0) return;
   const pad = { top:26, right:18, bottom:30, left:44 };
@@ -14045,12 +14080,13 @@ function drawPetWeightChart(canvasId, data) {
   ctx.beginPath();
   data.forEach((d, i) => { const x = px(i), y = py(petGram(d.weight)); if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
   ctx.stroke();
-  // 点 + 数值 + 日期
+  // 点 + 数值 + 日期（hi 为悬浮高亮索引）
   ctx.textAlign = 'center';
   data.forEach((d, i) => {
     const x = px(i), y = py(petGram(d.weight));
-    ctx.beginPath(); ctx.fillStyle = '#fff'; ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.fillStyle = LINE; ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+    if(hi === i) { ctx.beginPath(); ctx.fillStyle = 'rgba(255,154,162,.18)'; ctx.arc(x, y, 10, 0, Math.PI * 2); ctx.fill(); }
+    ctx.beginPath(); ctx.fillStyle = '#fff'; ctx.arc(x, y, hi === i ? 6 : 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.fillStyle = LINE; ctx.arc(x, y, hi === i ? 4 : 3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#6B5B4B';
     ctx.font = '11px sans-serif';
     ctx.fillText(petGramText(d.weight) + 'g', x, y - 11);
@@ -14061,6 +14097,40 @@ function drawPetWeightChart(canvasId, data) {
     }
   });
   ctx.textBaseline = 'alphabetic';
+
+  // 记录坐标供悬浮提示使用
+  c._data = data;
+  c._pts = data.map((d, i) => ({ x: px(i), y: py(petGram(d.weight)), d }));
+  if(!c._hoverBound) {
+    c._hoverBound = true;
+    c.addEventListener('mousemove', onChartHover);
+    c.addEventListener('mouseleave', onChartLeave);
+  }
+}
+/* 悬浮在体重点上时展示具体日期与数值 */
+function onChartHover(e) {
+  const c = e.currentTarget;
+  const pts = c._pts;
+  if(!pts || !pts.length) return;
+  const rect = c.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  let best = 0, bd = Infinity;
+  for(let i = 0; i < pts.length; i++) { const dx = Math.abs(pts[i].x - mx); if(dx < bd) { bd = dx; best = i; } }
+  const p = pts[best];
+  const tip = document.getElementById(c.id + '_tip');
+  if(tip) {
+    tip.innerHTML = '<b>' + escapeHtml((p.d.date || '').slice(5).replace('-', '/')) + '</b> · ' + petGramText(p.d.weight) + ' g';
+    tip.style.display = 'block';
+    tip.style.left = p.x + 'px';
+    tip.style.top = (p.y - 12) + 'px';
+  }
+  if(c._hi !== best) { c._hi = best; drawPetWeightChart(c.id, c._data, best); }
+}
+function onChartLeave(e) {
+  const c = e.currentTarget;
+  const tip = document.getElementById(c.id + '_tip');
+  if(tip) tip.style.display = 'none';
+  if(c._hi !== -1) { c._hi = -1; drawPetWeightChart(c.id, c._data); }
 }
 
 function togglePetEditPanel(show) {
