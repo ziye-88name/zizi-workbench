@@ -2486,6 +2486,26 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   flex: 1; padding: 13px; font-family: inherit; font-size: 15px;
   border-radius: 999px; cursor: pointer; min-width: 0;
 }
+/* 支线流 · 任务全流程时间线 */
+.flow-detail-title { font-size:15px; font-weight:800; color:var(--text-primary); margin-bottom:12px; }
+.flow-node { display:flex; gap:12px; }
+.flow-node-rail { position:relative; width:30px; flex:0 0 30px; display:flex; justify-content:center; }
+.flow-node-dot {
+  width:30px; height:30px; border-radius:50%; background:#FFF2F3; border:2px solid var(--primary);
+  display:flex; align-items:center; justify-content:center; font-size:15px; z-index:1; flex:0 0 30px;
+}
+.flow-node:not(.last) .flow-node-rail::after {
+  content:''; position:absolute; top:30px; bottom:-4px; left:50%; width:2px;
+  background:linear-gradient(var(--primary), rgba(255,154,162,.35)); transform:translateX(-50%);
+}
+.flow-node-body { flex:1; background:#fff; border:1px solid var(--card-border,#eee); border-radius:14px; padding:11px 13px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,.03); }
+.flow-node-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:7px; }
+.flow-node-label { font-size:13.5px; font-weight:800; color:var(--primary); }
+.flow-node-time { font-size:11.5px; color:var(--text-secondary); white-space:nowrap; }
+.flow-node-fields { display:flex; flex-direction:column; gap:4px; }
+.flow-field { display:flex; gap:8px; font-size:13px; line-height:1.5; }
+.flow-field-k { flex:0 0 64px; color:var(--text-secondary); }
+.flow-field-v { flex:1; color:var(--text-primary); word-break:break-word; white-space:normal; }
 /* 马卡龙粉按钮基础样式（弹窗内外通用，避免继承浏览器默认黑边框） */
 .kitty-btn-primary, .kitty-btn-outline {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -18982,8 +19002,9 @@ function renderIdeaList(){
       ${it.note?`<div class="idea-note">${escapeHtml(it.note)}</div>`:''}
       <div class="idea-meta">来源：${escapeHtml(it.source||'手动')} · ${it.createdAt||''}</div>
     </div>
-    <div class="idea-actions">
+      <div class="idea-actions">
       <button class="btn btn-outline btn-sm" onclick="addIdeaToTopic('${it.flowId}')">加入选题库</button>
+      <button class="btn btn-outline btn-sm" onclick="openFlowDetail('${it.flowId}')">👁 详情</button>
       <button class="btn btn-outline btn-sm" onclick="editIdea('${it.flowId}')">编辑</button>
       <button class="btn btn-outline btn-sm" onclick="deleteIdea('${it.flowId}')">删除</button>
     </div>
@@ -19070,7 +19091,7 @@ function pickTopicCat(flowId){
   ]}, (vals)=>{
     if(!vals || !vals.catId) return;
     const cat = topicCats.find(c=>c.id===vals.catId); if(!cat) return;
-    cat.items.push({ flowId, title:vals.title||title, audience:vals.audience||'', pain:vals.pain||'', prio:vals.prio||'P2' });
+    cat.items.push({ flowId, title:vals.title||title, audience:vals.audience||'', pain:vals.pain||'', prio:vals.prio||'P2', createdAt:nowStr() });
     saveTopicCats();
     touchFlow(flowId, { title:vals.title||title, status:'script_todo' });
     ideas = ideas.filter(x=>x.flowId!==flowId); saveIdeas();
@@ -19088,7 +19109,7 @@ function openTopicAddDirect(catId){
     if(!vals || !vals.title) return;
     const flowId = genFlowId();
     const cat = topicCats.find(c=>c.id===catId); if(!cat) return;
-    cat.items.push({ flowId, title:vals.title, audience:vals.audience||'', pain:vals.pain||'', prio:vals.prio||'P2' });
+    cat.items.push({ flowId, title:vals.title, audience:vals.audience||'', pain:vals.pain||'', prio:vals.prio||'P2', createdAt:nowStr() });
     saveTopicCats();
     touchFlow(flowId, { title:vals.title, source:'手动', status:'script_todo' });
     renderTopicBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19126,6 +19147,7 @@ function topicCardHtml(catId, it, draggable){
         ${it.pain?`<div class="mo-card-sub">💢 ${escapeHtml(it.pain)}</div>`:''}
         <div class="mo-card-actions">
           <button class="btn btn-outline btn-sm" onclick="topicToScript('${it.flowId}')">写脚本</button>
+          <button class="btn btn-outline btn-sm" onclick="openFlowDetail('${it.flowId}')">👁 详情</button>
           <button class="btn btn-outline btn-sm" onclick="deleteTopicItem('${catId}','${it.flowId}')">✕</button>
         </div>
       </div>`;
@@ -19133,11 +19155,9 @@ function topicCardHtml(catId, it, draggable){
 function renderTopicBoard(){
   const box = document.getElementById('topicBoard'); if(!box) return;
   if(!topicCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
-  // 已写过脚本（脚本库里存在同 flowId）的选题单独汇总到顶部「✍️ 已写过脚本」区，不混入普通分类
-  const done = [];
+  // 已写过脚本（脚本库里存在同 flowId）的选题已从本看板移除，不再保留在页面（流转到脚本库），可点卡片「👁 详情」查看全流程
   const cards = topicCats.map(cat=>{
     const visItems = (cat.items || []).filter(it => !getScriptByFlowId(it.flowId));
-    (cat.items || []).forEach(it => { if(getScriptByFlowId(it.flowId)) done.push({ catId:cat.id, it }); });
     const body = visItems.map(it => topicCardHtml(cat.id, it, true)).join('') || '<div class="mo-empty">暂无选题</div>';
     return `
     <div class="mo-cat sf-cat-drop" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'topic','${cat.id}')">
@@ -19148,12 +19168,7 @@ function renderTopicBoard(){
       <div class="mo-cat-body" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'topic','${cat.id}')">${body}</div>
     </div>`;
   }).join('');
-  const doneBlock = done.length ? `
-    <div class="mo-cat topic-done-block">
-      <div class="mo-cat-head"><span class="mo-cat-name">✍️ 已写过脚本（${done.length}）</span><span class="mo-cat-count">${done.length}</span></div>
-      <div class="mo-cat-body">${done.map(d => topicCardHtml(d.catId, d.it, false)).join('')}</div>
-    </div>` : '';
-  box.innerHTML = doneBlock + cards;
+  box.innerHTML = cards;
 }
 
 // ============ 脚本库 ============
@@ -19178,7 +19193,7 @@ function openScriptAddDirect(catId){
     if(!vals || !vals.title) return;
     const flowId = vals.topicFlowId || genFlowId();
     const cat = scriptCats.find(c=>c.id===catId); if(!cat) return;
-    cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'' });
+    cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'', createdAt:nowStr() });
     saveScriptCats();
     touchFlow(flowId, { title:vals.title, status:'script_done' });
     // 同步：选题库对应项也算完成（不删除，仅状态更新）
@@ -19204,7 +19219,7 @@ function topicToScript(flowId){
         if(!vals || !vals.title) return;
         const cat = scriptCats[0];
         if(!cat) return;
-        cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'' });
+        cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'', createdAt:nowStr() });
         saveScriptCats();
         touchFlow(flowId, { title:vals.title, status:'script_done' });
         renderScriptBoard(); renderTopicBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19249,16 +19264,17 @@ function renderScriptBoard(){
   if(!scriptCats.length){ box.innerHTML = '<div class="empty-state"><p>还没有分类，点「新分类」创建</p></div>'; return; }
   box.innerHTML = scriptCats.map(cat=>`
     <div class="mo-cat sf-cat-drop" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'script','${cat.id}')">
-      <div class="mo-cat-head"><span class="mo-cat-name" ondblclick="renameSFCat('script','${cat.id}')" title="双击可修改分类名">${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.length}</span>
+      <div class="mo-cat-head"><span class="mo-cat-name" ondblclick="renameSFCat('script','${cat.id}')" title="双击可修改分类名">${escapeHtml(cat.name)}</span><span class="mo-cat-count">${cat.items.filter(it=>!published.some(p=>String(p.flowId)===String(it.flowId))).length}</span>
         <button class="btn btn-outline btn-sm" onclick="openScriptAddDirect('${cat.id}')">➕ 加脚本</button>
         <button class="mo-cat-del" title="删除分类" onclick="deleteSFCat('script','${cat.id}')">🗑</button>
       </div>
-      <div class="mo-cat-body" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'script','${cat.id}')">${cat.items.map(it=>`<div class="mo-card sf-drag" draggable="true" ondragstart="sfDragStart(event,'script','${cat.id}','${it.flowId}')" ondragend="sfDragEnd(event)">
+      <div class="mo-cat-body" ondragover="sfDragOver(event)" ondragenter="sfDragEnter(event)" ondragleave="sfDragLeave(event)" ondrop="sfDropToCat(event,'script','${cat.id}')">${cat.items.filter(it=>!published.some(p=>String(p.flowId)===String(it.flowId))).map(it=>`<div class="mo-card sf-drag" draggable="true" ondragstart="sfDragStart(event,'script','${cat.id}','${it.flowId}')" ondragend="sfDragEnd(event)">
         <div class="mo-card-title" onclick="openScriptEditor('${cat.id}','${it.flowId}')" title="点击打开脚本编辑器">${escapeHtml(it.title)}</div>
         ${it.script?`<div class="mo-card-sub" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">📄 ${escapeHtml(it.script)}</div>`:''}
         ${it.note?`<div class="mo-card-sub">📝 ${escapeHtml(it.note)}</div>`:''}
         <div class="mo-card-actions">
           <button class="btn btn-outline btn-sm" onclick="scriptToShoot('${it.flowId}')">${shootSchedules.find(x=>x.flowId===it.flowId)?'📝 修改排期':'🎬 设置排期'}</button>
+          <button class="btn btn-outline btn-sm" onclick="openFlowDetail('${it.flowId}')">👁 详情</button>
           <button class="btn btn-outline btn-sm" onclick="deleteScriptItem('${cat.id}','${it.flowId}')">✕</button>
         </div>
       </div>`).join('') || '<div class="mo-empty">暂无脚本</div>'}</div>
@@ -19350,7 +19366,7 @@ function renderShootWeek(){
         <div class="sw-card-title">${s.shot?'✅ ':''}${escapeHtml(flowTitle(s.flowId,s.title))}</div>
         ${s.time?`<div class="sw-card-sub">🕐 ${escapeHtml(s.time)}</div>`:''}
         ${s.note?`<div class="sw-card-sub">📝 ${escapeHtml(s.note)}</div>`:''}
-        <div class="sw-card-actions"><button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button><button class="btn btn-outline btn-sm" onclick="deleteShootSchedule('${s.flowId}')" style="color:var(--danger);border-color:var(--danger);">🗑</button></div>
+        <div class="sw-card-actions"><button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button><button class="btn btn-outline btn-sm" onclick="openFlowDetail('${s.flowId}')">👁 详情</button><button class="btn btn-outline btn-sm" onclick="deleteShootSchedule('${s.flowId}')" style="color:var(--danger);border-color:var(--danger);">🗑</button></div>
       </div>`).join('') || '<div class="sw-empty">—</div>'}</div>
     </div>`;
   }).join('');
@@ -19397,7 +19413,7 @@ function openShootScheduleModal(preselectedFlowId){
   ]}, (vals)=>{
     if(!vals || !vals.flowId || !vals.date) return;
     if(shootSchedules.find(x=>x.flowId===vals.flowId)){ showToast('该脚本已存在排期'); return; }
-    shootSchedules.push({ flowId:vals.flowId, date:vals.date, time:vals.time||'', note:vals.note||'', title:flowTitle(vals.flowId) });
+    shootSchedules.push({ flowId:vals.flowId, date:vals.date, time:vals.time||'', note:vals.note||'', title:flowTitle(vals.flowId), createdAt:nowStr() });
     saveShoot();
     touchFlow(vals.flowId, { status:'shoot' });
     renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19516,6 +19532,7 @@ function renderShootCalendar(){
           </div>
           <div class="sd-actions">
             <button class="sd-shot-btn ${s.shot ? 'on' : ''}" onclick="toggleShootShot('${s.flowId}')">${s.shot ? '✅ 已拍' : '标记为已拍'}</button>
+            <button class="btn btn-outline btn-sm" onclick="openFlowDetail('${s.flowId}')">👁 详情</button>
             <button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button>
             <button class="btn btn-outline btn-sm" onclick="deleteShootSchedule('${s.flowId}')" style="color:var(--danger);border-color:var(--danger);">🗑</button>
           </div>
@@ -19539,7 +19556,7 @@ function shootToEdit(flowId){
   const s = shootSchedules.find(x=>x.flowId===flowId);
   shootSchedules = shootSchedules.filter(x=>x.flowId!==flowId);
   saveShoot();
-  editBoard.push({ flowId, status:'pending', note:s?s.note:'', title:flowTitle(flowId) });
+  editBoard.push({ flowId, status:'pending', note:s?s.note:'', title:flowTitle(flowId), createdAt:nowStr() });
   saveEditBoard();
   touchFlow(flowId, { status:'edit_pending' });
   renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19556,7 +19573,7 @@ function openEditFromShootModal(){
     if(!vals || !vals.flowId) return;
     shootSchedules = shootSchedules.filter(x=>x.flowId!==vals.flowId);
     saveShoot();
-    editBoard.push({ flowId:vals.flowId, status:'pending', note:vals.note||'', title:flowTitle(vals.flowId) });
+    editBoard.push({ flowId:vals.flowId, status:'pending', note:vals.note||'', title:flowTitle(vals.flowId), createdAt:nowStr() });
     saveEditBoard();
     touchFlow(vals.flowId, { status:'edit_pending' });
     renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19572,7 +19589,7 @@ function renderEditBoard(){
     <div class="eb-col-body">${arr.map(e=>`<div class="eb-card">
       <div class="eb-card-title">${escapeHtml(flowTitle(e.flowId,e.title))}</div>
       ${e.note?`<div class="eb-card-sub">📝 ${escapeHtml(e.note)}</div>`:''}
-      <div class="eb-card-actions">${allowMove==='pending'?`<button class="btn btn-outline btn-sm" onclick="editMove('${e.flowId}','editing')">→剪辑中</button>`:''}${allowMove==='editing'?`<button class="btn btn-outline btn-sm" onclick="editMove('${e.flowId}','done')">→已完成</button>`:''}${allowMove==='pending'?`<button class="btn btn-outline btn-sm" onclick="editRemove('${e.flowId}')" title="移除并回到拍摄排期">✕</button>`:''}<button class="btn btn-danger btn-sm" onclick="editDelete('${e.flowId}')" title="彻底删除这条内容">🗑</button></div>
+      <div class="eb-card-actions">${allowMove==='pending'?`<button class="btn btn-outline btn-sm" onclick="editMove('${e.flowId}','editing')">→剪辑中</button>`:''}${allowMove==='editing'?`<button class="btn btn-outline btn-sm" onclick="editMove('${e.flowId}','done')">→已完成</button>`:''}${allowMove==='pending'?`<button class="btn btn-outline btn-sm" onclick="editRemove('${e.flowId}')" title="移除并回到拍摄排期">✕</button>`:''}<button class="btn btn-outline btn-sm" onclick="openFlowDetail('${e.flowId}')">👁 详情</button><button class="btn btn-danger btn-sm" onclick="editDelete('${e.flowId}')" title="彻底删除这条内容">🗑</button></div>
     </div>`).join('') || '<div class="eb-empty">空</div>'}</div>
   </div>`;
   box.innerHTML = col('待剪辑', pending, 'pending') + col('剪辑中', editing, 'editing');
@@ -19582,7 +19599,7 @@ function editMove(flowId, status){
   if(status==='done'){
     editBoard = editBoard.filter(x=>x.flowId!==flowId);
     saveEditBoard();
-    pendingPublish.push({ flowId, title:flowTitle(flowId, e.title) });
+    pendingPublish.push({ flowId, title:flowTitle(flowId, e.title), createdAt:nowStr() });
     savePendingPublish();
     touchFlow(flowId, { status:'editing' });
     renderEditBoard(); renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19623,13 +19640,14 @@ function renderPublishList(){
     <div class="pub-title">${escapeHtml(flowTitle(p.flowId,p.title))}</div>
     <div class="pub-actions">
       <button class="btn btn-primary btn-sm" onclick="publishIt('${p.flowId}')">设为已发布</button>
+      <button class="btn btn-outline btn-sm" onclick="openFlowDetail('${p.flowId}')">👁 详情</button>
       <button class="btn btn-danger btn-sm" onclick="deletePendingPublish('${p.flowId}')">🗑</button>
     </div>
   </div>` : `<div class="pub-item pub-done">
     <div class="pub-title">${escapeHtml(flowTitle(p.flowId,p.title))}</div>
     <div class="pub-meta">📱 ${escapeHtml(p.platform||'')} · 🕐 ${escapeHtml(p.publishTime||'')}</div>
     <div class="pub-golden">${p.golden?p.golden.map((g,i)=>`<label class="golden-item"><input type="checkbox" ${g.done?'checked':''} onchange="toggleGolden('${p.flowId}',${i})"> ${escapeHtml(g.text)}</label>`).join(''):''}</div>
-    <div class="pub-actions"><button class="btn btn-danger btn-sm" onclick="deletePublished('${p.flowId}')">🗑</button></div>
+    <div class="pub-actions"><button class="btn btn-outline btn-sm" onclick="openFlowDetail('${p.flowId}')">👁 详情</button><button class="btn btn-danger btn-sm" onclick="deletePublished('${p.flowId}')">🗑</button></div>
   </div>`).join('');
 }
 // 彻底删除「待发布 / 已发布」条目：清掉下游残留，并同步移除搞钱概览中的对应数据
@@ -19672,6 +19690,71 @@ function publishIt(flowId){
 function toggleGolden(flowId, idx){
   const p = published.find(x=>x.flowId===flowId); if(!p || !p.golden) return;
   p.golden[idx].done = !p.golden[idx].done; savePublished();
+}
+
+// ===================== 支线流 · 任务全流程详情 =====================
+// 聚合某条任务（flowId）从「灵感收集箱」到「发布」的全部节点信息（含各节点时间戳）
+function getFlowTimeline(flowId){
+  const fid = String(flowId);
+  const stages = [];
+  const idea = ideas.find(x=>x.flowId===fid);
+  if(idea) stages.push({ stage:'idea', icon:'💡', label:'灵感收集', time:idea.createdAt||'', fields:[
+    ['标题', idea.title], ['来源', idea.source], ['备注', idea.note]
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  let topic = null;
+  topicCats.forEach(c => { const it = (c.items||[]).find(x=>String(x.flowId)===fid); if(it) topic = it; });
+  if(topic) stages.push({ stage:'topic', icon:'🎯', label:'加入选题', time:topic.createdAt||'', fields:[
+    ['选题名', topic.title], ['人群', topic.audience], ['痛点', topic.pain], ['优先级', topic.prio]
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  let script = null;
+  scriptCats.forEach(c => { const it = (c.items||[]).find(x=>String(x.flowId)===fid); if(it) script = it; });
+  if(script) stages.push({ stage:'script', icon:'✍️', label:'脚本创作', time:script.createdAt||'', fields:[
+    ['标题', script.title], ['脚本', script.script], ['备注', script.note]
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  const shoot = shootSchedules.find(x=>String(x.flowId)===fid);
+  if(shoot) stages.push({ stage:'shoot', icon:'🎬', label:'拍摄排期', time:shoot.createdAt||'', fields:[
+    ['拍摄日期', shoot.date], ['时间', shoot.time], ['备注', shoot.note], ['状态', shoot.shot ? '已拍' : '待拍']
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  const edit = editBoard.find(x=>String(x.flowId)===fid);
+  if(edit) stages.push({ stage:'edit', icon:'✂️', label:'剪辑', time:edit.createdAt||'', fields:[
+    ['状态', edit.status==='editing'?'剪辑中':'待剪辑'], ['备注', edit.note]
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  const pend = pendingPublish.find(x=>String(x.flowId)===fid);
+  if(pend) stages.push({ stage:'pending', icon:'🚀', label:'待发布', time:pend.createdAt||'', fields:[
+    ['标题', pend.title]
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  const pub = published.find(x=>String(x.flowId)===fid);
+  if(pub) stages.push({ stage:'published', icon:'📱', label:'已发布', time:pub.publishTime||pub.createdAt||'', fields:[
+    ['平台', pub.platform], ['发布时间', pub.publishTime], ['备注', pub.note],
+    ['黄金1小时', pub.golden && pub.golden.length ? pub.golden.map(g=>(g.done?'✅':'⬜')+' '+g.text).join('；') : '']
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  return stages;
+}
+// 打开某条任务的「全流程详情」：按时间线展示灵感→选题→脚本→拍摄→剪辑→发布 的全部操作
+function openFlowDetail(flowId){
+  const modal = document.getElementById('flowDetailModal');
+  if(!modal) return;
+  const tl = getFlowTimeline(flowId);
+  const title = flowTitle(flowId, '未命名任务');
+  const body = document.getElementById('flowDetailBody');
+  if(!tl.length){
+    body.innerHTML = '<div class="empty-state"><p>没有找到该任务的流程信息</p></div>';
+  } else {
+    body.innerHTML = `<div class="flow-detail-title">${escapeHtml(title)}</div>` + tl.map((s, i)=>`
+      <div class="flow-node ${i===0?'first':''} ${i===tl.length-1?'last':''}">
+        <div class="flow-node-rail"><div class="flow-node-dot">${s.icon}</div></div>
+        <div class="flow-node-body">
+          <div class="flow-node-head"><span class="flow-node-label">${s.label}</span>${s.time?`<span class="flow-node-time">🕐 ${escapeHtml(s.time)}</span>`:''}</div>
+          <div class="flow-node-fields">${s.fields.map(f=>`<div class="flow-field"><span class="flow-field-k">${escapeHtml(f[0])}</span><span class="flow-field-v">${escapeHtml(String(f[1])).replace(/\\n/g,'<br/>')}</span></div>`).join('')}</div>
+        </div>
+      </div>`).join('');
+  }
+  document.getElementById('flowDetailTitle').textContent = '任务全流程';
+  modal.classList.add('show');
+}
+function closeFlowDetail(){
+  const modal = document.getElementById('flowDetailModal');
+  if(modal) modal.classList.remove('show');
 }
 
 function downloadText(filename, text){ const blob=new Blob([text],{type:"text/plain;charset=utf-8"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
@@ -20417,6 +20500,16 @@ _appBooting = false;
 <div class="kitty-modal-actions">
 <button class="kitty-btn-outline" onclick="closeAppPrompt(false)">取消</button>
 <button class="kitty-btn-primary" onclick="closeAppPrompt(true)">确定</button>
+</div>
+</div>
+</div>
+<!-- 支线流 · 任务全流程详情 -->
+<div class="kitty-modal-overlay" id="flowDetailModal" onclick="if(event.target===this)closeFlowDetail()">
+<div class="kitty-modal" style="max-width:460px;max-height:82vh;display:flex;flex-direction:column;">
+<h4 id="flowDetailTitle">任务全流程</h4>
+<div id="flowDetailBody" style="overflow:auto;margin-top:6px;"></div>
+<div class="kitty-modal-actions">
+<button class="kitty-btn-primary" onclick="closeFlowDetail()">知道了</button>
 </div>
 </div>
 </div>
