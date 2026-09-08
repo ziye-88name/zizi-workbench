@@ -3388,6 +3388,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 .pet-daily-right { min-width:0; }
 .pet-daily-hint { font-size:12.5px; color:var(--text-secondary); margin-bottom:10px; }
 .pet-daily-hint b { color:var(--primary); }
+.pet-daily-all-actions { margin:6px 0 14px; }
+.pet-daily-group-actions { display:flex; justify-content:flex-end; margin:2px 0 8px; }
 
 /* 日常打卡日历 */
 .pet-cal { background:linear-gradient(160deg,#FFFFFF 0%,#FFFDF9 100%); border:1px solid rgba(222,210,198,.5); border-radius:16px; padding:12px; box-shadow:0 4px 14px rgba(120,90,70,.05); }
@@ -14510,6 +14512,7 @@ function renderPetDailyAll(petsInView) {
   const wrap = document.getElementById('petDailyWrap');
   if(!wrap) return;
   let html = `<div class="pet-daily-all-hint">全部模式：勾选即保存到各宠物「今天」的打卡，体重/备忘输入后自动保存。点「看完整历史」进入单只完整视图（含日历）。</div>`;
+  html += `<div class="pet-daily-all-actions"><button class="btn btn-primary" onclick="checkInAllDaily()">✅ 一键打卡全部（${petsInView.length} 只）</button></div>`;
   petsInView.forEach(p => {
     const rec = getPetDailyRecordForPet(p.id, PET_TODAY, true);
     const tasks = rec.tasks || [];
@@ -14522,6 +14525,7 @@ function renderPetDailyAll(petsInView) {
       .sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,4);
     html += `<div class="pet-daily-group">
       ${petGroupHeader(p)}
+      <div class="pet-daily-group-actions"><button class="btn btn-outline btn-sm" onclick="checkInAllDaily('${p.id}')">✅ 一键打卡</button></div>
       <div class="pet-progress-wrap" style="margin:4px 0 10px;">
         <div class="pet-progress-bar"><div class="pet-progress-fill" style="width:${pct}%"></div></div>
         <div class="pet-progress-text"><span>今日 ${doneCount}/${totalCount}</span><span>${pct}%</span></div>
@@ -14579,6 +14583,22 @@ function deletePetDailyTask(petId, idx) {
   rec.tasks.splice(idx, 1);
   savePetDailies();
   renderPetDaily();
+}
+/* 一键打卡：petId 为空则对全部宠物，把当天所有未完成任务一次性标记为已完成 */
+function checkInAllDaily(petId) {
+  const ids = petId ? [petId] : getPetsInView().map(p => p.id);
+  let changed = 0;
+  ids.forEach(pid => {
+    const rec = getPetDailyRecordForPet(pid, PET_TODAY, true);
+    if(!rec || !rec.tasks) return;
+    rec.tasks.forEach(t => { if(!t.done) { t.done = true; changed++; } });
+    savePetDailies();
+  });
+  // 重新渲染（保持当前在全部/单只视图）
+  if(getPetsInView().length > 1) renderPetDailyAll(getPetsInView());
+  else renderPetDaily();
+  if(changed > 0) showToast('✅ 已一键打卡 ' + changed + ' 项');
+  else showToast('今日已全部打卡 🎉');
 }
 /* 填写即自动保存（体重 / 食量 / 备忘），按 petId 定位记录 */
 function autoSavePetDaily(petId) {
