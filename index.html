@@ -1073,6 +1073,8 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   min-height: 34px; border-radius: 10px; font-size: 12px; font-weight: 600;
 }
 .daily-mini-calendar .calendar-day.has-content::after { bottom: 2px; font-size: 8px; }
+.daily-cal-today-btn { margin-left: 2px; border: 1px solid var(--border); background: var(--primary-light); color: var(--primary); border-radius: 10px; font-size: 12px; font-weight: 700; padding: 4px 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.daily-cal-today-btn:hover { background: var(--primary); color: #fff; }
 .daily-selected-date {
   text-align: center; margin-top: 14px; padding-top: 14px;
   border-top: 2px dashed var(--border); font-size: 14px; font-weight: 700;
@@ -3803,6 +3805,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <button onclick="changeDailyMonth(-1)">◀</button>
 <span class="month-label" id="dailyCalMonthLabel"></span>
 <button onclick="changeDailyMonth(1)">▶</button>
+<button class="daily-cal-today-btn" onclick="goDailyToday()" title="回到今天，查看今日任务">📍 回到今日</button>
 </div>
 </div>
 <div class="calendar-grid" id="dailyCalendarGrid"></div>
@@ -6919,6 +6922,16 @@ function selectDailyDate(dKey) {
 function changeDailyMonth(dir) {
   dailyCalDate.setMonth(dailyCalDate.getMonth() + dir);
   renderDailyCalendar();
+}
+
+// 今日任务：一键回到今天（重复清单多时方便快速定位今日）
+function goDailyToday() {
+  const t = new Date();
+  dailyCalDate = new Date(t.getFullYear(), t.getMonth(), 1);
+  dailySelectedDate = t;
+  renderDailyCalendar();
+  loadDailyData(dailyDateKey(t));
+  showToast('📍 已回到今天');
 }
 
 // --- 加载某日数据 ---
@@ -14532,20 +14545,22 @@ function renderPetDailyAll(petsInView) {
   const wrap = document.getElementById('petDailyWrap');
   if(!wrap) return;
   let html = `<div class="pet-daily-all-hint">全部模式：勾选即保存到各宠物「今天」的打卡，体重/备忘输入后自动保存。点「看完整历史」进入单只完整视图（含日历）。</div>`;
-  html += `<div class="pet-daily-all-actions"><button class="btn btn-primary" onclick="checkInAllDaily()">✅ 一键打卡全部（${petsInView.length} 只）</button></div>`;
+  const allPetsDone = petsInView.length && petsInView.every(p => { const r = getPetDailyRecordForPet(p.id, PET_TODAY, true); const ts = r.tasks || []; return ts.length > 0 && ts.every(t => t.done); });
+  html += `<div class="pet-daily-all-actions"><button class="btn ${allPetsDone?'btn-outline':'btn-primary'}" onclick="checkInAllDaily()">${allPetsDone?'↺ 取消打卡全部（'+petsInView.length+' 只）':'✅ 一键打卡全部（'+petsInView.length+' 只）'}</button></div>`;
   petsInView.forEach(p => {
     const rec = getPetDailyRecordForPet(p.id, PET_TODAY, true);
     const tasks = rec.tasks || [];
     const doneCount = tasks.filter(t => t.done).length;
     const totalCount = tasks.length;
     const pct = totalCount ? Math.round(doneCount / totalCount * 100) : 0;
+    const groupAllDone = totalCount > 0 && doneCount === totalCount;
     const wRec = petWeightRecords.find(r => r.petId === p.id && r.date === PET_TODAY);
     const weightVal = rec.weight || (wRec ? String(petGramText(wRec.weight)) : '');
     const history = petDailyRecords.filter(r => r.petId === p.id && r.date !== PET_TODAY)
       .sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,4);
     html += `<div class="pet-daily-group">
       ${petGroupHeader(p)}
-      <div class="pet-daily-group-actions"><button class="btn btn-outline btn-sm" onclick="checkInAllDaily('${p.id}')">✅ 一键打卡</button></div>
+      <div class="pet-daily-group-actions"><button class="btn btn-outline btn-sm" onclick="checkInAllDaily('${p.id}')">${groupAllDone?'↺ 取消打卡':'✅ 一键打卡'}</button></div>
       <div class="pet-progress-wrap" style="margin:4px 0 10px;">
         <div class="pet-progress-bar"><div class="pet-progress-fill" style="width:${pct}%"></div></div>
         <div class="pet-progress-text"><span>今日 ${doneCount}/${totalCount}</span><span>${pct}%</span></div>
@@ -14604,21 +14619,28 @@ function deletePetDailyTask(petId, idx) {
   savePetDailies();
   renderPetDaily();
 }
-/* 一键打卡：petId 为空则对全部宠物，把当天所有未完成任务一次性标记为已完成 */
+/* 一键打卡：可切换。petId 为空则对全部宠物。
+   若当天任务已全部完成，则再次点击=取消打卡（全部取消）；否则=全部打卡 */
 function checkInAllDaily(petId) {
   const ids = petId ? [petId] : getPetsInView().map(p => p.id);
-  let changed = 0;
+  let doneN = 0, undoneN = 0;
   ids.forEach(pid => {
     const rec = getPetDailyRecordForPet(pid, PET_TODAY, true);
-    if(!rec || !rec.tasks) return;
-    rec.tasks.forEach(t => { if(!t.done) { t.done = true; changed++; } });
+    if(!rec || !rec.tasks || !rec.tasks.length) return;
+    const allDone = rec.tasks.every(t => t.done);
+    if(allDone) {
+      rec.tasks.forEach(t => { if(t.done) { t.done = false; undoneN++; } });
+    } else {
+      rec.tasks.forEach(t => { if(!t.done) { t.done = true; doneN++; } });
+    }
     savePetDailies();
   });
   // 重新渲染（保持当前在全部/单只视图）
   if(getPetsInView().length > 1) renderPetDailyAll(getPetsInView());
   else renderPetDaily();
-  if(changed > 0) showToast('✅ 已一键打卡 ' + changed + ' 项');
-  else showToast('今日已全部打卡 🎉');
+  if(undoneN > 0 && doneN === 0) showToast('↺ 已取消一键打卡 ' + undoneN + ' 项');
+  else if(doneN > 0) showToast('✅ 已一键打卡 ' + doneN + ' 项');
+  else showToast('今日暂无打卡项');
 }
 /* 填写即自动保存（体重 / 食量 / 备忘），按 petId 定位记录 */
 function autoSavePetDaily(petId) {
@@ -14638,6 +14660,10 @@ function autoSavePetDaily(petId) {
     if(ex) { ex.weight = w; ex.unit = 'g'; ex.note = '日常打卡'; }
     else petWeightRecords.push({ id: genPetRecordId(), petId: petId, date: date, weight: w, unit:'g', note:'日常打卡' });
     savePetWeights();
+  } else {
+    // 体重清空：删除该日期对应的体重记录，避免趋势图/仪表盘残留导致「清除不掉」
+    const ex = petWeightRecords.find(r => r.petId === petId && r.date === date);
+    if(ex) { petWeightRecords = petWeightRecords.filter(r => r !== ex); savePetWeights(); }
   }
   savePetDailies();
   renderPetDailyCalendar(); // 只刷新日历标记，输入框不会失焦
@@ -19545,6 +19571,7 @@ function toggleShootShot(flowId){
   const s = shootSchedules.find(x => x.flowId === flowId);
   if(!s) return;
   s.shot = !s.shot;
+  s.shotAt = s.shot ? nowStr() : '';   // 记录实际拍摄完成时间，供流程详情展示
   saveShoot();
   renderShootCalendar();
   renderShootWeek();
@@ -19597,6 +19624,7 @@ function renderEditBoard(){
 function editMove(flowId, status){
   const e = editBoard.find(x=>x.flowId===flowId); if(!e) return;
   if(status==='done'){
+    e.editDoneAt = nowStr();   // 记录剪辑完成时间
     editBoard = editBoard.filter(x=>x.flowId!==flowId);
     saveEditBoard();
     pendingPublish.push({ flowId, title:flowTitle(flowId, e.title), createdAt:nowStr() });
@@ -19606,6 +19634,7 @@ function editMove(flowId, status){
     showToast('✅ 剪辑完成，去发布列表发布吧');
     return;
   }
+  if(status==='editing' && e.status!=='editing') e.editStartAt = nowStr();   // 记录开始剪辑时间
   e.status = status; saveEditBoard();
   touchFlow(flowId, { status: status==='editing'?'editing':'edit_pending' });
   renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19712,12 +19741,18 @@ function getFlowTimeline(flowId){
     ['标题', script.title], ['脚本', script.script], ['备注', script.note]
   ].filter(f => f[1] && String(f[1]).trim()!=='') });
   const shoot = shootSchedules.find(x=>String(x.flowId)===fid);
-  if(shoot) stages.push({ stage:'shoot', icon:'🎬', label:'拍摄排期', time:shoot.createdAt||'', fields:[
-    ['拍摄日期', shoot.date], ['时间', shoot.time], ['备注', shoot.note], ['状态', shoot.shot ? '已拍' : '待拍']
+  if(shoot) stages.push({ stage:'shoot', icon:'🎬', label:'拍摄排期', time:shoot.shot && shoot.shotAt ? shoot.shotAt : shoot.createdAt || '', fields:[
+    ['排期时间', (shoot.date||'') + (shoot.time ? ' ' + shoot.time : '')],
+    ['备注', shoot.note],
+    ['状态', shoot.shot ? '已拍' : '待拍'],
+    ['拍摄完成时间', shoot.shotAt || '']
   ].filter(f => f[1] && String(f[1]).trim()!=='') });
   const edit = editBoard.find(x=>String(x.flowId)===fid);
   if(edit) stages.push({ stage:'edit', icon:'✂️', label:'剪辑', time:edit.createdAt||'', fields:[
-    ['状态', edit.status==='editing'?'剪辑中':'待剪辑'], ['备注', edit.note]
+    ['状态', edit.status==='editing'?'剪辑中':(edit.status==='done'?'已完成':'待剪辑')],
+    ['备注', edit.note],
+    ['开始剪辑', edit.editStartAt || ''],
+    ['剪辑完成', edit.editDoneAt || '']
   ].filter(f => f[1] && String(f[1]).trim()!=='') });
   const pend = pendingPublish.find(x=>String(x.flowId)===fid);
   if(pend) stages.push({ stage:'pending', icon:'🚀', label:'待发布', time:pend.createdAt||'', fields:[
