@@ -3598,6 +3598,7 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <div class="menu-item" data-panel="sideFlow"><div class="menu-icon">🌊</div><span>我的支线流</span></div>
 <div class="menu-item" data-panel="products"><div class="menu-icon">🛒</div><span>我的选品</span></div>
 <div class="menu-item" data-panel="liveScript"><div class="menu-icon">🎙️</div><span>我的直播话术</span></div>
+<div class="menu-item" data-panel="contentReview"><div class="menu-icon">📝</div><span>内容复盘</span></div>
 </div>
 </div>
 <div class="menu-group" data-group="finance" id="menuGroupFinance">
@@ -3621,7 +3622,6 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 </div>
 <div class="menu-item" data-panel="pets"><div class="menu-icon">🐾</div><span>我的小宠</span></div>
 <div class="menu-item" data-panel="lifeList"><div class="menu-icon">⚡</div><span>i人回血</span></div>
-<div class="menu-item" data-panel="contentReview"><div class="menu-icon">📝</div><span>内容复盘</span></div>
 <div class="menu-item" data-panel="settings"><div class="menu-icon">⚙️</div><span>设置</span></div>
 </div>
 <div class="sidebar-footer">🐦 鸟用品短视频 &amp; 直播变现助手<br/>今日日期：<span id="sidebarDate"></span></div>
@@ -18856,6 +18856,21 @@ function purgeFlowDownstream(flowId){
   if(nPub   !== published)     { published = nPub;        savePublished(); }
   return changed;
 }
+// 彻底删除一条内容的全部环节（上游灵感/选题/脚本 + 下游排期/剪辑/待发布/已发布 + 搞钱概览）：
+// 在「已发布/待发布/剪辑/脚本」任意节点删除时都调用它，保证删除后不残留、不再复活到上游看板，概览实时同步。
+function purgeFlowAll(flowId){
+  const fid = String(flowId);
+  ideas = ideas.filter(x => x.flowId !== fid); saveIdeas();
+  topicCats = topicCats.map(c => ({ ...c, items: (c.items || []).filter(x => String(x.flowId) !== fid) })); saveTopicCats();
+  scriptCats = scriptCats.map(c => ({ ...c, items: (c.items || []).filter(x => String(x.flowId) !== fid) })); saveScriptCats();
+  shootSchedules = shootSchedules.filter(x => x.flowId !== fid); saveShoot();
+  editBoard = editBoard.filter(x => x.flowId !== fid); saveEditBoard();
+  pendingPublish = pendingPublish.filter(x => x.flowId !== fid); savePendingPublish();
+  published = published.filter(x => x.flowId !== fid); savePublished();
+  const before = flowItems.length;
+  flowItems = flowItems.filter(x => x.flowId !== fid);
+  if(flowItems.length !== before) saveFlow();
+}
 // 当某 flowId 从所有支线流环节中消失时，同步从搞钱概览（flowItems）中清理
 function cleanupFlowItem(flowId){
   if(isFlowReferenced(flowId)) return;
@@ -19304,35 +19319,8 @@ function deleteScriptItem(catId, flowId){
   const it = cat.items.find(x=>x.flowId===flowId); if(!it) return;
   const title = it.title || '未命名';
   showConfirm('确定删除脚本「' + title + '」吗？<br/>相关排期、剪辑看板、待发布/已发布、搞钱概览数据会同步删除，且不可恢复。', ()=>{
-    // 1) 删除脚本
-    cat.items = cat.items.filter(x=>x.flowId!==flowId);
-    saveScriptCats();
-    // 2) 级联删除拍摄排期
-    const hadSchedule = shootSchedules.some(x=>x.flowId===flowId);
-    shootSchedules = shootSchedules.filter(x=>x.flowId!==flowId);
-    if(hadSchedule) saveShoot();
-    // 3) 级联删除剪辑看板
-    const hadEdit = editBoard.some(x=>x.flowId===flowId);
-    editBoard = editBoard.filter(x=>x.flowId!==flowId);
-    if(hadEdit) saveEditBoard();
-    // 4) 级联删除待发布 / 已发布
-    const hadPending = pendingPublish.some(x=>x.flowId===flowId);
-    const hadPublished = published.some(x=>x.flowId===flowId);
-    pendingPublish = pendingPublish.filter(x=>x.flowId!==flowId);
-    published = published.filter(x=>x.flowId!==flowId);
-    if(hadPending) savePendingPublish();
-    if(hadPublished) savePublished();
-    // 5) 级联删除上游（选题库 / 灵感箱）：脚本由选题流转而来，删除脚本即整条内容作废，
-    //    一并清除上游，避免「脚本库已删但搞钱概览仍显示」的残留
-    const hadTopic = topicCats.some(c => (c.items || []).some(x => String(x.flowId) === String(flowId)));
-    if(hadTopic){
-      topicCats.forEach(c => { c.items = (c.items || []).filter(x => String(x.flowId) !== String(flowId)); });
-      saveTopicCats();
-    }
-    const hadIdea = ideas.some(x => String(x.flowId) === String(flowId));
-    if(hadIdea){ ideas = ideas.filter(x => String(x.flowId) !== String(flowId)); saveIdeas(); }
-    // 6) 若该 flowId 已没有任何环节引用，从搞钱概览清理
-    cleanupFlowItem(flowId);
+    // 彻底删除整条内容（含上游灵感/选题/脚本 + 下游排期/剪辑/待发布/已发布 + 搞钱概览）
+    purgeFlowAll(flowId);
     renderScriptBoard(); renderTopicBoard(); renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
     try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
     showToast('🗑 脚本及相关数据已删除');
@@ -19445,7 +19433,7 @@ function renderShootWeek(){
         <div class="sw-card-title">${s.shot?'✅ ':''}${escapeHtml(flowTitle(s.flowId,s.title))}</div>
         ${s.time?`<div class="sw-card-sub">🕐 ${escapeHtml(s.time)}</div>`:''}
         ${s.note?`<div class="sw-card-sub">📝 ${escapeHtml(s.note)}</div>`:''}
-        <div class="sw-card-actions"><button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button><button class="btn btn-outline btn-sm" onclick="openFlowDetail('${s.flowId}')">👁 详情</button><button class="btn btn-outline btn-sm" onclick="deleteShootSchedule('${s.flowId}')" style="color:var(--danger);border-color:var(--danger);">🗑</button></div>
+        <div class="sw-card-actions"><button class="btn btn-outline btn-sm" onclick="openShootScheduleModal('${s.flowId}')">✏️ 编辑</button><button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button><button class="btn btn-outline btn-sm" onclick="openFlowDetail('${s.flowId}')">👁 详情</button><button class="btn btn-outline btn-sm" onclick="deleteShootSchedule('${s.flowId}')" style="color:var(--danger);border-color:var(--danger);">🗑</button></div>
       </div>`).join('') || '<div class="sw-empty">—</div>'}</div>
     </div>`;
   }).join('');
@@ -19624,6 +19612,7 @@ function renderShootCalendar(){
           </div>
           <div class="sd-actions">
             <button class="sd-shot-btn ${s.shot ? 'on' : ''}" onclick="toggleShootShot('${s.flowId}')">${s.shot ? '✅ 已拍' : '标记为已拍'}</button>
+            <button class="btn btn-outline btn-sm" onclick="openShootScheduleModal('${s.flowId}')">✏️ 编辑</button>
             <button class="btn btn-outline btn-sm" onclick="openFlowDetail('${s.flowId}')">👁 详情</button>
             <button class="btn btn-outline btn-sm" onclick="shootToEdit('${s.flowId}')">剪辑</button>
             <button class="btn btn-outline btn-sm" onclick="deleteShootSchedule('${s.flowId}')" style="color:var(--danger);border-color:var(--danger);">🗑</button>
@@ -19729,10 +19718,9 @@ function editMove(flowId, status){
 function editDelete(flowId){
   const e = editBoard.find(x=>x.flowId===flowId); if(!e) return;
   showConfirm('确定彻底删除「' + escapeHtml(flowTitle(flowId, e.title) || '该任务') + '」吗？<br/>相关排期、待发布/已发布以及搞钱概览中的这条数据都会一并删除。', ()=>{
-    editBoard = editBoard.filter(x=>x.flowId!==flowId); saveEditBoard();
-    purgeFlowDownstream(flowId);
-    cleanupFlowItem(flowId);
+    purgeFlowAll(flowId);
     renderEditBoard(); renderShootWeek(); renderShootCalendar(); renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    try { if(typeof renderHome === 'function') renderHome(); } catch(err){}
     showToast('🗑 已删除');
   }, { title:'删除剪辑任务', danger:true });
 }
@@ -19768,20 +19756,20 @@ function renderPublishList(){
 // 彻底删除「待发布 / 已发布」条目：清掉下游残留，并同步移除搞钱概览中的对应数据
 function deletePendingPublish(flowId){
   const e = pendingPublish.find(x=>x.flowId===flowId); if(!e) return;
-  showConfirm('确定彻底删除「' + escapeHtml(flowTitle(flowId, e.title)) + '」吗？<br/>搞钱概览中的这条数据也会一并删除。', ()=>{
-    pendingPublish = pendingPublish.filter(x=>x.flowId!==flowId); savePendingPublish();
-    cleanupFlowItem(flowId);
-    renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
-    showToast('🗑 已删除');
+  showConfirm('确定彻底删除「' + escapeHtml(flowTitle(flowId, e.title)) + '」吗？<br/>相关内容（灵感/选题/脚本/排期/剪辑等）与搞钱概览数据会一并删除，且不可恢复。', ()=>{
+    purgeFlowAll(flowId);
+    renderPublishList(); renderShootWeek(); renderShootCalendar(); renderScriptBoard(); renderTopicBoard(); renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    try { if(typeof renderHome === 'function') renderHome(); } catch(err){}
+    showToast('🗑 已彻底删除');
   }, { title:'删除待发布', danger:true });
 }
 function deletePublished(flowId){
   const p = published.find(x=>x.flowId===flowId); if(!p) return;
-  showConfirm('确定彻底删除「' + escapeHtml(flowTitle(flowId, p.title)) + '」吗？<br/>搞钱概览中的这条数据也会一并删除。', ()=>{
-    published = published.filter(x=>x.flowId!==flowId); savePublished();
-    cleanupFlowItem(flowId);
-    renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
-    showToast('🗑 已删除');
+  showConfirm('确定彻底删除「' + escapeHtml(flowTitle(flowId, p.title)) + '」吗？<br/>相关内容（灵感/选题/脚本/排期/剪辑/待发布等）与搞钱概览数据会一并删除，且不可恢复。', ()=>{
+    purgeFlowAll(flowId);
+    renderPublishList(); renderShootWeek(); renderShootCalendar(); renderScriptBoard(); renderTopicBoard(); renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
+    try { if(typeof renderHome === 'function') renderHome(); } catch(err){}
+    showToast('🗑 已彻底删除');
   }, { title:'删除已发布', danger:true });
 }
 function publishIt(flowId){
