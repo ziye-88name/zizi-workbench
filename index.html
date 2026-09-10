@@ -2715,7 +2715,12 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
   display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
 }
 #panel-expense .cm-parent-head .cm-icon { font-size: 20px; }
-#panel-expense .cm-parent-head .cm-name { flex: 1; font-weight: 700; color: #4C4556; font-size: 15px; }
+#panel-expense .cm-parent-head .cm-name { flex: 1; font-weight: 700; color: #4C4556; font-size: 15px; cursor: text; }
+#panel-expense .cm-parent-head .cm-name-edit {
+  flex: 1; font-weight: 700; font-size: 15px; color: #4C4556;
+  border: 1.5px solid var(--kitty-pink); border-radius: 8px; padding: 2px 8px;
+  outline: none; min-width: 0; font-family: inherit; background: #fff;
+}
 #panel-expense .cm-parent-head .cm-count {
   font-size: 11px; color: #9C95A8; background: #F0EAF3; border-radius: 999px;
   padding: 2px 8px;
@@ -3618,10 +3623,10 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 </div>
 <div class="menu-group-body">
 <div class="menu-item" data-panel="travel"><div class="menu-icon">🧳</div><span>逃离计划</span></div>
-</div>
-</div>
 <div class="menu-item" data-panel="pets"><div class="menu-icon">🐾</div><span>我的小宠</span></div>
 <div class="menu-item" data-panel="lifeList"><div class="menu-icon">⚡</div><span>i人回血</span></div>
+</div>
+</div>
 <div class="menu-item" data-panel="settings"><div class="menu-icon">⚙️</div><span>设置</span></div>
 </div>
 <div class="sidebar-footer">🐦 鸟用品短视频 &amp; 直播变现助手<br/>今日日期：<span id="sidebarDate"></span></div>
@@ -16473,7 +16478,7 @@ function renderCategoryManageList() {
     <div class="cm-parent">
       <div class="cm-parent-head">
         <span class="cm-icon">${p.icon}</span>
-        <span class="cm-name">${escapeHtml(p.name)}</span>
+        <span class="cm-name" data-pid="${p.id}" title="双击修改一级分类名称" ondblclick="editCategoryParentName('${p.id}')">${escapeHtml(p.name)}</span>
         <span class="cm-count">${(p.children||[]).length}</span>
         <button class="cm-del" onclick="deleteCategoryParent('${p.id}')">删除</button>
       </div>
@@ -16512,6 +16517,37 @@ function deleteCategoryParent(pid) {
     parents.splice(idx, 1);
     renderCategoryManageList();
   });
+}
+/* 双击一级分类名称即可内联修改（回车保存 / Esc 取消） */
+function editCategoryParentName(pid) {
+  const parents = getCategoryParents(cmType);
+  const p = parents.find(x => x.id === pid);
+  if (!p) return;
+  const nameEl = document.querySelector('.cm-name[data-pid="' + pid + '"]');
+  if (!nameEl || nameEl.querySelector('input')) return;
+  nameEl.innerHTML = '';
+  const inp = document.createElement('input');
+  inp.className = 'cm-name-edit';
+  inp.value = p.name;
+  nameEl.appendChild(inp);
+  inp.focus(); inp.select();
+  let done = false;
+  const finish = (cancel) => {
+    if (done) return; done = true;
+    if (!cancel) {
+      const v = inp.value.trim();
+      if (v && v !== p.name) {
+        if (parents.find(x => x.id !== pid && x.name === v)) { showToast('该分类已存在'); }
+        else p.name = v;
+      }
+    }
+    renderCategoryManageList();
+  };
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); finish(false); }
+    else if (e.key === 'Escape') { e.preventDefault(); finish(true); }
+  });
+  inp.addEventListener('blur', () => finish(false));
 }
 function addCategoryChild(pid) {
   const iconInput = document.getElementById('cmChildIcon_' + pid);
