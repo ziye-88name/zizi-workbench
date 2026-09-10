@@ -198,17 +198,19 @@ body {
 .lc-title { font-size: 22px; font-weight: 700; color: #7B6FA0; }
 .lc-sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
 .lc-add-card {
-  background: #fff; border-radius: var(--radius-sm); padding: 14px;
+  background: #fff; border-radius: var(--radius-sm); padding: 10px 12px;
   box-shadow: var(--shadow-soft); border: 2px solid rgba(129,199,132,0.15);
-  margin-bottom: 18px;
+  margin-top: 6px;
 }
 .lc-textarea {
-  width: 100%; border: 2px solid var(--kitty-pink-light); border-radius: 14px;
-  padding: 12px 14px; font-family: inherit; font-size: 15px; color: #6d5a6d;
+  width: 100%; border: 2px solid var(--kitty-pink-light); border-radius: 12px;
+  padding: 8px 12px; font-family: inherit; font-size: 14px; color: #6d5a6d;
   background: #fff; outline: none; resize: vertical; box-sizing: border-box; line-height: 1.5;
+  min-height: 38px; max-height: 120px;
 }
 .lc-textarea:focus { border-color: var(--kitty-pink); box-shadow: 0 0 0 3px rgba(255,183,197,0.2); }
-.lc-add-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+.lc-add-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.lc-add-actions .kitty-btn-primary, .lc-add-actions .kitty-btn-outline { padding: 6px 14px; font-size: 13px; }
 .lc-list { display: flex; flex-direction: column; gap: 12px; }
 .lc-item {
   background: linear-gradient(135deg, #FFFFFF 0%, #F1F8E9 100%);
@@ -3661,14 +3663,14 @@ thead th[data-col-key].col-drag-over { outline: 2px dashed var(--primary); outli
 <div class="lc-title">🌟 我想过怎么的人生</div>
 <div class="lc-sub">写下一句句人生信条，随时回看，提醒自己真正想要的生活</div>
 </div>
+<div class="lc-list" id="lifeCredoList"></div>
 <div class="lc-add-card">
-<textarea class="lc-textarea" id="lifeCredoInput" placeholder="例如：我希望每天都能被自己热爱的事叫醒……" rows="2"></textarea>
+<textarea class="lc-textarea" id="lifeCredoInput" placeholder="写下一句人生信条…" rows="1"></textarea>
 <div class="lc-add-actions">
 <button class="kitty-btn-outline" onclick="clearLifeCredoInput()">清空</button>
-<button class="kitty-btn-primary" onclick="addLifeCredo()">➕ 添加信条</button>
+<button class="kitty-btn-primary" onclick="addLifeCredo()">➕ 添加</button>
 </div>
 </div>
-<div class="lc-list" id="lifeCredoList"></div>
 </div>
 <div class="k2-card">
 <div class="home-shortcut-head">
@@ -6073,6 +6075,21 @@ function getHomeStreakMessages() {
       if (isStreakDismissed(key)) return;
       msgs.push({ type:'warn', key, text:`⏰ <b>${escapeHtml(title)}</b> 任务已逾期 <b>${overdueDays}</b> 天，请及时处理！` });
     });
+  });
+  // 拍摄排期逾期提醒（支线流 · 拍摄执行）：排期日期早于今天、且尚未标记为「已拍」的，
+  // 播报到首页「打卡小播报」，提醒及时去拍摄
+  const shootTodayKey = dailyDateKey(new Date());
+  shootSchedules.forEach(s => {
+    if(s.shot) return;
+    const sDate = (s.date || '').trim();
+    if(!sDate) return;
+    if(sDate >= shootTodayKey) return;
+    const sOverdue = Math.round((new Date(shootTodayKey + 'T00:00:00') - new Date(sDate + 'T00:00:00')) / 86400000);
+    if(sOverdue <= 0) return;
+    const sTitle = flowTitle(s.flowId, s.title) || '（未命名排期）';
+    const sKey = 'shoot_overdue|' + String(s.flowId);
+    if(isStreakDismissed(sKey)) return;
+    msgs.push({ type:'warn', key:sKey, text:`🎬 拍摄排期 <b>${escapeHtml(sTitle)}</b> 已逾期 <b>${sOverdue}</b> 天，记得去「拍摄执行」完成拍摄！` });
   });
   return msgs;
 }
@@ -18796,6 +18813,18 @@ function touchFlow(flowId, patch){
   return it;
 }
 function getFlow(flowId){ return flowItems.find(x=>x.flowId===flowId); }
+// 流程历史：把每个节点（灵感/选题/脚本/拍摄/剪辑/待发布/发布）的关键信息与时间戳
+// 持久化进 flowItem.history。节点流转出原看板后（灵感被采纳、拍摄转入剪辑、剪辑完成等），
+// 看板不再保留该数据，但历史里始终留存，保证「👁 详情」能回顾从灵感到发布的全部过程与时间。
+function pushFlowHistory(flowId, entry){
+  if(!entry || !entry.stage) return;
+  let it = flowItems.find(x=>x.flowId===flowId);
+  if(!it){ it = { flowId, createdAt: nowStr(), title:'', source:'手动', status:'selected', history:[] }; flowItems.push(it); }
+  if(!it.history) it.history = [];
+  const idx = it.history.findIndex(h=>h.stage===entry.stage);
+  if(idx>=0) it.history[idx] = entry; else it.history.push(entry);
+  saveFlow();
+}
 // 搞钱概览（flowItems）与支线流联动：flowId 只要在任一环节还存在，就保留
 function isFlowReferenced(flowId){
   if(topicCats.some(c => c.items.some(x => x.flowId === flowId))) return true;
@@ -19108,6 +19137,9 @@ function openTopicCatModal(pendingFlowId){
 function pickTopicCat(flowId){
   const it = ideas.find(x=>x.flowId===flowId);
   const title = it?it.title:'';
+  if(it) pushFlowHistory(flowId, { stage:'idea', icon:'💡', label:'灵感收集', time:it.createdAt||'', fields:[
+    ['标题', it.title], ['来源', it.source], ['备注', it.note]
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
   showAppPrompt({ title:'加入选题库', fields:[
     { key:'catId', label:'选择分类', type:'select', options:topicCats.map(c=>({value:c.id,text:c.name})) },
     { key:'title', label:'标题', value:title },
@@ -19117,7 +19149,11 @@ function pickTopicCat(flowId){
   ]}, (vals)=>{
     if(!vals || !vals.catId) return;
     const cat = topicCats.find(c=>c.id===vals.catId); if(!cat) return;
-    cat.items.push({ flowId, title:vals.title||title, audience:vals.audience||'', pain:vals.pain||'', prio:vals.prio||'P2', createdAt:nowStr() });
+    const topicObj = { flowId, title:vals.title||title, audience:vals.audience||'', pain:vals.pain||'', prio:vals.prio||'P2', createdAt:nowStr() };
+    cat.items.push(topicObj);
+    pushFlowHistory(flowId, { stage:'topic', icon:'🎯', label:'加入选题', time:topicObj.createdAt, fields:[
+      ['选题名', topicObj.title], ['人群', topicObj.audience], ['痛点', topicObj.pain], ['优先级', topicObj.prio]
+    ].filter(f => f[1] && String(f[1]).trim()!=='') });
     saveTopicCats();
     touchFlow(flowId, { title:vals.title||title, status:'script_todo' });
     ideas = ideas.filter(x=>x.flowId!==flowId); saveIdeas();
@@ -19219,7 +19255,11 @@ function openScriptAddDirect(catId){
     if(!vals || !vals.title) return;
     const flowId = vals.topicFlowId || genFlowId();
     const cat = scriptCats.find(c=>c.id===catId); if(!cat) return;
-    cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'', createdAt:nowStr() });
+    const scriptObj = { flowId, title:vals.title, script:vals.script||'', note:vals.note||'', createdAt:nowStr() };
+    cat.items.push(scriptObj);
+    pushFlowHistory(flowId, { stage:'script', icon:'✍️', label:'脚本创作', time:scriptObj.createdAt, fields:[
+      ['标题', scriptObj.title], ['脚本', scriptObj.script], ['备注', scriptObj.note]
+    ].filter(f => f[1] && String(f[1]).trim()!=='') });
     saveScriptCats();
     touchFlow(flowId, { title:vals.title, status:'script_done' });
     // 同步：选题库对应项也算完成（不删除，仅状态更新）
@@ -19245,7 +19285,11 @@ function topicToScript(flowId){
         if(!vals || !vals.title) return;
         const cat = scriptCats[0];
         if(!cat) return;
-        cat.items.push({ flowId, title:vals.title, script:vals.script||'', note:vals.note||'', createdAt:nowStr() });
+        const scriptObj = { flowId, title:vals.title, script:vals.script||'', note:vals.note||'', createdAt:nowStr() };
+        cat.items.push(scriptObj);
+        pushFlowHistory(flowId, { stage:'script', icon:'✍️', label:'脚本创作', time:scriptObj.createdAt, fields:[
+          ['标题', scriptObj.title], ['脚本', scriptObj.script], ['备注', scriptObj.note]
+        ].filter(f => f[1] && String(f[1]).trim()!=='') });
         saveScriptCats();
         touchFlow(flowId, { title:vals.title, status:'script_done' });
         renderScriptBoard(); renderTopicBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19429,6 +19473,12 @@ function openShootScheduleModal(preselectedFlowId){
       existing.note = vals.note||'';
       existing.title = flowTitle(vals.flowId);
       saveShoot();
+      pushFlowHistory(vals.flowId, { stage:'shoot', icon:'🎬', label:'拍摄排期', time:existing.createdAt||nowStr(), fields:[
+        ['排期时间', (existing.date||'') + (existing.time ? ' ' + existing.time : '')],
+        ['备注', existing.note],
+        ['状态', existing.shot ? '已拍' : '待拍'],
+        ['拍摄完成时间', existing.shotAt || '']
+      ].filter(f => f[1] && String(f[1]).trim()!=='') });
       touchFlow(vals.flowId, { status:'shoot' });
       renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
       try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
@@ -19448,7 +19498,14 @@ function openShootScheduleModal(preselectedFlowId){
   ]}, (vals)=>{
     if(!vals || !vals.flowId || !vals.date) return;
     if(shootSchedules.find(x=>x.flowId===vals.flowId)){ showToast('该脚本已存在排期'); return; }
-    shootSchedules.push({ flowId:vals.flowId, date:vals.date, time:vals.time||'', note:vals.note||'', title:flowTitle(vals.flowId), createdAt:nowStr() });
+    const shootObj = { flowId:vals.flowId, date:vals.date, time:vals.time||'', note:vals.note||'', title:flowTitle(vals.flowId), createdAt:nowStr() };
+    shootSchedules.push(shootObj);
+    pushFlowHistory(vals.flowId, { stage:'shoot', icon:'🎬', label:'拍摄排期', time:shootObj.createdAt, fields:[
+      ['排期时间', (shootObj.date||'') + (shootObj.time ? ' ' + shootObj.time : '')],
+      ['备注', shootObj.note],
+      ['状态', '待拍'],
+      ['拍摄完成时间', '']
+    ].filter(f => f[1] && String(f[1]).trim()!=='') });
     saveShoot();
     touchFlow(vals.flowId, { status:'shoot' });
     renderShootWeek(); renderShootCalendar(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19590,9 +19647,19 @@ function toggleShootShot(flowId){
 function shootToEdit(flowId){
   if(editBoard.find(x=>x.flowId===flowId)){ showToast('已在剪辑看板'); return; }
   const s = shootSchedules.find(x=>x.flowId===flowId);
+  if(s) pushFlowHistory(flowId, { stage:'shoot', icon:'🎬', label:'拍摄排期', time:s.shot && s.shotAt ? s.shotAt : s.createdAt||'', fields:[
+    ['排期时间', (s.date||'') + (s.time ? ' ' + s.time : '')],
+    ['备注', s.note],
+    ['状态', s.shot ? '已拍' : '待拍'],
+    ['拍摄完成时间', s.shotAt || '']
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
   shootSchedules = shootSchedules.filter(x=>x.flowId!==flowId);
   saveShoot();
-  editBoard.push({ flowId, status:'pending', note:s?s.note:'', title:flowTitle(flowId), createdAt:nowStr() });
+  const editObj = { flowId, status:'pending', note:s?s.note:'', title:flowTitle(flowId), createdAt:nowStr() };
+  editBoard.push(editObj);
+  pushFlowHistory(flowId, { stage:'edit', icon:'✂️', label:'剪辑', time:editObj.createdAt, fields:[
+    ['状态', '待剪辑'], ['备注', editObj.note]
+  ].filter(f => f[1] && String(f[1]).trim()!=='') });
   saveEditBoard();
   touchFlow(flowId, { status:'edit_pending' });
   renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19634,9 +19701,19 @@ function editMove(flowId, status){
   const e = editBoard.find(x=>x.flowId===flowId); if(!e) return;
   if(status==='done'){
     e.editDoneAt = nowStr();   // 记录剪辑完成时间
+    pushFlowHistory(flowId, { stage:'edit', icon:'✂️', label:'剪辑', time:e.createdAt||'', fields:[
+      ['状态', '已完成'],
+      ['备注', e.note],
+      ['开始剪辑', e.editStartAt || ''],
+      ['剪辑完成', e.editDoneAt || '']
+    ].filter(f => f[1] && String(f[1]).trim()!=='') });
     editBoard = editBoard.filter(x=>x.flowId!==flowId);
     saveEditBoard();
-    pendingPublish.push({ flowId, title:flowTitle(flowId, e.title), createdAt:nowStr() });
+    const pendObj = { flowId, title:flowTitle(flowId, e.title), createdAt:nowStr() };
+    pendingPublish.push(pendObj);
+    pushFlowHistory(flowId, { stage:'pending', icon:'🚀', label:'待发布', time:pendObj.createdAt, fields:[
+      ['标题', pendObj.title]
+    ].filter(f => f[1] && String(f[1]).trim()!=='') });
     savePendingPublish();
     touchFlow(flowId, { status:'editing' });
     renderEditBoard(); renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19719,6 +19796,9 @@ function publishIt(flowId){
     pendingPublish = pendingPublish.filter(x=>x.flowId!==flowId); savePendingPublish();
     const golden = (vals.golden||'').split('\n').map(t=>t.trim()).filter(Boolean).map(t=>({text:t,done:false}));
     published.push({ flowId, platform:vals.platform||'', publishTime:vals.publishTime||'', note:vals.note||'', title:flowTitle(flowId), golden });
+    pushFlowHistory(flowId, { stage:'published', icon:'📱', label:'已发布', time:vals.publishTime||nowStr(), fields:[
+      ['平台', vals.platform||''], ['发布时间', vals.publishTime||''], ['备注', vals.note||'']
+    ].filter(f => f[1] && String(f[1]).trim()!=='') });
     savePublished();
     touchFlow(flowId, { status:'published' });
     renderPublishList(); renderMoneyOverviewList(); renderMoneyOverviewBoard();
@@ -19734,44 +19814,54 @@ function toggleGolden(flowId, idx){
 // 聚合某条任务（flowId）从「灵感收集箱」到「发布」的全部节点信息（含各节点时间戳）
 function getFlowTimeline(flowId){
   const fid = String(flowId);
-  const stages = [];
+  // 先看各看板当前（实时）数据：能拿到最准确的最新状态
+  const live = {};
   const idea = ideas.find(x=>x.flowId===fid);
-  if(idea) stages.push({ stage:'idea', icon:'💡', label:'灵感收集', time:idea.createdAt||'', fields:[
+  if(idea) live.idea = { stage:'idea', icon:'💡', label:'灵感收集', time:idea.createdAt||'', fields:[
     ['标题', idea.title], ['来源', idea.source], ['备注', idea.note]
-  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  ].filter(f => f[1] && String(f[1]).trim()!=='') };
   let topic = null;
   topicCats.forEach(c => { const it = (c.items||[]).find(x=>String(x.flowId)===fid); if(it) topic = it; });
-  if(topic) stages.push({ stage:'topic', icon:'🎯', label:'加入选题', time:topic.createdAt||'', fields:[
+  if(topic) live.topic = { stage:'topic', icon:'🎯', label:'加入选题', time:topic.createdAt||'', fields:[
     ['选题名', topic.title], ['人群', topic.audience], ['痛点', topic.pain], ['优先级', topic.prio]
-  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  ].filter(f => f[1] && String(f[1]).trim()!=='') };
   let script = null;
   scriptCats.forEach(c => { const it = (c.items||[]).find(x=>String(x.flowId)===fid); if(it) script = it; });
-  if(script) stages.push({ stage:'script', icon:'✍️', label:'脚本创作', time:script.createdAt||'', fields:[
+  if(script) live.script = { stage:'script', icon:'✍️', label:'脚本创作', time:script.createdAt||'', fields:[
     ['标题', script.title], ['脚本', script.script], ['备注', script.note]
-  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  ].filter(f => f[1] && String(f[1]).trim()!=='') };
   const shoot = shootSchedules.find(x=>String(x.flowId)===fid);
-  if(shoot) stages.push({ stage:'shoot', icon:'🎬', label:'拍摄排期', time:shoot.shot && shoot.shotAt ? shoot.shotAt : shoot.createdAt || '', fields:[
+  if(shoot) live.shoot = { stage:'shoot', icon:'🎬', label:'拍摄排期', time:shoot.shot && shoot.shotAt ? shoot.shotAt : shoot.createdAt || '', fields:[
     ['排期时间', (shoot.date||'') + (shoot.time ? ' ' + shoot.time : '')],
     ['备注', shoot.note],
     ['状态', shoot.shot ? '已拍' : '待拍'],
     ['拍摄完成时间', shoot.shotAt || '']
-  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  ].filter(f => f[1] && String(f[1]).trim()!=='') };
   const edit = editBoard.find(x=>String(x.flowId)===fid);
-  if(edit) stages.push({ stage:'edit', icon:'✂️', label:'剪辑', time:edit.createdAt||'', fields:[
+  if(edit) live.edit = { stage:'edit', icon:'✂️', label:'剪辑', time:edit.createdAt||'', fields:[
     ['状态', edit.status==='editing'?'剪辑中':(edit.status==='done'?'已完成':'待剪辑')],
     ['备注', edit.note],
     ['开始剪辑', edit.editStartAt || ''],
     ['剪辑完成', edit.editDoneAt || '']
-  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  ].filter(f => f[1] && String(f[1]).trim()!=='') };
   const pend = pendingPublish.find(x=>String(x.flowId)===fid);
-  if(pend) stages.push({ stage:'pending', icon:'🚀', label:'待发布', time:pend.createdAt||'', fields:[
+  if(pend) live.pending = { stage:'pending', icon:'🚀', label:'待发布', time:pend.createdAt||'', fields:[
     ['标题', pend.title]
-  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  ].filter(f => f[1] && String(f[1]).trim()!=='') };
   const pub = published.find(x=>String(x.flowId)===fid);
-  if(pub) stages.push({ stage:'published', icon:'📱', label:'已发布', time:pub.publishTime||pub.createdAt||'', fields:[
+  if(pub) live.published = { stage:'published', icon:'📱', label:'已发布', time:pub.publishTime||pub.createdAt||'', fields:[
     ['平台', pub.platform], ['发布时间', pub.publishTime], ['备注', pub.note],
     ['黄金1小时', pub.golden && pub.golden.length ? pub.golden.map(g=>(g.done?'✅':'⬜')+' '+g.text).join('；') : '']
-  ].filter(f => f[1] && String(f[1]).trim()!=='') });
+  ].filter(f => f[1] && String(f[1]).trim()!=='') };
+  // 已流转出看板（灵感被采纳 / 拍摄转入剪辑 / 剪辑完成 / 已发布）的节点数据会丢失，
+  // 用 flowItem.history 快照补全，保证「👁 详情」始终展示从灵感到发布的完整过程与时间轴
+  const it = getFlow(fid);
+  const hist = (it && it.history) || [];
+  const stages = [];
+  ['idea','topic','script','shoot','edit','pending','published'].forEach(stage => {
+    if(live[stage]) stages.push(live[stage]);
+    else { const h = hist.find(x => x.stage === stage); if(h) stages.push(h); }
+  });
   return stages;
 }
 // 打开某条任务的「全流程详情」：按时间线展示灵感→选题→脚本→拍摄→剪辑→发布 的全部操作
