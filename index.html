@@ -18951,8 +18951,44 @@ function cleanMoneyOverviewStale(){
   }
 }
 function flowTitle(flowId, fallback){
-  const it = getFlow(flowId);
-  return (it && it.title) ? it.title : (fallback || '未命名');
+  const t = liveFlowTitle(flowId);
+  return t || (fallback || '未命名');
+}
+// 实时标题：无论数据流转到哪个阶段，名字都以「当前阶段在看的板」上的最新数据为准，
+// 这样在任一阶段修改（改名/改脚本/改排期等）后，搞钱概览永远实时跟随。
+function liveFlowTitle(flowId){
+  const fid = String(flowId);
+  const it = flowItems.find(x => x.flowId === fid);
+  const status = (it && it.status) || '';
+  const find = (src) => {
+    if(!src) return '';
+    const list = Array.isArray(src) ? src : (src.items || []);
+    const x = list.find(y => String(y.flowId) === fid);
+    return x && x.title ? x.title : '';
+  };
+  // 1) 优先取「当前状态对应的阶段」——保证在当前阶段改名即同步到概览
+  if(status === 'published' && find(published)) return find(published);
+  if(status === 'editing' || status === 'edit_pending'){
+    if(find(editBoard)) return find(editBoard);
+    if(find(pendingPublish)) return find(pendingPublish);
+  }
+  if(status === 'shoot' && find(shootSchedules)) return find(shootSchedules);
+  if(status === 'script_done' || status === 'script_todo'){
+    for(const c of (scriptCats || [])){ const x = (c.items || []).find(y => String(y.flowId) === fid); if(x && x.title) return x.title; }
+  }
+  if(status === 'selected'){
+    for(const c of (topicCats || [])){ const x = (c.items || []).find(y => String(y.flowId) === fid); if(x && x.title) return x.title; }
+  }
+  // 2) 兜底：任一现存阶段反向（发布→…→灵感）取最新标题
+  let t;
+  if((t = find(published))) return t;
+  if((t = find(pendingPublish))) return t;
+  if((t = find(editBoard))) return t;
+  if((t = find(shootSchedules))) return t;
+  for(const c of (scriptCats || [])){ const x = (c.items || []).find(y => String(y.flowId) === fid); if(x && x.title) return x.title; }
+  for(const c of (topicCats || [])){ const x = (c.items || []).find(y => String(y.flowId) === fid); if(x && x.title) return x.title; }
+  for(const x of (ideas || [])){ if(String(x.flowId) === fid && x.title) return x.title; }
+  return '';
 }
 
 // ============ 搞钱概览 ============
@@ -19022,7 +19058,7 @@ function renderMoneyOverviewList(){
   }
   const rowHtml = it => `<tr>
     <td>${it.createdAt||''}</td>
-    <td><button class="mo-link" onclick="jumpToFlow('${it.flowId}')" title="跳转到我的支线流对应环节">${escapeHtml(it.title||'未命名')}</button></td>
+    <td><button class="mo-link" onclick="jumpToFlow('${it.flowId}')" title="跳转到我的支线流对应环节">${escapeHtml(flowTitle(it.flowId))}</button></td>
     <td>${escapeHtml(it.source||'手动')}</td>
     <td><span class="mo-status-pill" style="background:${flowStatusColor(it.status)}22;color:${flowStatusColor(it.status)};">${flowStatusLabel(it.status)}</span></td>
   </tr>`;
@@ -19032,7 +19068,7 @@ function renderMoneyOverviewList(){
     const date = t[0] || '';
     const time = t[1] || '';
     return `<div class="mo-mcard">
-      <button class="mo-mcard-title" onclick="jumpToFlow('${it.flowId}')">${escapeHtml(it.title||'未命名')}</button>
+      <button class="mo-mcard-title" onclick="jumpToFlow('${it.flowId}')">${escapeHtml(flowTitle(it.flowId))}</button>
       <div class="mo-mcard-meta">
         <span class="mo-mcard-date">${date}${time?' · '+time:''}</span>
         <span class="mo-mcard-source">${escapeHtml(it.source||'手动')}</span>
@@ -19058,7 +19094,7 @@ function renderMoneyOverviewBoard(){
     const items = flowItems.filter(x=>x.status===s.key);
     return `<div class="mo-col">
       <div class="mo-col-head" style="border-color:${s.color};"><span class="mo-col-dot" style="background:${s.color}"></span>${s.label}<span class="mo-col-count">${items.length}</span></div>
-      <div class="mo-col-body">${items.map(it=>`<div class="mo-card"><div class="mo-card-title" onclick="jumpToFlow('${it.flowId}')" title="跳转到我的支线流对应环节">${escapeHtml(it.title||'未命名')}</div><div class="mo-card-time">${it.createdAt||''}</div></div>`).join('') || '<div class="mo-empty">空</div>'}</div>
+      <div class="mo-col-body">${items.map(it=>`<div class="mo-card"><div class="mo-card-title" onclick="jumpToFlow('${it.flowId}')" title="跳转到我的支线流对应环节">${escapeHtml(flowTitle(it.flowId))}</div><div class="mo-card-time">${it.createdAt||''}</div></div>`).join('') || '<div class="mo-empty">空</div>'}</div>
     </div>`;
   }).join('');
 }
