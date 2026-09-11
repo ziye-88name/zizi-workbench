@@ -19268,20 +19268,14 @@ function deleteTopicItem(catId, flowId){
   const cat = topicCats.find(c=>c.id===catId); if(!cat) return;
   const it = cat.items.find(x=>x.flowId===flowId); if(!it) return;
   const title = it.title || '未命名';
-  // 若该选题已生成脚本，脚本还在，则只移除选题、不动下游（概览继续显示，由脚本决定状态）
-  const hasScript = scriptCats.some(c => (c.items || []).some(x => String(x.flowId) === String(flowId)));
-  const msg = hasScript
-    ? '确定删除选题「' + title + '」吗？<br/>该选题已生成脚本，删除后搞钱概览仍会显示这条内容。<b>若要彻底清除，请到「脚本创作」里删除对应脚本。</b>'
-    : '确定删除选题「' + title + '」吗？<br/>相关的排期、剪辑看板、待发布/已发布、搞钱概览数据会同步删除。';
-  showConfirm(msg, ()=>{
-    cat.items = cat.items.filter(x=>x.flowId!==flowId);
-    saveTopicCats();
-    if(!hasScript){ try { purgeFlowDownstream(flowId); } catch(e){} }
-    cleanupFlowItem(flowId);
-    renderTopicBoard(); renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList();
+  // 删除「具体数据」=彻底删除整条内容（灵感/选题/脚本/排期/剪辑/待发布/已发布/概览），与脚本库删除保持一致
+  showConfirm('确定删除选题「' + title + '」吗？<br/>整条内容（选题、脚本、排期、剪辑、待发布/已发布、搞钱概览）会一并删除，不可恢复。', ()=>{
+    purgeFlowAll(flowId);
+    renderTopicBoard(); renderScriptBoard(); renderShootWeek(); renderShootCalendar(); renderEditBoard(); renderPublishList();
     renderMoneyOverviewList(); renderMoneyOverviewBoard();
-    showToast('🗑 选题已删除');
-  }, { title:'删除选题' });
+    try { if(typeof renderHome === 'function') renderHome(); } catch(e){}
+    showToast('🗑 选题及相关数据已删除');
+  }, { title:'删除选题', danger:true });
 }
 // 选题卡片 HTML（draggable 控制是否可拖拽；已写过脚本的选题归入顶部归档区，不可拖拽）
 function topicCardHtml(catId, it, draggable){
@@ -20046,13 +20040,20 @@ function deleteSFCat(board, catId){
   const cfg = SF_BOARDS[board]; if(!cfg) return;
   const cats = cfg.get();
   const cat = cats.find(c => c.id === catId); if(!cat) return;
-  const itemsSnapshot = (cat.items || []).slice();
+  // 某条内容是否仍处于「当前阶段」（页面上可见、删除分类会一起删）：已流转到下游环节的不删、也不级联
+  const isStillInStage = (it) => {
+    const fid = (it.flowId !== undefined && it.flowId !== null) ? it.flowId : null;
+    if(board === 'topic')  return fid != null && !getScriptByFlowId(fid);
+    if(board === 'script') return fid != null && !isScriptFlowed(fid);
+    return true; // 文案等叶子分类：全部算当前阶段
+  };
+  const visibleItems = (cat.items || []).filter(isStillInStage);
   const doDelete = ()=>{
     const i = cats.indexOf(cat);
     if(i >= 0) cats.splice(i, 1);
     cfg.save();
-    // 级联清理该分类下每条内容在下游环节（排期 / 剪辑看板 / 待发布 / 已发布）与搞钱概览中的残留
-    itemsSnapshot.forEach(it => {
+    // 仅对「仍处于当前阶段」的内容做级联清理；已流转到下游（排期/剪辑/待发布/已发布）的内容不受影响
+    visibleItems.forEach(it => {
       const fid = (it.flowId !== undefined && it.flowId !== null) ? it.flowId : it.id;
       if(fid === undefined || fid === null) return;
       try { purgeFlowDownstream(fid); } catch(e){}
@@ -20063,8 +20064,8 @@ function deleteSFCat(board, catId){
     try { renderMoneyOverviewList(); renderMoneyOverviewBoard(); } catch(err){}
     showToast('🗑 分类「' + cat.name + '」已删除');
   };
-  if(cat.items && cat.items.length){
-    showConfirm('分类「' + cat.name + '」下还有 ' + cat.items.length + ' 条内容，删除后这些内容也会一起删掉，确定继续吗？', doDelete, { title:'删除分类' });
+  if(visibleItems.length){
+    showConfirm('分类「' + cat.name + '」下还有 ' + visibleItems.length + ' 条内容（当前阶段），删除后这些内容会一起删掉；已流转到后续环节（如排期/剪辑/发布）的数据不受影响。确定继续吗？', doDelete, { title:'删除分类' });
   } else {
     doDelete();
   }
